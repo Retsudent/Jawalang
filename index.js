@@ -28,6 +28,6 @@ try {
     // 3. Interpreter: Menjalankan AST
     interpreter(ast);
 } catch (err) {
-    console.error(`[Error Jawascript]: ${err.message}`);
+    console.error(`[Error Jawalang]: ${err.message}`);
     process.exit(1);
 }

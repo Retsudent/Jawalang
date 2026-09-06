@@ -1,7 +1,7 @@
-// Iki conto program Jawascript nganggo fitur anyar
+// Iki conto program Jawalang nganggo fitur anyar
 
 // 1. Tulis string langsung
-tulis "Sugeng rawuh ing Jawascript!"
+tulis "Sugeng rawuh ing Jawalang!"
 
 // 2. Deklarasi variabel string lan angka
 gawe jeneng = "Budi"

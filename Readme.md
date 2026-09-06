@@ -1,4 +1,4 @@
-# Jawascript ꦗꦮ
+# Jawalang ꦗꦮ
 
 Basa pamrograman prasaja mawa sintaks basa Jawa (A simple programming language using Javanese syntax) sing lumaku ing dhuwur Node.js.
 
@@ -37,7 +37,7 @@ Basa pamrograman prasaja mawa sintaks basa Jawa (A simple programming language u
 
 ## 🧮 Tingkatan Operator (Operator Precedence)
 
-Expression Engine ing Jawascript nggunakake *Recursive Descent Parser* kanthi hierarki precedence lengkap:
+Expression Engine ing Jawalang nggunakake *Recursive Descent Parser* kanthi hierarki precedence lengkap:
 
 | Tingkat (Prioritas) | Operator | Katrangan |
 | :---: | :---: | :--- |
@@ -53,7 +53,7 @@ Expression Engine ing Jawascript nggunakake *Recursive Descent Parser* kanthi hi
 
 ## ⚙️ Sistem Fungsi (Function Engine)
 
-Jawascript ndhukung deklarasi lan pamanggilan fungsi mawa tembung kunci `fungsi` lan `bali`:
+Jawalang ndhukung deklarasi lan pamanggilan fungsi mawa tembung kunci `fungsi` lan `bali`:
 
 ### Deklarasi & Pamanggilan
 ```jawa
@@ -72,7 +72,7 @@ tulis hasil // 30
 
 ## 🔒 Ruang Lingkup Fungsi (Function Scope)
 
-Sistem scope ing Jawascript nggunakake aturan **Lexical Scoping** kanthi chain environment:
+Sistem scope ing Jawalang nggunakake aturan **Lexical Scoping** kanthi chain environment:
 
 1. **Global Scope**: Variabel sing digawe nganggo `gawe` ing njaba fungsi kasedhiya ing global scope lan bisa diwaca saka njero fungsi yen ora ana variabel lokal sing padha jenenge.
 2. **Local Scope**: Saben pamanggilan fungsi bakal nggawe environment lokal anyar. Parameter lan variabel `gawe` ing njero fungsi duwe ruang lingkup lokal lan ora bakal bocor metu.
@@ -106,7 +106,7 @@ tulis x
 
 ## 🔄 Perulangan (Loop Engine)
 
-Jawascript nyengkuyung rong jinis perulangan:
+Jawalang nyengkuyung rong jinis perulangan:
 - `nalika <kondisi> { ... }` (*while loop*)
 - `kanggo <var> = <start> nganti <end> [langkah <step>] { ... }` (*for loop*)
 - `mandheg` (*break*) lan `lanjut` (*continue*) mung bisa digunakake ing njero blok loop.
@@ -116,7 +116,7 @@ Jawascript nyengkuyung rong jinis perulangan:
 
 ## 📦 Sistem Array (Array Engine)
 
-Jawascript nyedhiyakake struktur data **Array** kanggo nyimpen urutan nilai mawa sintaks kurung kothak `[ ... ]`:
+Jawalang nyedhiyakake struktur data **Array** kanggo nyimpen urutan nilai mawa sintaks kurung kothak `[ ... ]`:
 
 ### 1. Deklarasi & Akses
 ```jawa
@@ -143,7 +143,7 @@ tulis matriks[1]        // [99, 4]
 ```
 
 ### 4. Reference Semantics
-Kaya dene ing JavaScript, array ing Jawascript lumaku adhedhasar referensi (ora nyalin sak kabehe):
+Kaya dene ing JavaScript, array ing Jawalang lumaku adhedhasar referensi (ora nyalin sak kabehe):
 ```jawa
 gawe a = [1, 2, 3]
 gawe b = a
