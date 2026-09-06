@@ -92,7 +92,8 @@ function parser(tokens) {
         if (
             token.type === "NUMBER" ||
             token.type === "STRING" ||
-            token.type === "BOOLEAN"
+            token.type === "BOOLEAN" ||
+            token.type === "NULL"
         ) {
             i++;
             return {

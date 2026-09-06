@@ -269,6 +269,78 @@ tulis umur
 
 ---
 
+## Type System
+
+Jawalang nduweni sistem tipe data runtime (*Runtime Type System V1*) sing konsisten kanthi nilai khusus `null`:
+
+| Tipe Data | Katrangan | Tuladha Nilai (Contoh) | Asil `jinis()` |
+| :--- | :--- | :--- | :--- |
+| `null` | Makna: *ora ana nilai* (ora padha karo string `"null"` utawa `0` utawa `salah`) | `null` | `"null"` |
+| `number` | Bilangan bulat (*integer*) utawa pecahan (*decimal*) | `10`, `3.14`, `-5` | `"number"` |
+| `string` | Rerangkatan karakter ing njero tanda petik | `"Halo"`, `"Jawalang"` | `"string"` |
+| `boolean` | Nilai bebeneran basa Jawa | `bener`, `salah` | `"boolean"` |
+| `array` | Struktur data dhaptar elemen | `[1, 2, 3]`, `[]` | `"array"` |
+| `function` | Fungsi sing wis dideklarasikake nganggo `fungsi` | `halo` | `"function"` |
+
+> [!NOTE]
+> - Angka desimal (pecahan) tetep digolongake menyang tipe `number`. Contone `jinis(10)` lan `jinis(3.14)` kalorone ngasilake `"number"`.
+> - `null` iku nilai runtime murni, dudu string `"null"`.
+
+### Fungsi Built-in `jinis(nilai)`
+
+Fungsi bawaan `jinis()` nampa **tepat 1 argument** lan mbalekake jeneng tipe data ing wujud string:
+
+```jawa
+tulis jinis(null)       // "null"
+tulis jinis(10)         // "number"
+tulis jinis(3.14)       // "number"
+tulis jinis("Halo")     // "string"
+tulis jinis(bener)      // "boolean"
+tulis jinis(salah)      // "boolean"
+tulis jinis([1, 2, 3])  // "array"
+```
+
+### Sifat & Semantics `null`
+
+1. **Deklarasi & Re-assignment**:
+   ```jawa
+   gawe data = null
+   tulis data // null
+
+   data = 100
+   tulis data // 100
+
+   data = null
+   tulis data // null
+   ```
+
+2. **Perbandingan (Equality)**:
+   - `null == null` $\to$ `bener`
+   - `null != null` $\to$ `salah`
+   - `null == salah` $\to$ `salah` (ora dianggep padha karo boolean salah)
+   - `null == bener` $\to$ `salah`
+   - `null == ""` $\to$ `salah` (ora dianggep padha karo string kosong)
+   - `null == 0` $\to$ `salah`
+
+   Tuladha ing percabangan `yen`:
+   ```jawa
+   gawe data = null
+
+   yen data == null {
+       tulis "Data kosong"
+   }
+   ```
+
+3. **Tanpa Implicit Coercion (Validasi Ketat)**:
+   - Operasi aritmatika karo `null` (kayata `null + 10`, `null * 2`, `-null`) bakal **ditolak kanthi runtime error**.
+   - Utilitas string (`motong`, `ngganti`, `gedhe`, `cilik`) utawa array (`dawa`, `jupuk`, `nambah`, `busak`) ora nampa `null` lan bakal ngasilake pesen error sing cetha.
+
+4. **Return Value Fungsi & Built-in**:
+   - Fungsi tanpa `bali` utawa nggunakake `bali` tanpa nilai kanthi otomatis ngasilake `null`.
+   - Built-in mutasi kayata `nambah()` lan `busak()` mbalekake nilai `null`.
+
+---
+
 ## 🚀 Cara Migunakake (Cara Menjalankan)
 
 Priksa manawa **Node.js** wis diinstal ing komputer.
@@ -341,6 +413,13 @@ Tes Input Engine:
 ```bash
 node index.js examples/test_input.jawa
 node index.js examples/test_input_error.jawa
+```
+
+Tes Type System & Null:
+
+```bash
+node index.js examples/test_type.jawa
+node index.js examples/test_type_error.jawa
 ```
 
 ---

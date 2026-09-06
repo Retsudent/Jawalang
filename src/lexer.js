@@ -173,6 +173,11 @@ function lexer(source) {
                     type: "BALI",
                     value: "bali"
                 });
+            } else if (value === "null") {
+                tokens.push({
+                    type: "NULL",
+                    value: null
+                });
             } else {
                 tokens.push({
                     type: "IDENTIFIER",

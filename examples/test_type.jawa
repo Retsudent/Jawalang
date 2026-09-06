@@ -1,0 +1,74 @@
+// ===========================================
+// TEST TYPE SYSTEM + NULL V1 - JAWALANG
+// ==========================================
+
+tulis "=== TYPE SYSTEM TEST ==="
+
+gawe kosong = null
+gawe angka = 10
+gawe desimal = 3.14
+gawe teks = "Halo"
+gawe iya = bener
+gawe oraBener = salah
+gawe data = [1, 2, 3]
+
+tulis jinis(kosong)
+tulis jinis(angka)
+tulis jinis(desimal)
+tulis jinis(teks)
+tulis jinis(iya)
+tulis jinis(oraBener)
+tulis jinis(data)
+
+tulis kosong == null
+tulis kosong != null
+
+tulis angka == null
+tulis teks == null
+
+// Test Null Variable & Reassignment
+gawe x = null
+tulis x
+
+x = 10
+tulis x
+
+x = null
+tulis x
+
+// Test Function Return Null
+fungsi tanpaNilai() {
+    bali
+}
+
+gawe hasilFn = tanpaNilai()
+tulis hasilFn
+tulis jinis(hasilFn)
+
+fungsi tanpaBali() {
+}
+
+gawe hasilFn2 = tanpaBali()
+tulis hasilFn2
+tulis jinis(hasilFn2)
+
+// Test Array Null
+gawe dataCampur = [null, 10, "Jawa", bener]
+tulis dataCampur
+
+tulis jinis(jupuk(dataCampur, 0))
+tulis jinis(jupuk(dataCampur, 1))
+tulis jinis(jupuk(dataCampur, 2))
+tulis jinis(jupuk(dataCampur, 3))
+
+// Test Built-in Null Return
+gawe arr = [1, 2]
+gawe hasilNambah = nambah(arr, 3)
+tulis hasilNambah
+tulis jinis(hasilNambah)
+
+// Test Input Engine
+gawe input = takon("Input: ")
+tulis jinis(input)
+
+tulis "=== SELESAI ==="

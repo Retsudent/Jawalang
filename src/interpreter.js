@@ -67,8 +67,28 @@ function interpreter(ast) {
         }
     }
 
+    // Helper deteksi tipe terpusat (Type System V1)
+    function getType(val) {
+        if (val === null) return "null";
+        if (Array.isArray(val)) return "array";
+        if (typeof val === "boolean") return "boolean";
+        if (typeof val === "number") return "number";
+        if (typeof val === "string") return "string";
+        if (typeof val === "function" || (val && typeof val === "object" && val._isFunction)) return "function";
+        return "unknown";
+    }
+
     // Built-in Function Registry Resmi
     const builtins = {
+        jinis(args) {
+            if (args.length !== 1) {
+                throw new Error(
+                    `Function built-in "jinis" mbutuhake 1 argument, nanging diwenehi ${args.length} (Function built-in "jinis" membutuhkan 1 argument)`
+                );
+            }
+            return getType(args[0]);
+        },
+
         dawa(args) {
             if (args.length !== 1) {
                 throw new Error(
@@ -78,7 +98,7 @@ function interpreter(ast) {
             const target = args[0];
             if (!Array.isArray(target) && typeof target !== "string") {
                 throw new Error(
-                    `dawa() mung bisa digunakake kanggo array utawa string, nanging ditemu: "${typeof target}" (dawa() hanya bisa digunakan untuk array atau string)`
+                    `dawa() mung bisa digunakake kanggo array utawa string, nanging ditemu: "${getType(target)}" (dawa() hanya bisa digunakan untuk array atau string)`
                 );
             }
             return target.length;
@@ -93,7 +113,7 @@ function interpreter(ast) {
             const target = args[0];
             if (!Array.isArray(target)) {
                 throw new Error(
-                    `Mung array sing bisa diindex, nanging ditemu: "${typeof target}" (Hanya array yang bisa diindex)`
+                    `Mung array sing bisa diindex, nanging ditemu: "${getType(target)}" (Hanya array yang bisa diindex)`
                 );
             }
             validateIndex(target, args[1]);
@@ -109,7 +129,7 @@ function interpreter(ast) {
             const target = args[0];
             if (!Array.isArray(target)) {
                 throw new Error(
-                    `nambah() mbutuhake array, nanging ditemu: "${typeof target}" (nambah() membutuhkan array)`
+                    `nambah() mbutuhake array, nanging ditemu: "${getType(target)}" (nambah() membutuhkan array)`
                 );
             }
             target.push(args[1]);
@@ -125,7 +145,7 @@ function interpreter(ast) {
             const target = args[0];
             if (!Array.isArray(target)) {
                 throw new Error(
-                    `busak() mbutuhake array, nanging ditemu: "${typeof target}" (busak() membutuhkan array)`
+                    `busak() mbutuhake array, nanging ditemu: "${getType(target)}" (busak() membutuhkan array)`
                 );
             }
             validateIndex(target, args[1]);
@@ -145,7 +165,7 @@ function interpreter(ast) {
             const target = args[0];
             if (typeof target !== "string") {
                 throw new Error(
-                    `motong() mung bisa digunakake kanggo string, nanging ditemu: "${typeof target}" (motong() hanya bisa digunakan untuk string)`
+                    `motong() mung bisa digunakake kanggo string, nanging ditemu: "${getType(target)}" (motong() hanya bisa digunakan untuk string)`
                 );
             }
             const mulai = args[1];
@@ -197,19 +217,19 @@ function interpreter(ast) {
             const target = args[0];
             if (typeof target !== "string") {
                 throw new Error(
-                    `Argument kapisan ngganti() kudu string, nanging ditemu: "${typeof target}" (Argument pertama ngganti() harus string)`
+                    `Argument kapisan ngganti() kudu string, nanging ditemu: "${getType(target)}" (Argument pertama ngganti() harus string)`
                 );
             }
             const lama = args[1];
             if (typeof lama !== "string") {
                 throw new Error(
-                    `Argument kapindho ngganti() kudu string, nanging ditemu: "${typeof lama}" (Argument kedua ngganti() harus string)`
+                    `Argument kapindho ngganti() kudu string, nanging ditemu: "${getType(lama)}" (Argument kedua ngganti() harus string)`
                 );
             }
             const anyar = args[2];
             if (typeof anyar !== "string") {
                 throw new Error(
-                    `Argument katelu ngganti() kudu string, nanging ditemu: "${typeof anyar}" (Argument ketiga ngganti() harus string)`
+                    `Argument katelu ngganti() kudu string, nanging ditemu: "${getType(anyar)}" (Argument ketiga ngganti() harus string)`
                 );
             }
             return target.split(lama).join(anyar);
@@ -224,7 +244,7 @@ function interpreter(ast) {
             const target = args[0];
             if (typeof target !== "string") {
                 throw new Error(
-                    `gedhe() mung bisa digunakake kanggo string, nanging ditemu: "${typeof target}" (gedhe() hanya bisa digunakan untuk string)`
+                    `gedhe() mung bisa digunakake kanggo string, nanging ditemu: "${getType(target)}" (gedhe() hanya bisa digunakan untuk string)`
                 );
             }
             return target.toUpperCase();
@@ -239,7 +259,7 @@ function interpreter(ast) {
             const target = args[0];
             if (typeof target !== "string") {
                 throw new Error(
-                    `cilik() mung bisa digunakake kanggo string, nanging ditemu: "${typeof target}" (cilik() hanya bisa digunakan untuk string)`
+                    `cilik() mung bisa digunakake kanggo string, nanging ditemu: "${getType(target)}" (cilik() hanya bisa digunakan untuk string)`
                 );
             }
             return target.toLowerCase();
@@ -256,7 +276,7 @@ function interpreter(ast) {
             }
             if (args.length === 1 && typeof args[0] !== "string") {
                 throw new Error(
-                    `Argumen prompt ing "takon" kudu string, nanging ditemu: "${typeof args[0]}" (Argumen prompt pada "takon" harus string)`
+                    `Argumen prompt ing "takon" kudu string, nanging ditemu: "${getType(args[0])}" (Argumen prompt pada "takon" harus string)`
                 );
             }
             const prompt = args.length === 1 ? args[0] : "";
@@ -315,9 +335,22 @@ function interpreter(ast) {
         }
 
         // =========================
+        // NULL
+        // =========================
+        if (node.type === "NULL" || node.type === "NullLiteral") {
+            return null;
+        }
+
+        // =========================
         // VARIABLE
         // =========================
         if (node.type === "IDENTIFIER") {
+            if (env.has(node.value)) {
+                return env.get(node.value);
+            }
+            if (node.value in functions) {
+                return { _isFunction: true, name: node.value, ...functions[node.value] };
+            }
             return env.get(node.value);
         }
 
@@ -381,9 +414,15 @@ function interpreter(ast) {
             const arg = getValue(node.argument, env);
 
             if (node.operator === "-") {
+                if (arg === null) {
+                    throw new Error(`Operator unary "-" ora bisa digunakake kanggo null (Operator unary "-" tidak bisa digunakan untuk null)`);
+                }
                 return -arg;
             }
             if (node.operator === "+") {
+                if (arg === null) {
+                    throw new Error(`Operator unary "+" ora bisa digunakake kanggo null (Operator unary "+" tidak bisa digunakan untuk null)`);
+                }
                 return +arg;
             }
             if (node.operator === "ora") {
@@ -436,15 +475,27 @@ function interpreter(ast) {
             switch (node.operator) {
                 // Matematika
                 case "+":
+                    if (left === null || right === null) {
+                        throw new Error(`Operasi "+" ora bisa digunakake kanggo null (Operasi "+" tidak bisa digunakan untuk null)`);
+                    }
                     return left + right;
 
                 case "-":
+                    if (left === null || right === null) {
+                        throw new Error(`Operasi "-" ora bisa digunakake kanggo null (Operasi "-" tidak bisa digunakan untuk null)`);
+                    }
                     return left - right;
 
                 case "*":
+                    if (left === null || right === null) {
+                        throw new Error(`Operasi "*" ora bisa digunakake kanggo null (Operasi "*" tidak bisa digunakan untuk null)`);
+                    }
                     return left * right;
 
                 case "/":
+                    if (left === null || right === null) {
+                        throw new Error(`Operasi "/" ora bisa digunakake kanggo null (Operasi "/" tidak bisa digunakan untuk null)`);
+                    }
                     if (right === 0) {
                         throw new Error("Ora bisa dibagi 0! (Tidak bisa membagi dengan nol)");
                     }
@@ -452,15 +503,27 @@ function interpreter(ast) {
 
                 // Perbandingan
                 case ">":
+                    if (left === null || right === null) {
+                        throw new Error(`Operasi ">" ora bisa digunakake kanggo null (Operasi ">" tidak bisa digunakan untuk null)`);
+                    }
                     return left > right;
 
                 case "<":
+                    if (left === null || right === null) {
+                        throw new Error(`Operasi "<" ora bisa digunakake kanggo null (Operasi "<" tidak bisa digunakan untuk null)`);
+                    }
                     return left < right;
 
                 case ">=":
+                    if (left === null || right === null) {
+                        throw new Error(`Operasi ">=" ora bisa digunakake kanggo null (Operasi ">=" tidak bisa digunakan untuk null)`);
+                    }
                     return left >= right;
 
                 case "<=":
+                    if (left === null || right === null) {
+                        throw new Error(`Operasi "<=" ora bisa digunakake kanggo null (Operasi "<=" tidak bisa digunakan untuk null)`);
+                    }
                     return left <= right;
 
                 case "==":
@@ -487,7 +550,7 @@ function interpreter(ast) {
         if (node.type === "IndexExpression") {
             const obj = getValue(node.object, env);
             if (!Array.isArray(obj)) {
-                throw new Error(`Mung array sing bisa diindex, nanging ditemu: "${typeof obj}" (Hanya array yang bisa diindex)`);
+                throw new Error(`Mung array sing bisa diindex, nanging ditemu: "${getType(obj)}" (Hanya array yang bisa diindex)`);
             }
             const idx = getValue(node.index, env);
             validateIndex(obj, idx);
@@ -537,7 +600,7 @@ function interpreter(ast) {
             if (node.type === "IndexAssignmentStatement") {
                 const obj = getValue(node.object, env);
                 if (!Array.isArray(obj)) {
-                    throw new Error(`Mung array sing bisa diubah elemente, nanging ditemu: "${typeof obj}" (Hanya array yang bisa diubah elemennya)`);
+                    throw new Error(`Mung array sing bisa diubah elemente, nanging ditemu: "${getType(obj)}" (Hanya array yang bisa diubah elemennya)`);
                 }
                 const idx = getValue(node.index, env);
                 validateIndex(obj, idx);
@@ -552,6 +615,12 @@ function interpreter(ast) {
                 const val = getValue(node.expression, env);
                 if (Array.isArray(val)) {
                     console.log(arrayToString(val));
+                } else if (val === true) {
+                    console.log("bener");
+                } else if (val === false) {
+                    console.log("salah");
+                } else if (val && typeof val === "object" && val._isFunction) {
+                    console.log(`<fungsi ${val.name || ""}>`.trim());
                 } else {
                     console.log(val);
                 }
