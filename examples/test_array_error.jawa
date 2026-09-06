@@ -1,0 +1,9 @@
+// =============================================
+// TEST ARRAY ERROR — JAWASCRIPT
+// =============================================
+// Mencoba mengakses indeks di luar batas ukuran array
+
+gawe angka = [10, 20, 30]
+tulis "Ukuran array: 3"
+tulis "Coba akses angka[5]:"
+tulis angka[5]

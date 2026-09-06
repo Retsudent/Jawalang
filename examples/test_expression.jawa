@@ -1,0 +1,48 @@
+// Basic precedence
+
+tulis 2 + 3 * 4
+tulis 2 * 3 + 4
+tulis 20 / 5 + 2
+tulis 20 - 3 * 2
+
+// Parentheses
+
+tulis (2 + 3) * 4
+tulis 2 * (3 + 4)
+tulis ((2 + 3) * 4)
+
+// Variables
+
+gawe a = 10
+gawe b = 5
+
+tulis a + b * 2
+tulis (a + b) * 2
+
+// Assignment
+
+gawe hasil = a + b * 2
+tulis hasil
+
+// Comparison
+
+yen a + b > 10 {
+    tulis "Benar"
+} liyane {
+    tulis "Salah"
+}
+
+// Boolean
+
+gawe aktif = bener
+
+yen aktif {
+    tulis "Aktif"
+}
+
+// Unary minus
+
+gawe negatif = -10
+tulis negatif
+
+tulis -5 + 10

@@ -1,0 +1,97 @@
+// =============================================
+// TEST ARRAY — JAWASCRIPT
+// =============================================
+
+// 1. Array literal dasar
+tulis "=== 1. Array Literal ==="
+gawe angka = [1, 2, 3]
+tulis angka
+
+// 2. Array kosong
+gawe kosong = []
+tulis kosong
+
+// 3. Array campuran
+gawe campuran = [10, "halo", bener, salah]
+tulis campuran
+
+// 4. Akses index
+tulis "=== 4. Akses Index ==="
+tulis angka[0]
+tulis angka[1]
+tulis angka[2]
+
+// 5. Index dengan ekspresi
+tulis "=== 5. Index Ekspresi ==="
+gawe i = 1
+tulis angka[i]
+tulis angka[i + 1]
+
+// 6. Mutasi array
+tulis "=== 6. Mutasi Array ==="
+angka[1] = 99
+tulis angka
+
+// 7. Array nested
+tulis "=== 7. Array Nested ==="
+gawe data = [[1, 2], [3, 4], [5, 6]]
+tulis data
+tulis data[0]
+tulis data[1][0]
+tulis data[2][1]
+
+// 8. Mutasi nested
+tulis "=== 8. Mutasi Nested ==="
+data[1][0] = 99
+tulis data[1]
+
+// 9. Reference semantics
+tulis "=== 9. Reference Semantics ==="
+gawe a = [10, 20, 30]
+gawe b = a
+b[0] = 999
+tulis a[0]
+
+// 10. Array dalam kondisi yen
+tulis "=== 10. Array dalam YEN ==="
+gawe nilai = [5, 10, 15]
+yen nilai[0] < nilai[1] {
+    tulis "nilai[0] lebih cilik saka nilai[1]"
+}
+
+// 11. Array dalam loop nalika
+tulis "=== 11. Array dalam NALIKA ==="
+gawe idx = 0
+gawe hasil = [100, 200, 300]
+nalika idx < 3 {
+    tulis hasil[idx]
+    idx = idx + 1
+}
+
+// 12. Array dikembalikan dari fungsi
+tulis "=== 12. Array dari Fungsi ==="
+fungsi buatArray() {
+    bali [7, 8, 9]
+}
+gawe arr = buatArray()
+tulis arr
+tulis arr[1]
+
+// 13. Array dikirim ke fungsi
+tulis "=== 13. Array ke Fungsi ==="
+fungsi cetakPertama(arr) {
+    tulis arr[0]
+}
+cetakPertama([42, 43, 44])
+
+// 14. Aritmatika dengan elemen array
+tulis "=== 14. Aritmatika Elemen ==="
+gawe nums = [3, 4, 5]
+tulis nums[0] + nums[1] * nums[2]
+
+// 15. Fungsi hasilkan array, langsung index
+tulis "=== 15. Fungsi Hasilkan Array ==="
+gawe elemenPertama = buatArray()[0]
+tulis elemenPertama
+
+tulis "=== SEMUA TEST ARRAY SELESAI ==="

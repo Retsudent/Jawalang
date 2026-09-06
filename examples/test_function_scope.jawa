@@ -1,0 +1,83 @@
+// GLOBAL LOOKUP
+
+gawe globalNama = "Global"
+
+fungsi bacaGlobal() {
+    tulis globalNama
+}
+
+bacaGlobal()
+
+
+// LOCAL SHADOWING
+
+gawe nama = "Global"
+
+fungsi shadow() {
+    gawe nama = "Local"
+    tulis nama
+}
+
+shadow()
+
+tulis nama
+
+
+// PARAMETER SCOPE
+
+gawe angka = 100
+
+fungsi parameterTest(angka) {
+    tulis angka
+}
+
+parameterTest(20)
+
+tulis angka
+
+
+// GLOBAL ASSIGNMENT
+
+gawe counter = 0
+
+fungsi tambahCounter() {
+    counter = counter + 1
+}
+
+tambahCounter()
+tambahCounter()
+
+tulis counter
+
+
+// LOCAL ASSIGNMENT
+
+gawe nilai = 10
+
+fungsi localTest() {
+    gawe nilai = 100
+    nilai = nilai + 1
+    tulis nilai
+}
+
+localTest()
+
+tulis nilai
+
+
+// RECURSIVE SCOPE
+
+fungsi hitung(n) {
+
+    gawe lokal = n
+
+    yen n <= 0 {
+        bali
+    }
+
+    tulis lokal
+
+    hitung(n - 1)
+}
+
+hitung(3)
