@@ -1,0 +1,8 @@
+// internal_helper.jawa
+fungsi rahasiaTambah(a, b) {
+    bali a + b
+}
+
+ekspor fungsi publikTambah(a, b) {
+    bali rahasiaTambah(a, b) + 100
+}

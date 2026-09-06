@@ -1,0 +1,12 @@
+// functional_v2.jawa — Module fixture kanggo test Collection & Functional Library V2
+fungsi genapInternal(x) {
+    bali x == 2 utawa x == 4 utawa x == 6 utawa x == 8
+}
+
+ekspor fungsi genap(x) {
+    bali genapInternal(x)
+}
+
+ekspor fungsi luwihSakaLima(x) {
+    bali x > 5
+}

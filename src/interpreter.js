@@ -1,4 +1,6 @@
 const fs = require("fs");
+const path = require("path");
+const ModuleLoader = require("./module_loader");
 
 class BreakSignal {}
 class ContinueSignal {}
@@ -54,9 +56,37 @@ class Environment {
     }
 }
 
-function interpreter(ast) {
+function interpreter(ast, filePathOrOptions) {
+    let entryFilePath = typeof filePathOrOptions === "string"
+        ? path.resolve(filePathOrOptions)
+        : (filePathOrOptions && filePathOrOptions.filePath
+            ? path.resolve(filePathOrOptions.filePath)
+            : path.resolve(process.cwd(), "main.jawa"));
+
+    try {
+        if (fs.existsSync(entryFilePath)) {
+            entryFilePath = fs.realpathSync.native ? fs.realpathSync.native(entryFilePath) : fs.realpathSync(entryFilePath);
+        }
+    } catch (_) {}
+
+    const loader = new ModuleLoader();
     const globalEnv = new Environment();
-    const functions = {};
+    const globalFunctions = {};
+    const rootExports = { variables: {}, functions: {} };
+
+    let activeFunctions = globalFunctions;
+    let activeFilePath = entryFilePath;
+    let activeExports = rootExports;
+
+    // Register root entry module in loader cache
+    loader.cache.set(entryFilePath, {
+        status: "LOADING",
+        canonicalPath: entryFilePath,
+        env: globalEnv,
+        functions: globalFunctions,
+        exports: rootExports
+    });
+
     const MAX_LOOP_ITERATIONS = 100000;
     const MAX_CALL_STACK = 500;
     let callStackDepth = 0;
@@ -391,8 +421,347 @@ function interpreter(ast) {
                 );
             }
             return Object.prototype.hasOwnProperty.call(target, key);
+        },
+
+        // =====================================
+        // FUNCTIONAL COLLECTION ENGINE V1
+        // =====================================
+        terapkan(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "terapkan" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "terapkan" membutuhkan 2 argument)`
+                );
+            }
+            const fn = args[0];
+            if (getType(fn) !== "function") {
+                throw new Error(
+                    `Argument kapisan terapkan() kudu function, nanging ditemu: "${getType(fn)}" (Argument pertama terapkan() harus function)`
+                );
+            }
+            const arr = args[1];
+            if (!Array.isArray(arr)) {
+                throw new Error(
+                    `Argument kapindho terapkan() kudu array, nanging ditemu: "${getType(arr)}" (Argument kedua terapkan() harus array)`
+                );
+            }
+
+            const result = [];
+            for (let idx = 0; idx < arr.length; idx++) {
+                const mapped = invokeCallable(fn, [arr[idx]], fn.name || "callback");
+                result.push(mapped);
+            }
+            return result;
+        },
+
+        saring(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "saring" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "saring" membutuhkan 2 argument)`
+                );
+            }
+            const fn = args[0];
+            if (getType(fn) !== "function") {
+                throw new Error(
+                    `Argument kapisan saring() kudu function, nanging ditemu: "${getType(fn)}" (Argument pertama saring() harus function)`
+                );
+            }
+            const arr = args[1];
+            if (!Array.isArray(arr)) {
+                throw new Error(
+                    `Argument kapindho saring() kudu array, nanging ditemu: "${getType(arr)}" (Argument kedua saring() harus array)`
+                );
+            }
+
+            const result = [];
+            for (let idx = 0; idx < arr.length; idx++) {
+                const predicateResult = invokeCallable(fn, [arr[idx]], fn.name || "callback");
+                if (typeof predicateResult !== "boolean") {
+                    throw new Error(
+                        `Callback saring() kudu ngasilake boolean (bener/salah), nanging ngasilake: "${getType(predicateResult)}" (Callback saring() harus menghasilkan boolean)`
+                    );
+                }
+                if (predicateResult === true) {
+                    result.push(arr[idx]);
+                }
+            }
+            return result;
+        },
+
+        itung(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "itung" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "itung" membutuhkan 2 argument)`
+                );
+            }
+            const fn = args[0];
+            if (getType(fn) !== "function") {
+                throw new Error(
+                    `Argument kapisan itung() kudu function, nanging ditemu: "${getType(fn)}" (Argument pertama itung() harus function)`
+                );
+            }
+            const arr = args[1];
+            if (!Array.isArray(arr)) {
+                throw new Error(
+                    `Argument kapindho itung() kudu array, nanging ditemu: "${getType(arr)}" (Argument kedua itung() harus array)`
+                );
+            }
+
+            let count = 0;
+            for (let idx = 0; idx < arr.length; idx++) {
+                const predicateResult = invokeCallable(fn, [arr[idx]], fn.name || "callback");
+                if (typeof predicateResult !== "boolean") {
+                    throw new Error(
+                        `Callback itung() kudu ngasilake boolean (bener/salah), nanging ngasilake: "${getType(predicateResult)}" (Callback itung() harus menghasilkan boolean)`
+                    );
+                }
+                if (predicateResult === true) {
+                    count++;
+                }
+            }
+            return count;
+        },
+
+        // =====================================
+        // COLLECTION & FUNCTIONAL STANDARD LIBRARY V2
+        // =====================================
+        gabung(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "gabung" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "gabung" membutuhkan 2 argument)`
+                );
+            }
+            const arr = args[0];
+            if (!Array.isArray(arr)) {
+                throw new Error(
+                    `Argument kapisan gabung() kudu array, nanging ditemu: "${getType(arr)}" (Argument pertama gabung() harus array)`
+                );
+            }
+            const pemisah = args[1];
+            if (typeof pemisah !== "string") {
+                throw new Error(
+                    `Argument kapindho gabung() kudu string, nanging ditemu: "${getType(pemisah)}" (Argument kedua gabung() harus string)`
+                );
+            }
+            if (arr.length === 0) {
+                return "";
+            }
+            return arr.map(el => formatValue(el, true)).join(pemisah);
+        },
+
+        balik(args) {
+            if (args.length !== 1) {
+                throw new Error(
+                    `Function built-in "balik" mbutuhake 1 argument, nanging diwenehi ${args.length} (Function built-in "balik" membutuhkan 1 argument)`
+                );
+            }
+            const arr = args[0];
+            if (!Array.isArray(arr)) {
+                throw new Error(
+                    `Argument kapisan balik() kudu array, nanging ditemu: "${getType(arr)}" (Argument pertama balik() harus array)`
+                );
+            }
+            const result = [];
+            for (let i = arr.length - 1; i >= 0; i--) {
+                result.push(arr[i]);
+            }
+            return result;
+        },
+
+        urut(args) {
+            if (args.length !== 1) {
+                throw new Error(
+                    `Function built-in "urut" mbutuhake 1 argument, nanging diwenehi ${args.length} (Function built-in "urut" membutuhkan 1 argument)`
+                );
+            }
+            const arr = args[0];
+            if (!Array.isArray(arr)) {
+                throw new Error(
+                    `Argument kapisan urut() kudu array, nanging ditemu: "${getType(arr)}" (Argument pertama urut() harus array)`
+                );
+            }
+            for (let i = 0; i < arr.length; i++) {
+                if (typeof arr[i] !== "number" || isNaN(arr[i])) {
+                    throw new Error(
+                        `Elemen array ing urut() kudu kabeh angka (number), nanging ditemu: "${getType(arr[i])}" (Semua elemen array pada urut() harus number)`
+                    );
+                }
+            }
+            const copy = [...arr];
+            copy.sort((a, b) => a - b);
+            return copy;
+        },
+
+        ana(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "ana" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "ana" membutuhkan 2 argument)`
+                );
+            }
+            const fn = args[0];
+            if (getType(fn) !== "function") {
+                throw new Error(
+                    `Argument kapisan ana() kudu function, nanging ditemu: "${getType(fn)}" (Argument pertama ana() harus function)`
+                );
+            }
+            const arr = args[1];
+            if (!Array.isArray(arr)) {
+                throw new Error(
+                    `Argument kapindho ana() kudu array, nanging ditemu: "${getType(arr)}" (Argument kedua ana() harus array)`
+                );
+            }
+            for (let idx = 0; idx < arr.length; idx++) {
+                const predicateResult = invokeCallable(fn, [arr[idx]], fn.name || "callback");
+                if (typeof predicateResult !== "boolean") {
+                    throw new Error(
+                        `Callback ana() kudu ngasilake boolean (bener/salah), nanging ngasilake: "${getType(predicateResult)}" (Callback ana() harus menghasilkan boolean)`
+                    );
+                }
+                if (predicateResult === true) {
+                    return true;
+                }
+            }
+            return false;
+        },
+
+        kabeh(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "kabeh" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "kabeh" membutuhkan 2 argument)`
+                );
+            }
+            const fn = args[0];
+            if (getType(fn) !== "function") {
+                throw new Error(
+                    `Argument kapisan kabeh() kudu function, nanging ditemu: "${getType(fn)}" (Argument pertama kabeh() harus function)`
+                );
+            }
+            const arr = args[1];
+            if (!Array.isArray(arr)) {
+                throw new Error(
+                    `Argument kapindho kabeh() kudu array, nanging ditemu: "${getType(arr)}" (Argument kedua kabeh() harus array)`
+                );
+            }
+            for (let idx = 0; idx < arr.length; idx++) {
+                const predicateResult = invokeCallable(fn, [arr[idx]], fn.name || "callback");
+                if (typeof predicateResult !== "boolean") {
+                    throw new Error(
+                        `Callback kabeh() kudu ngasilake boolean (bener/salah), nanging ngasilake: "${getType(predicateResult)}" (Callback kabeh() harus menghasilkan boolean)`
+                    );
+                }
+                if (predicateResult === false) {
+                    return false;
+                }
+            }
+            return true;
+        },
+
+        golek(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "golek" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "golek" membutuhkan 2 argument)`
+                );
+            }
+            const fn = args[0];
+            if (getType(fn) !== "function") {
+                throw new Error(
+                    `Argument kapisan golek() kudu function, nanging ditemu: "${getType(fn)}" (Argument pertama golek() harus function)`
+                );
+            }
+            const arr = args[1];
+            if (!Array.isArray(arr)) {
+                throw new Error(
+                    `Argument kapindho golek() kudu array, nanging ditemu: "${getType(arr)}" (Argument kedua golek() harus array)`
+                );
+            }
+            for (let idx = 0; idx < arr.length; idx++) {
+                const predicateResult = invokeCallable(fn, [arr[idx]], fn.name || "callback");
+                if (typeof predicateResult !== "boolean") {
+                    throw new Error(
+                        `Callback golek() kudu ngasilake boolean (bener/salah), nanging ngasilake: "${getType(predicateResult)}" (Callback golek() harus menghasilkan boolean)`
+                    );
+                }
+                if (predicateResult === true) {
+                    return arr[idx];
+                }
+            }
+            return null;
+        },
+
+        indeks(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "indeks" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "indeks" membutuhkan 2 argument)`
+                );
+            }
+            const arr = args[0];
+            if (!Array.isArray(arr)) {
+                throw new Error(
+                    `Argument kapisan indeks() kudu array, nanging ditemu: "${getType(arr)}" (Argument pertama indeks() harus array)`
+                );
+            }
+            const val = args[1];
+            for (let idx = 0; idx < arr.length; idx++) {
+                if (arr[idx] === val) {
+                    return idx;
+                }
+            }
+            return -1;
         }
     };
+
+    function invokeUserFunction(fn, evaluatedArgs, displayName) {
+        const name = displayName || fn.name || "anonim";
+
+        if (evaluatedArgs.length !== fn.parameters.length) {
+            throw new Error(
+                `Function "${name}" mbutuhake ${fn.parameters.length} argument, nanging diwenehi ${evaluatedArgs.length}`
+            );
+        }
+
+        if (callStackDepth >= MAX_CALL_STACK) {
+            throw new Error("Batas kedalaman pemanggilan function terlampaui (Potensi infinite recursion)");
+        }
+
+        // Lexical scope! Parent env adalah fn.env (environment tempat fungsi dideklarasikan)
+        const localEnv = new Environment(fn.env || globalEnv);
+
+        for (let p = 0; p < fn.parameters.length; p++) {
+            localEnv.define(fn.parameters[p], evaluatedArgs[p]);
+        }
+
+        callStackDepth++;
+        try {
+            execute(fn.body, localEnv, fn.functions || activeFunctions, fn.filePath || activeFilePath);
+            return null; // Return default jika fungsi selesai tanpa "bali"
+        } catch (e) {
+            if (e instanceof ReturnSignal) {
+                return e.value;
+            }
+            throw e;
+        } finally {
+            callStackDepth--;
+        }
+    }
+
+    function invokeCallable(candidate, evaluatedArgs, displayName) {
+        if (candidate && typeof candidate === "object" && candidate._isFunction) {
+            if (candidate._isBuiltin) {
+                const builtinFn = builtins[candidate.name];
+                if (!builtinFn) {
+                    throw new Error(`Function built-in "${candidate.name}" durung digawe`);
+                }
+                return builtinFn(evaluatedArgs);
+            }
+            return invokeUserFunction(candidate, evaluatedArgs, displayName || candidate.name);
+        }
+        if (typeof candidate === "function") {
+            return candidate(evaluatedArgs);
+        }
+        if (displayName) {
+            throw new Error(`Variabel "${displayName}" dudu fungsi (Variabel "${displayName}" bukan function)`);
+        }
+        throw new Error(`Nilai ora bisa diceluk minangka fungsi (Nilai bukan function): "${formatValue(candidate, false)}"`);
+    }
 
     function getValue(node, env) {
         if (!node) {
@@ -434,8 +803,15 @@ function interpreter(ast) {
             if (env.has(node.value)) {
                 return env.get(node.value);
             }
-            if (node.value in functions) {
-                return { _isFunction: true, name: node.value, ...functions[node.value] };
+            if (activeFunctions && node.value in activeFunctions) {
+                return activeFunctions[node.value];
+            }
+            if (node.value in builtins) {
+                return {
+                    _isFunction: true,
+                    _isBuiltin: true,
+                    name: node.value
+                };
             }
             return env.get(node.value);
         }
@@ -444,53 +820,41 @@ function interpreter(ast) {
         // FUNCTION CALL (CallExpression)
         // =========================
         if (node.type === "CallExpression") {
-            const callee = node.callee;
-
-            // Evaluasi argument pada scope pemanggil (caller environment)
             const evaluatedArgs = node.arguments.map(arg => getValue(arg, env));
+            const calleeNode = node.callee;
 
-            // 1. Cek User-defined function (prioritas luwih dhuwur, ngidini override)
-            if (callee in functions) {
-                const fn = functions[callee];
-
-                if (evaluatedArgs.length !== fn.parameters.length) {
-                    throw new Error(
-                        `Function "${callee}" mbutuhake ${fn.parameters.length} argument, nanging diwenehi ${evaluatedArgs.length}`
-                    );
-                }
-
-                if (callStackDepth >= MAX_CALL_STACK) {
-                    throw new Error("Batas kedalaman pemanggilan function terlampaui (Potensi infinite recursion)");
-                }
-
-                // Buat local environment baru yang merujuk ke globalEnv
-                const localEnv = new Environment(globalEnv);
-
-                for (let p = 0; p < fn.parameters.length; p++) {
-                    localEnv.define(fn.parameters[p], evaluatedArgs[p]);
-                }
-
-                callStackDepth++;
-                try {
-                    execute(fn.body, localEnv);
-                    return null; // Return default jika fungsi selesai tanpa "bali"
-                } catch (e) {
-                    if (e instanceof ReturnSignal) {
-                        return e.value;
-                    }
-                    throw e;
-                } finally {
-                    callStackDepth--;
-                }
+            let calleeName = null;
+            if (typeof calleeNode === "string") {
+                calleeName = calleeNode;
+            } else if (calleeNode && calleeNode.type === "IDENTIFIER") {
+                calleeName = calleeNode.value;
             }
 
-            // 2. Cek Built-in function
-            if (callee in builtins) {
-                return builtins[callee](evaluatedArgs);
-            }
+            if (calleeName !== null) {
+                // 1. Cek variabel ing env (bisa uga nyimpen function value)
+                if (env.has(calleeName)) {
+                    const candidate = env.get(calleeName);
+                    return invokeCallable(candidate, evaluatedArgs, calleeName);
+                }
 
-            // 3. Undefined function
-            throw new Error(`Function "${callee}" durung digawe`);
+                // 2. Cek User-defined function ing activeFunctions
+                if (activeFunctions && calleeName in activeFunctions) {
+                    const fn = activeFunctions[calleeName];
+                    return invokeCallable(fn, evaluatedArgs, calleeName);
+                }
+
+                // 3. Cek Built-in function
+                if (calleeName in builtins) {
+                    return builtins[calleeName](evaluatedArgs);
+                }
+
+                // 4. Undefined function
+                throw new Error(`Function "${calleeName}" durung digawe`);
+            } else {
+                // Callee ekspresi kompleks (misal: operasi[0](2, 3), obj["aksi"](), fn()())
+                const candidate = getValue(calleeNode, env);
+                return invokeCallable(candidate, evaluatedArgs);
+            }
         }
 
         // =========================
@@ -720,19 +1084,32 @@ function interpreter(ast) {
         return "[" + val.map(arrayToString).join(", ") + "]";
     }
 
-    function execute(statements, env) {
+    function execute(statements, env, currentFunctions, currentFilePath, currentExports) {
         if (!Array.isArray(statements)) {
             return;
         }
 
-        for (const node of statements) {
-            // =========================
-            // DEKLARASI VARIABEL (gawe ...)
-            // =========================
-            if (node.type === "VariableDeclaration") {
-                env.define(node.name, getValue(node.value, env));
-                continue;
-            }
+        const prevFunctions = activeFunctions;
+        const prevFilePath = activeFilePath;
+        const prevExports = activeExports;
+
+        if (currentFunctions !== undefined) activeFunctions = currentFunctions;
+        if (currentFilePath !== undefined) activeFilePath = currentFilePath;
+        if (currentExports !== undefined) activeExports = currentExports;
+
+        try {
+            for (const node of statements) {
+                // =========================
+                // DEKLARASI VARIABEL (gawe ...)
+                // =========================
+                if (node.type === "VariableDeclaration") {
+                    const val = getValue(node.value, env);
+                    env.define(node.name, val);
+                    if (node.isExported && activeExports) {
+                        activeExports.variables[node.name] = val;
+                    }
+                    continue;
+                }
 
             // =========================
             // UBAH NILAI VARIABEL (x = ...)
@@ -928,10 +1305,92 @@ function interpreter(ast) {
             // FUNGSI (Deklarasi Fungsi)
             // =========================
             if (node.type === "FunctionDeclaration") {
-                if (node.name in functions) {
+                if (activeFunctions && node.name in activeFunctions) {
                     throw new Error(`Function "${node.name}" wis ana`);
                 }
-                functions[node.name] = node;
+                const fnObj = {
+                    _isFunction: true,
+                    name: node.name,
+                    parameters: node.parameters,
+                    body: node.body,
+                    isExported: !!node.isExported,
+                    env: env,
+                    functions: activeFunctions,
+                    filePath: activeFilePath
+                };
+                if (activeFunctions) {
+                    activeFunctions[node.name] = fnObj;
+                }
+                if (node.isExported && activeExports) {
+                    activeExports.functions[node.name] = fnObj;
+                }
+                continue;
+            }
+
+            // =========================
+            // EKSPOR (Export Statement)
+            // =========================
+            if (node.type === "ExportStatement") {
+                const decl = node.declaration;
+                if (decl.type === "VariableDeclaration") {
+                    const val = getValue(decl.value, env);
+                    env.define(decl.name, val);
+                    if (activeExports) {
+                        activeExports.variables[decl.name] = val;
+                    }
+                } else if (decl.type === "FunctionDeclaration") {
+                    if (activeFunctions && decl.name in activeFunctions) {
+                        throw new Error(`Function "${decl.name}" wis ana`);
+                    }
+                    const fnObj = {
+                        _isFunction: true,
+                        name: decl.name,
+                        parameters: decl.parameters,
+                        body: decl.body,
+                        isExported: true,
+                        env: env,
+                        functions: activeFunctions,
+                        filePath: activeFilePath
+                    };
+                    if (activeFunctions) {
+                        activeFunctions[decl.name] = fnObj;
+                    }
+                    if (activeExports) {
+                        activeExports.functions[decl.name] = fnObj;
+                    }
+                }
+                continue;
+            }
+
+            // =========================
+            // IMPOR (Import Statement)
+            // =========================
+            if (node.type === "ImportStatement") {
+                const canonicalPath = loader.resolve(node.path, activeFilePath);
+                const mod = loader.load(canonicalPath, (modAst, modPath, modRecord) => {
+                    const modEnv = new Environment(null);
+                    const modFunctions = {};
+                    modRecord.env = modEnv;
+                    modRecord.functions = modFunctions;
+                    execute(modAst, modEnv, modFunctions, modPath, modRecord.exports);
+                    // Re-sync exported variables from modEnv with their final post-init values
+                    for (const varName of Object.keys(modRecord.exports.variables)) {
+                        if (modEnv.has(varName)) {
+                            modRecord.exports.variables[varName] = modEnv.get(varName);
+                        }
+                    }
+                });
+
+                // Copy exported variables into current env
+                for (const [varName, varVal] of Object.entries(mod.exports.variables)) {
+                    env.define(varName, varVal);
+                }
+                // Copy exported functions into activeFunctions
+                for (const [fnName, fnObj] of Object.entries(mod.exports.functions)) {
+                    if (activeFunctions) {
+                        activeFunctions[fnName] = fnObj;
+                    }
+                }
                 continue;
             }
 
@@ -996,11 +1455,24 @@ function interpreter(ast) {
 
             throw new Error(`Statement ora dikenal: "${node.type}"`);
         }
+    } finally {
+        activeFunctions = prevFunctions;
+        activeFilePath = prevFilePath;
+        activeExports = prevExports;
     }
+}
 
     try {
-        execute(ast, globalEnv);
+        execute(ast, globalEnv, globalFunctions, entryFilePath, rootExports);
+        const rootRecord = loader.cache.get(entryFilePath);
+        if (rootRecord) {
+            rootRecord.status = "LOADED";
+        }
     } catch (e) {
+        const rootRecord = loader.cache.get(entryFilePath);
+        if (rootRecord && rootRecord.status === "LOADING") {
+            rootRecord.status = "FAILED";
+        }
         if (e instanceof BreakSignal) {
             throw new Error('"mandheg" mung bisa digunakake ing njero loop');
         }

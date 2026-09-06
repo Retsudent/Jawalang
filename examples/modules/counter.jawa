@@ -1,0 +1,11 @@
+// counter.jawa
+ekspor gawe hitungan = 0
+
+ekspor fungsi tambahHitungan() {
+    hitungan = hitungan + 1
+    bali hitungan
+}
+
+ekspor fungsi getHitungan() {
+    bali hitungan
+}

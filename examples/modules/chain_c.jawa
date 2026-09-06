@@ -1,0 +1,4 @@
+// chain_c.jawa
+ekspor fungsi nilaiC() {
+    bali 300
+}

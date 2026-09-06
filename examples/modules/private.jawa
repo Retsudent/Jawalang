@@ -1,0 +1,8 @@
+// private.jawa
+gawe rahasia = "kunci_rahasia_123"
+
+ekspor gawe publik = "data_publik"
+
+ekspor fungsi getRahasia() {
+    bali rahasia
+}

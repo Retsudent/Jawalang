@@ -2,6 +2,7 @@ function parser(tokens) {
     let i = 0;
     let loopDepth = 0;
     let inFunction = false;
+    let blockDepth = 0;
 
     // 1. parsePrimary()
     // Menangani: NUMBER, STRING, BOOLEAN, IDENTIFIER / CallExpression, ekspresi ( ... ), dan Array [ ... ]
@@ -104,38 +105,9 @@ function parser(tokens) {
             };
         }
 
-        // Identifier atau Function Call
+        // Identifier
         if (token.type === "IDENTIFIER") {
             i++;
-
-            // Jika diikuti kurung buka "(", ini adalah CallExpression: nama(...)
-            if (tokens[i] && tokens[i].type === "LEFT_PAREN") {
-                i++; // lewati "("
-
-                const args = [];
-                if (tokens[i] && tokens[i].type !== "RIGHT_PAREN") {
-                    while (true) {
-                        args.push(parseExpression());
-                        if (tokens[i] && tokens[i].type === "COMMA") {
-                            i++; // lewati ","
-                        } else {
-                            break;
-                        }
-                    }
-                }
-
-                if (!tokens[i] || tokens[i].type !== "RIGHT_PAREN") {
-                    throw new Error('Kurung buka "(" ing pamanggilan fungsi kudu ditutup nganggo ")"');
-                }
-                i++; // lewati ")"
-
-                return {
-                    type: "CallExpression",
-                    callee: token.value,
-                    arguments: args
-                };
-            }
-
             return {
                 type: "IDENTIFIER",
                 value: token.value
@@ -159,29 +131,56 @@ function parser(tokens) {
     }
 
     // 1b. parsePostfix()
-    // Menangani akses index array setelah primary: arr[0], fn()[1], data[0][1]
+    // Menangani akses index array lan panggilan fungsi berantai: arr[0], fn()[1], operasi[0](2, 3), obj["aksi"]()
     function parsePostfix() {
         let node = parsePrimary();
 
-        while (tokens[i] && tokens[i].type === "LEFT_BRACKET") {
-            i++; // lewati "["
+        while (tokens[i] && (tokens[i].type === "LEFT_BRACKET" || tokens[i].type === "LEFT_PAREN")) {
+            if (tokens[i].type === "LEFT_BRACKET") {
+                i++; // lewati "["
 
-            if (i >= tokens.length) {
-                throw new Error('Dibutuhake ekspresi index sawise "["');
+                if (i >= tokens.length) {
+                    throw new Error('Dibutuhake ekspresi index sawise "["');
+                }
+
+                const index = parseExpression();
+
+                if (!tokens[i] || tokens[i].type !== "RIGHT_BRACKET") {
+                    throw new Error('Kurung kotak "[" ing akses index kudu ditutup nganggo "]"');
+                }
+                i++; // lewati "]"
+
+                node = {
+                    type: "IndexExpression",
+                    object: node,
+                    index: index
+                };
+            } else if (tokens[i].type === "LEFT_PAREN") {
+                i++; // lewati "("
+
+                const args = [];
+                if (tokens[i] && tokens[i].type !== "RIGHT_PAREN") {
+                    while (true) {
+                        args.push(parseExpression());
+                        if (tokens[i] && tokens[i].type === "COMMA") {
+                            i++; // lewati ","
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                if (!tokens[i] || tokens[i].type !== "RIGHT_PAREN") {
+                    throw new Error('Kurung buka "(" ing pamanggilan fungsi kudu ditutup nganggo ")"');
+                }
+                i++; // lewati ")"
+
+                node = {
+                    type: "CallExpression",
+                    callee: node,
+                    arguments: args
+                };
             }
-
-            const index = parseExpression();
-
-            if (!tokens[i] || tokens[i].type !== "RIGHT_BRACKET") {
-                throw new Error('Kurung kotak "[" ing akses index kudu ditutup nganggo "]"');
-            }
-            i++; // lewati "]"
-
-            node = {
-                type: "IndexExpression",
-                object: node,
-                index: index
-            };
         }
 
         return node;
@@ -352,10 +351,13 @@ function parser(tokens) {
         i++; // lewati "{"
 
         const statements = [];
+        blockDepth++;
 
         while (i < tokens.length && tokens[i].type !== "RIGHT_BRACE") {
             statements.push(parseStatement());
         }
+
+        blockDepth--;
 
         if (!tokens[i] || tokens[i].type !== "RIGHT_BRACE") {
             throw new Error('Blok durung ditutup nganggo "}"');
@@ -368,6 +370,17 @@ function parser(tokens) {
 
     function parseStatement() {
         const token = tokens[i];
+
+        // =========================
+        // KURUNG BUKA / KOTAK (Pemanggilan fungsi berperingkat / parenthesized / array call minangka statement)
+        // =========================
+        if (token.type === "LEFT_PAREN" || token.type === "LEFT_BRACKET") {
+            const expr = parseExpression();
+            return {
+                type: "ExpressionStatement",
+                expression: expr
+            };
+        }
 
         // =========================
         // GAWE (Deklarasi variabel baru)
@@ -404,8 +417,36 @@ function parser(tokens) {
         // IDENTIFIER (Re-assignment, Index Assignment, ATAU Function Call Standalone)
         // =========================
         if (token.type === "IDENTIFIER") {
-            // Index assignment: nama[...][...] = ...
+            // Index assignment: nama[...][...] = ... UTAWA Function Call liwat index: nama[...](...)
             if (tokens[i + 1] && tokens[i + 1].type === "LEFT_BRACKET") {
+                // Scan forward to see if followed by '(' (ExpressionStatement)
+                let look = i + 1;
+                let bDepth = 0;
+                while (look < tokens.length) {
+                    if (tokens[look].type === "LEFT_BRACKET") {
+                        bDepth++;
+                    } else if (tokens[look].type === "RIGHT_BRACKET") {
+                        bDepth--;
+                        if (bDepth === 0) {
+                            if (tokens[look + 1] && tokens[look + 1].type === "LEFT_BRACKET") {
+                                look++;
+                                continue;
+                            }
+                            look++;
+                            break;
+                        }
+                    }
+                    look++;
+                }
+
+                if (tokens[look] && tokens[look].type === "LEFT_PAREN") {
+                    const expr = parseExpression();
+                    return {
+                        type: "ExpressionStatement",
+                        expression: expr
+                    };
+                }
+
                 i++; // lewati nama identifer
                 let objectNode = { type: "IDENTIFIER", value: token.value };
 
@@ -808,6 +849,8 @@ function parser(tokens) {
                 "COBA",
                 "TANGKEP",
                 "LEMPAR",
+                "IMPOR",
+                "EKSPOR",
                 "RIGHT_BRACE"
             ];
 
@@ -821,6 +864,74 @@ function parser(tokens) {
                 type: "ThrowStatement",
                 expression: expr
             };
+        }
+
+        // =========================
+        // IMPOR (Import Module)
+        // =========================
+        if (token.type === "IMPOR") {
+            if (blockDepth > 0) {
+                if (inFunction) {
+                    throw new Error('"impor" ora bisa digunakake ing njero fungsi (Impor hanya bisa digunakan di top-level module)');
+                }
+                if (loopDepth > 0) {
+                    throw new Error('"impor" ora bisa digunakake ing njero loop (Impor hanya bisa digunakan di top-level module)');
+                }
+                throw new Error('"impor" mung bisa digunakake ing top-level module (Impor hanya bisa digunakan di top-level module)');
+            }
+            i++; // lewati "impor"
+
+            const pathToken = tokens[i];
+            if (!pathToken || pathToken.type !== "STRING") {
+                throw new Error('Dibutuhake string path modul sawise "impor" (misal: impor "nama_modul")');
+            }
+            i++; // lewati string path
+
+            return {
+                type: "ImportStatement",
+                path: pathToken.value
+            };
+        }
+
+        // =========================
+        // EKSPOR (Export Symbol)
+        // =========================
+        if (token.type === "EKSPOR") {
+            if (blockDepth > 0) {
+                if (inFunction) {
+                    throw new Error('"ekspor" ora bisa digunakake ing njero fungsi (Ekspor hanya bisa digunakan di top-level module)');
+                }
+                if (loopDepth > 0) {
+                    throw new Error('"ekspor" ora bisa digunakake ing njero loop (Ekspor hanya bisa digunakan di top-level module)');
+                }
+                throw new Error('"ekspor" mung bisa digunakake ing top-level module (Ekspor hanya bisa digunakan di top-level module)');
+            }
+            i++; // lewati "ekspor"
+
+            const nextToken = tokens[i];
+            if (!nextToken) {
+                throw new Error('Dibutuhake deklarasi fungsi utawa variabel sawise "ekspor" (contoh: ekspor fungsi ... utawa ekspor gawe ...)');
+            }
+
+            if (nextToken.type === "FUNGSI") {
+                const decl = parseStatement();
+                decl.isExported = true;
+                return {
+                    type: "ExportStatement",
+                    declaration: decl
+                };
+            }
+
+            if (nextToken.type === "GAWE") {
+                const decl = parseStatement();
+                decl.isExported = true;
+                return {
+                    type: "ExportStatement",
+                    declaration: decl
+                };
+            }
+
+            throw new Error(`Dibutuhake deklarasi fungsi utawa variabel sawise "ekspor", nanging ditemu: "${nextToken.value || nextToken.type}"`);
         }
 
         // =========================
@@ -846,6 +957,8 @@ function parser(tokens) {
                 "COBA",
                 "TANGKEP",
                 "LEMPAR",
+                "IMPOR",
+                "EKSPOR",
                 "RIGHT_BRACE"
             ];
 

@@ -1,0 +1,6 @@
+// circular_a.jawa
+impor "circular_b"
+
+ekspor fungsi a() {
+    bali "a"
+}

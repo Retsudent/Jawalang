@@ -1,0 +1,11 @@
+// complex_data.jawa
+ekspor gawe daftar = [10, 20, 30]
+ekspor gawe kamus = {"nama": "Budi", "umur": 20}
+
+ekspor fungsi hitungDawa(arr) {
+    bali dawa(arr)
+}
+
+ekspor fungsi njupukKunci(obj) {
+    bali kunci(obj)
+}

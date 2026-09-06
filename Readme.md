@@ -29,6 +29,8 @@ Basa pamrograman prasaja mawa sintaks basa Jawa (A simple programming language u
 | `coba` | Blok pananganan kesalahan (`try`) | `coba { ... } tangkep err { ... }` |
 | `tangkep` | Blok penangkep kesalahan (`catch`) | `coba { ... } tangkep err { ... }` |
 | `lempar` | Mbuwang kesalahan / eksepsi (`throw`) | `lempar "Data ora valid"` |
+| `impor` | Nglumpukake / ngimpor modul liya (`import`) | `impor "matematika"` |
+| `ekspor` | Ngecakake / ngekspor fungsi utawa variabel menyang modul liya (`export`) | `ekspor fungsi tambah(a, b) { ... }` |
 | `[ ]` | Kurung kothak array & indeks | `gawe data = [10, 20]; data[0] = 5` |
 | `+`, `-`, `*`, `/` | Operator matématika (tambah, kurang, ping, bagi) | `tulis 2 + 3 * 4` |
 | `==`, `!=`, `>`, `<`, `>=`, `<=` | Operator perbandingan | `yen nilai == 100 { ... }` |
@@ -664,6 +666,232 @@ coba {
 
 ---
 
+## 📦 Sistem Modul (Module / Import System V1)
+
+Jawascript nyedhiyakake sistem pemisahan kode dadi pirang-pirang berkas modul mawa tembung kunci `impor` lan `ekspor`:
+
+### 1. Ngekspor Simbol saka Modul (`ekspor`)
+
+Sawijining modul bisa ngekspor fungsi utawa variabel menyang modul liya:
+
+```jawa
+// matematika.jawa
+ekspor fungsi tambah(a, b) {
+    bali a + b
+}
+
+ekspor gawe pi = 3.14
+gawe rahasia = 123 // Variabel privat (ora diekspor)
+```
+
+> [!IMPORTANT]
+> - `ekspor` mung bisa digunakake ing **top-level berkas**. Dilarang nulis `ekspor` ing njero fungsi, loop, percabangan, utawa try/catch.
+> - Simbol privat (sing ora mawa `ekspor`) ora bakal katon saka modul sing ngimpor.
+
+### 2. Ngimpor Modul (`impor`)
+
+Modul liya bisa ngimpor simbol sing diekspor nggunakake path string literal:
+
+```jawa
+// main.jawa
+impor "matematika"
+
+tulis tambah(10, 20) // 30
+tulis pi             // 3.14
+// tulis rahasia     // Error: Variabel "rahasia" durung digawe!
+```
+
+### 3. Fitur & Aturan Desain V1
+
+- **Strictly Top-Level Import**: `impor` mung diidinake ing top-level berkas supaya struktur *dependency graph* tansah deterministik lan resik.
+- **Resolusi Path Relatif**: Path modul diitung kanthi relatif marang berkas sing nindakake impor (`path.dirname(currentFile)`), dudu adhedhasar folder eksekusi (cwd).
+- **Ekstensi `.jawa`**: Ekstensi `.jawa` otomatis ditambahake yen ora ditulis (`impor "matematika"` $\to$ `matematika.jawa`). Mung berkas mawa ekstensi `.jawa` sing diidinake.
+- **Lexical Scoping Function**: Fungsi sing diekspor tetep ngiket *lexical environment* modul asale. Nalika fungsi diundang saka modul liya, fungsi kasebut tetep bisa ngakses variabel lokal utawa fungsi internal modul asale tanpa kena pengaruh variabel pengimpor.
+- **Module Cache (Singleton Execution)**: Saben modul mung dieksekusi sepisan nalika pisanan diimpor. Panggilan impor sabanjure utawa saka pirang-pirang modul liya bakal njupuk saka cache memori (`LOADED`).
+- **Deteksi Ketergantungan Bunder (Circular Dependency)**: Siklus impor (kayata `A -> B -> A`) dideteksi kanthi otomatis liwat status `LOADING` lan ngasilake pesen kesalahan sing cetha tanpa nyebabake *infinite recursion* utawa *stack overflow*.
+- **Pangaturan Kesalahan (Error Propagation)**: Yen modul sing diimpor ngasilake kesalahan sintaks utawa kesalahan runtime nalika dieksekusi, kesalahan kasebut bakal dipropagasikake langsung menyang penangan kesalahan kanthi rincian pesen sing cetha.
+
+---
+
+## 🔒 Module / Import System V1.1 — Hardening & Polish
+
+V1.1 nambah ketegasan semantics modul tanpa ngganti syntax utawa desain dasar.
+
+### Variable Export Semantics (Copy Binding)
+
+Variabel sing diekspor nggunakake **copy binding** — nilai disalin menyang scope pengimpor nalika modul dimuat. Iki **dudu** live binding.
+
+```jawa
+// modul.jawa
+ekspor gawe angka = 100
+ekspor fungsi baca() { bali angka }
+```
+
+```jawa
+// main.jawa
+impor "modul"
+tulis angka       // 100  (nilai asli)
+angka = 999       // Ngganti binding lokal pengimpor
+tulis angka       // 999  (binding lokal pengimpor)
+tulis baca()      // 100  (fungsi modul tansah ndeleng scope modul asale)
+```
+
+> [!IMPORTANT]
+> Fungsi sing diekspor tansah nggunakake *lexical closure* modul asale. Yen pengimpor ngganti variabel sing diimpor, fungsi modul **ora** kena pengaruhe.
+
+### Cache Semantics (LOADING → LOADED / FAILED)
+
+Saben modul duwe status cache sing jelas:
+
+| Status | Katrangan |
+| :--- | :--- |
+| `LOADING` | Modul lagi dieksekusi. Import modul sing wis `LOADING` = circular dependency → error |
+| `LOADED` | Modul wis kasil dimuat. Import sabanjure njupuk langsung saka cache (singleton) |
+| `FAILED` | Modul gagal dimuat (syntax error / runtime error). Import sabanjure langsung mbalekake error sing padha |
+
+### Path Semantics (Canonical Path)
+
+Path modul dikanonikalisasi mawa `fs.realpathSync.native` sawise `path.resolve`. Papat cara nulis iki ngacu menyang berkas lan cache key sing **padha**:
+
+```jawa
+impor "counter"
+impor "./counter"
+impor "counter.jawa"
+impor "./counter.jawa"
+```
+
+### Error Semantics (Chained Error Context)
+
+Yen modul sing diimpor ngasilake kesalahan runtime, pesen kesalahan dibungkus mawa konteks modul:
+
+```text
+[Modul "chain_err_mid.jawa"]: [Modul "chain_err_leaf.jawa"]: kesalahan saka chain_err_leaf
+```
+
+Iki menehi *stack trace* rantai modul sing cetha kanggo debugging.
+
+### Kasedhiyan Built-in ing Modul
+
+Kabeh built-in Jawascript tansah kasedhiya ing jero modul tanpa konfigurasi tambahan:
+
+```text
+tulis   dawa    jupuk   nambah  busak   motong
+ngganti gedhe   cilik   takon   jinis   kunci
+nilai   duwe
+```
+
+Built-in iki ora disimpen ing `Environment` chain — diproses langsung ing interpreter, mula ora terpengaruh karo isolasi scope modul.
+
+---
+
+## 🧩 Higher-Order Function & Functional Collection V1
+
+Jawascript ndhukung fungsi minangka **first-class runtime value** sarta nyedhiyakake fungsi functional dhasar kanggo Array.
+
+### 1. Fungsi minangka First-Class Value & Referensi
+
+Fungsi bisa disimpen ing variabel, diwenehake minangka argumen, lan diceluk liwat variabel:
+
+```jawa
+fungsi kuadrat(x) {
+    bali x * x
+}
+
+gawe f = kuadrat
+tulis f(5) // 25
+tulis jinis(f) // "function"
+```
+
+### 2. Fungsi minangka Argumen & Return Value
+
+```jawa
+fungsi jalankan(fn, nilai) {
+    bali fn(nilai)
+}
+
+tulis jalankan(kuadrat, 6) // 36
+
+fungsi tambah(a, b) { bali a + b }
+fungsi ping(a, b) { bali a * b }
+
+fungsi pilihOperasi(jns) {
+    yen jns == "tambah" { bali tambah }
+    bali ping
+}
+
+gawe op = pilihOperasi("tambah")
+tulis op(10, 20) // 30
+```
+
+> [!NOTE]
+> Deklarasi fungsi ing njero fungsi (*nested function declaration*) tetep **ora didhukung** ing V1. Pengembalian fungsi nggunakake referensi fungsi tingkat ndhuwur (*top-level function reference*).
+
+### 3. Fungsi ing Array lan Object (Chained Invocations)
+
+Fungsi bisa disimpen ing jero Array utawa Object, lan bisa langsung diceluk liwat ekspresi berantai (*chained postfix*):
+
+```jawa
+gawe operasi = [tambah, ping]
+tulis operasi[0](3, 4) // 7
+tulis operasi[1](3, 4) // 12
+
+gawe wadah = {
+    "itung": kuadrat
+}
+tulis wadah["itung"](7) // 49
+```
+
+### 4. Standard Library Functional: `terapkan()`, `saring()`, `itung()`
+
+| Fungsi | Katrangan | Tuladha |
+| :--- | :--- | :--- |
+| `terapkan(fungsi, array)` | Ngowahi (*map*) saben elemen array kanthi fungsi transformasi, ngasilake array anyar | `terapkan(kuadrat, [1, 2, 3])` $\to$ `[1, 4, 9]` |
+| `saring(fungsi, array)` | Nyaring (*filter*) elemen array sing ngasilake `bener` saka predikat callback | `saring(luwihGedhe, [1, 2, 3, 4])` $\to$ `[4]` |
+| `itung(fungsi, array)` | Ngetung (*count*) cacahe elemen sing nyukupi predikat callback | `itung(luwihGedhe, [1, 2, 3, 4])` $\to$ `1` |
+
+#### Aturan & Semantik:
+- **Strict Boolean**: Callback kanggo `saring()` lan `itung()` **wajib** ngasilake boolean (`bener` utawa `salah`). Nilai `null`, angka `1`/`0`, string, lsp bakal langsung ditolak mawa error runtime (ora ana implicit truthy conversion).
+- **Empty Array**: Array kosong `[]` langsung ngasilake `[]` (utawa `0` kanggo `itung()`) tanpa ngundang callback.
+- **Reference Semantics**: Mutasi object utawa array ing jero callback tetep njaga referensi data asline tanpa deep clone.
+- **Error Propagation**: Yen callback ngalami runtime error utawa mbuwang eksepsi nganggo `lempar`, kesalahan kasebut bakal dipropagasikake langsung menyang penangan eksepsi (`coba ... tangkep`).
+- **Module Compatibility**: Fungsi sing diekspor saka modul tetep njaga lexical closure (`fn.env`, `fn.functions`, `fn.filePath`) nalika diceluk liwat referensi utawa callback.
+
+---
+
+## 🧺 Collection & Functional Standard Library V2
+
+Jawascript nyedhiyakake fungsi bawaan (*built-in*) tambahan kanggo manipulasi lan analisis Array kanthi pendekatan functional lan non-mutating:
+
+| Fungsi | Parameter & Validasi | Katrangan | Return Value | Tuladha (Contoh) |
+| :--- | :--- | :--- | :--- | :--- |
+| `gabung(array, pemisah)` | 2 argument: (array, string) | Nggabungake kabeh elemen array dadi sawijining string kanthi pamisah (*delimiter*) | `string` | `gabung(["a", "b", "c"], "-")` $\to$ `"a-b-c"` |
+| `balik(array)` | 1 argument: (array) | Mbalekake array anyar kanthi urutan elemen kewalik tanpa ngowahi (*non-mutating*) array asline | `array` anyar | `balik([1, 2, 3])` $\to$ `[3, 2, 1]` |
+| `urut(array)` | 1 argument: (array angka) | Mbalekake array anyar kanthi elemen angka diurutake kanthi urut munggah (*ascending*, `a - b`) tanpa ngowahi array asline | `array` anyar | `urut([30, 5, 20])` $\to$ `[5, 20, 30]` |
+| `ana(predikat, array)` | 2 argument: (function, array) | Priksa apa ana minimal sak elemen sing nyukupi predikat (*some* / *exists*). Ngandhut short-circuit evaluation | `boolean` (`bener`/`salah`) | `ana(genap, [1, 2, 3])` $\to$ `bener` |
+| `kabeh(predikat, array)` | 2 argument: (function, array) | Priksa apa kabeh elemen nyukupi predikat (*every* / *all*). Ngandhut short-circuit evaluation | `boolean` (`bener`/`salah`) | `kabeh(genap, [2, 4, 6])` $\to$ `bener` |
+| `golek(predikat, array)` | 2 argument: (function, array) | Nggoleki lan mbalekake elemen pisanan sing nyukupi predikat (*find*). Ngandhut short-circuit evaluation | Elemen utawa `null` | `golek(genap, [1, 4, 6])` $\to$ `4` |
+| `indeks(array, nilai)` | 2 argument: (array, any) | Nggoleki indeks pisanan saka nilai sing cocog kanthi strict equality (`===`) (*indexOf*) | `number` (indeks utawa `-1`) | `indeks(["a", "b", "c"], "b")` $\to$ `1` |
+
+### Sifat & Semantics V2
+- **Non-Mutating Array**: `balik()` lan `urut()` tansah ngasilake salinan array anyar tanpa ngowahi array sumber.
+- **Reference Semantics Elemen**: Nilai referensi (object utawa array bersarang) ing jero array anyar tetep nuduhake referensi asline (ora di-deep clone).
+- **Strict Boolean Predicate**: Fungsi callback predikat kanggo `ana()`, `kabeh()`, lan `golek()` **wajib** ngasilake boolean (`bener` utawa `salah`). Nilai dudu boolean langsung ngasilake runtime error.
+- **Short-Circuit Evaluation**:
+  - `ana()` langsung mandheg lan mbalekake `bener` nalika nemu asil pisanan `bener`.
+  - `kabeh()` langsung mandheg lan mbalekake `salah` nalika nemu asil pisanan `salah`.
+  - `golek()` langsung mandheg lan mbalekake elemen kasebut nalika nemu asil pisanan `bener`.
+- **Empty Array Handling**:
+  - `gabung([], sep)` $\to$ `""`
+  - `balik([])` $\to$ `[]`
+  - `urut([])` $\to$ `[]`
+  - `ana(fn, [])` $\to$ `salah`
+  - `kabeh(fn, [])` $\to$ `bener`
+  - `golek(fn, [])` $\to$ `null`
+  - `indeks([], val)` $\to$ `-1`
+- **Error & Module Compatibility**: Kabeh callback predikat ndhukung fungsi reguler, referensi fungsi, lan fungsi sing diimpor saka modul kanthi lexical closure lan deteksi exception (`coba ... tangkep`) sing utuh.
+
+---
+
 ## 🚀 Cara Migunakake (Cara Menjalankan)
 
 Priksa manawa **Node.js** wis diinstal ing komputer.
@@ -780,6 +1008,34 @@ node index.js examples/test_exception.jawa
 node index.js examples/test_exception_error.jawa
 ```
 
+Tes Sistem Modul (Module / Import System V1):
+
+```bash
+node index.js examples/test_module.jawa
+node index.js examples/test_module_error.jawa
+```
+
+Tes Module / Import System V1.1 (Hardening & Polish):
+
+```bash
+node index.js examples/test_module_v11.jawa
+node index.js examples/test_module_v11_error.jawa
+```
+
+Tes Higher-Order Function & Functional Collection V1:
+
+```bash
+node index.js examples/test_higher_order.jawa
+node index.js examples/test_higher_order_error.jawa
+```
+
+Tes Collection & Functional Standard Library V2:
+
+```bash
+node index.js examples/test_collection_v2.jawa
+node index.js examples/test_collection_v2_error.jawa
+```
+
 ---
 
 ## 🏗️ Struktur Proyèk
@@ -787,5 +1043,7 @@ node index.js examples/test_exception_error.jawa
 - `index.js` — *Entry point* aplikasi (maca file `.jawa`, nyambungake Lexer -> Parser -> Interpreter).
 - `src/lexer.js` — **Tokenizer**: Ngowahi kode mentah dadi deretan token.
 - `src/parser.js` — **Recursive Descent Parser**: Ngolah token dadi struktur wit sintaksis (*Abstract Syntax Tree* / AST).
+- `src/module_loader.js` — **Module Loader**: Resolusi path modul kanonikal, manajemen cache modul, lan deteksi circular dependency.
 - `src/interpreter.js` — **Interpreter**: Ngevaluasi AST mawa `Environment` lexical scope chain, penanganan sinyal control-flow, lan eksekusi program.
 - `examples/` — Lemari conto file kode `.jawa`.
+- `examples/modules/` — Lemari berkas modul conto kang diekspor lan diimpor.

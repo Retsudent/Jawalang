@@ -1,0 +1,6 @@
+// importer_a.jawa
+impor "common"
+
+ekspor fungsi getStatusA() {
+    bali "A:" + status
+}

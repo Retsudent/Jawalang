@@ -26,7 +26,7 @@ try {
     const ast = parser(tokens);
 
     // 3. Interpreter: Menjalankan AST
-    interpreter(ast);
+    interpreter(ast, filename);
 } catch (err) {
     console.error(`[Error Jawalang]: ${err.message}`);
     process.exit(1);

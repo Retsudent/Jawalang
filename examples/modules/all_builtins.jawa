@@ -1,0 +1,36 @@
+// all_builtins.jawa
+ekspor fungsi tesBuiltin() {
+    gawe arr = [10, 20, 30]
+    gawe lenArr = dawa(arr)
+    gawe item0 = jupuk(arr, 0)
+    nambah(arr, 40)
+    busak(arr, 1)
+
+    gawe teks = "Jawascript"
+    gawe lenStr = dawa(teks)
+    gawe potong = motong(teks, 0, 4)
+    gawe ganti = ngganti(teks, "Jawa", "Basa")
+    gawe kapital = gedhe(teks)
+    gawe cilikTeks = cilik(teks)
+
+    gawe obj = {"k": 100}
+    gawe jns = jinis(obj)
+    gawe k = kunci(obj)
+    gawe v = nilai(obj)
+    gawe adaK = duwe(obj, "k")
+
+    bali {
+        "lenArr": lenArr,
+        "item0": item0,
+        "arrAkhir": arr,
+        "lenStr": lenStr,
+        "potong": potong,
+        "ganti": ganti,
+        "kapital": kapital,
+        "cilik": cilikTeks,
+        "jinisObj": jns,
+        "kunci": k,
+        "nilai": v,
+        "adaK": adaK
+    }
+}

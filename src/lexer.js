@@ -198,6 +198,16 @@ function lexer(source) {
                     type: "LEMPAR",
                     value: "lempar"
                 });
+            } else if (value === "impor") {
+                tokens.push({
+                    type: "IMPOR",
+                    value: "impor"
+                });
+            } else if (value === "ekspor") {
+                tokens.push({
+                    type: "EKSPOR",
+                    value: "ekspor"
+                });
             } else if (value === "null") {
                 tokens.push({
                     type: "NULL",

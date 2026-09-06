@@ -27,7 +27,7 @@ tulis hasil
 // Comparison
 
 yen a + b > 10 {
-    tulis "Benar"
+    tulis "Bener"
 } liyane {
     tulis "Salah"
 }
