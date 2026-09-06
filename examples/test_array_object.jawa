@@ -1,0 +1,340 @@
+// ============================================
+// TEST ARRAY + OBJECT INTEGRATION V1 - JAWASCRIPT
+// ============================================
+
+tulis "=== ARRAY + OBJECT INTEGRATION TEST ==="
+
+// 1. Array of Object
+gawe siswa = [
+    {
+        "nama": "Budi",
+        "umur": 20
+    },
+    {
+        "nama": "Siti",
+        "umur": 21
+    }
+]
+
+tulis siswa[0]["nama"]
+tulis siswa[0]["umur"]
+tulis siswa[1]["nama"]
+tulis siswa[1]["umur"]
+
+// 2. Object of Array
+gawe sekolah = {
+    "nama": "SMK Jawascript",
+    "siswa": ["Budi", "Siti", "Joko"]
+}
+
+tulis sekolah["nama"]
+tulis sekolah["siswa"]
+tulis sekolah["siswa"][0]
+tulis sekolah["siswa"][1]
+tulis sekolah["siswa"][2]
+
+// 3. Array of Array + Object
+gawe dataMatriks = [
+    [
+        {"nama": "Budi"},
+        {"nama": "Siti"}
+    ],
+    [
+        {"nama": "Joko"},
+        {"nama": "Dewi"}
+    ]
+]
+
+tulis dataMatriks[0][0]["nama"]
+tulis dataMatriks[0][1]["nama"]
+tulis dataMatriks[1][0]["nama"]
+tulis dataMatriks[1][1]["nama"]
+
+// 4. Object of Object
+gawe perusahaan = {
+    "nama": "Jawascript",
+    "alamat": {
+        "kota": "Madiun",
+        "provinsi": "Jawa Timur"
+    }
+}
+
+tulis perusahaan["alamat"]["kota"]
+tulis perusahaan["alamat"]["provinsi"]
+
+// 5. Deep Chaining
+gawe dataDeep = {
+    "sekolah": {
+        "siswa": [
+            {
+                "nama": "Budi",
+                "nilai": [80, 90, 100]
+            }
+        ]
+    }
+}
+
+tulis dataDeep["sekolah"]["siswa"][0]["nama"]
+tulis dataDeep["sekolah"]["siswa"][0]["nilai"][0]
+tulis dataDeep["sekolah"]["siswa"][0]["nilai"][1]
+tulis dataDeep["sekolah"]["siswa"][0]["nilai"][2]
+
+// 6. Deep Assignment
+dataDeep["sekolah"]["siswa"][0]["nama"] = "Dewi"
+dataDeep["sekolah"]["siswa"][0]["nilai"][1] = 95
+
+tulis dataDeep["sekolah"]["siswa"][0]["nama"]
+tulis dataDeep["sekolah"]["siswa"][0]["nilai"][1]
+
+// 7. Reference Semantics
+gawe userRef = {
+    "nama": "Budi",
+    "nilai": [80, 90]
+}
+
+gawe arrRef = [userRef]
+arrRef[0]["nama"] = "Siti"
+tulis userRef["nama"]
+
+gawe dataRef = {
+    "angka": [1, 2, 3]
+}
+
+gawe arrAngka = dataRef["angka"]
+nambah(arrAngka, 4)
+tulis dataRef["angka"]
+
+// 8. Array Built-in on Object Property
+gawe userHobi = {
+    "hobi": ["ngoding", "maca", "musik"]
+}
+
+tulis dawa(userHobi["hobi"])
+tulis jupuk(userHobi["hobi"], 0)
+nambah(userHobi["hobi"], "olahraga")
+tulis userHobi["hobi"]
+
+// 9. Object Built-in on Array Element
+gawe siswaBuiltin = [
+    {
+        "nama": "Budi",
+        "umur": 20
+    },
+    {
+        "nama": "Siti",
+        "umur": 21
+    }
+]
+
+tulis kunci(siswaBuiltin[0])
+tulis nilai(siswaBuiltin[0])
+tulis duwe(siswaBuiltin[0], "nama")
+tulis duwe(siswaBuiltin[0], "alamat")
+
+gawe valuesBuiltin = nilai(siswaBuiltin[0])
+tulis valuesBuiltin[0]
+tulis valuesBuiltin[1]
+
+// 10. Array inside Object + kunci()
+gawe dataKunci = {
+    "nama": "Budi",
+    "hobi": ["ngoding", "maca"]
+}
+
+gawe keysKunci = kunci(dataKunci)
+tulis keysKunci
+
+// 11. Object inside Array + duwe()
+gawe usersDuwe = [
+    {
+        "nama": "Budi"
+    },
+    {
+        "umur": 20
+    }
+]
+
+tulis duwe(usersDuwe[0], "nama")
+tulis duwe(usersDuwe[0], "umur")
+tulis duwe(usersDuwe[1], "nama")
+tulis duwe(usersDuwe[1], "umur")
+
+// 12. Null in Nested Structure
+gawe dataNestedNull = {
+    "user": {
+        "nama": "Budi",
+        "alamat": null
+    }
+}
+
+tulis dataNestedNull["user"]["alamat"]
+tulis jinis(dataNestedNull["user"]["alamat"])
+tulis duwe(dataNestedNull["user"], "alamat")
+
+// 13. Missing Property in Nested Object
+gawe dataMissing = {
+    "user": {
+        "nama": "Budi"
+    }
+}
+
+tulis dataMissing["user"]["alamat"]
+tulis jinis(dataMissing["user"]["alamat"])
+
+// 14. Function Integration & Mutation
+fungsi tampilkan(u) {
+    tulis u["nama"]
+    tulis u["umur"]
+}
+
+gawe userFn = {
+    "nama": "Budi",
+    "umur": 20
+}
+tampilkan(userFn)
+
+fungsi ambilNama(d) {
+    bali d["user"]["nama"]
+}
+
+gawe dataFn = {
+    "user": {
+        "nama": "Siti"
+    }
+}
+tulis ambilNama(dataFn)
+
+fungsi ubahFn(u) {
+    u["nama"] = "Dewi"
+}
+ubahFn(userFn)
+tulis userFn["nama"]
+
+// 15. Loop Integration
+gawe siswaLoop = [
+    {"nama": "Budi"},
+    {"nama": "Siti"},
+    {"nama": "Joko"}
+]
+
+gawe iLoop = 0
+nalika iLoop < dawa(siswaLoop) {
+    tulis siswaLoop[iLoop]["nama"]
+    iLoop = iLoop + 1
+}
+
+gawe dataLoopMatriks = [
+    [10, 20],
+    [30, 40]
+]
+
+gawe jLoop = 0
+nalika jLoop < dawa(dataLoopMatriks) {
+    tulis dataLoopMatriks[jLoop][0]
+    tulis dataLoopMatriks[jLoop][1]
+    jLoop = jLoop + 1
+}
+
+// 16. Conditional Integration
+gawe userCond = {
+    "nama": "Budi",
+    "aktif": bener
+}
+
+yen duwe(userCond, "nama") lan userCond["aktif"] {
+    tulis userCond["nama"]
+}
+
+// 17. Dynamic Key + Nested Object
+gawe key1 = "user"
+gawe key2 = "nama"
+gawe dataDyn = {
+    "user": {
+        "nama": "Budi"
+    }
+}
+tulis dataDyn[key1][key2]
+
+// 18. Type System Integration
+gawe dataType = {
+    "angka": 10,
+    "teks": "halo",
+    "aktif": bener,
+    "kosong": null,
+    "array": [1, 2],
+    "objek": {
+        "x": 1
+    }
+}
+
+tulis jinis(dataType["angka"])
+tulis jinis(dataType["teks"])
+tulis jinis(dataType["aktif"])
+tulis jinis(dataType["kosong"])
+tulis jinis(dataType["array"])
+tulis jinis(dataType["objek"])
+
+// 19. Mutation via Nested Reference
+gawe dataMutasiRef = {
+    "user": {
+        "hobi": ["ngoding"]
+    }
+}
+
+gawe hobiRef = dataMutasiRef["user"]["hobi"]
+nambah(hobiRef, "maca")
+tulis dataMutasiRef["user"]["hobi"]
+
+gawe dataValObj = {
+    "user": {
+        "nama": "Budi"
+    }
+}
+
+gawe valuesObj = nilai(dataValObj)
+valuesObj[0]["nama"] = "Siti"
+tulis dataValObj["user"]["nama"]
+
+gawe dataValArr = {
+    "angka": [1, 2, 3]
+}
+
+gawe valuesArr = nilai(dataValArr)
+nambah(valuesArr[0], 4)
+tulis dataValArr["angka"]
+
+// 20. Stringification
+gawe dataStringify = {
+    "user": {
+        "nama": "Budi",
+        "hobi": ["ngoding", "maca"]
+    }
+}
+tulis dataStringify
+
+// 21. Final Complex Structure Example from Prompt
+gawe sekolahFinal = {
+    "nama": "SMK Jawascript",
+    "kelas": [
+        {
+            "nama": "TRPL 1",
+            "siswa": [
+                {
+                    "nama": "Budi",
+                    "nilai": [80, 90, 95]
+                },
+                {
+                    "nama": "Siti",
+                    "nilai": [85, 92, 98]
+                }
+            ]
+        }
+    ]
+}
+
+tulis sekolahFinal["nama"]
+tulis sekolahFinal["kelas"][0]["nama"]
+tulis sekolahFinal["kelas"][0]["siswa"][0]["nama"]
+tulis sekolahFinal["kelas"][0]["siswa"][0]["nilai"][1]
+
+tulis "=== SELESAI ==="

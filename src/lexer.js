@@ -143,6 +143,16 @@ function lexer(source) {
                     type: "KANGGO",
                     value: "kanggo"
                 });
+            } else if (value === "saben") {
+                tokens.push({
+                    type: "SABEN",
+                    value: "saben"
+                });
+            } else if (value === "ing") {
+                tokens.push({
+                    type: "ING",
+                    value: "ing"
+                });
             } else if (value === "nganti") {
                 tokens.push({
                     type: "NGANTI",
@@ -172,6 +182,21 @@ function lexer(source) {
                 tokens.push({
                     type: "BALI",
                     value: "bali"
+                });
+            } else if (value === "coba") {
+                tokens.push({
+                    type: "COBA",
+                    value: "coba"
+                });
+            } else if (value === "tangkep") {
+                tokens.push({
+                    type: "TANGKEP",
+                    value: "tangkep"
+                });
+            } else if (value === "lempar") {
+                tokens.push({
+                    type: "LEMPAR",
+                    value: "lempar"
                 });
             } else if (value === "null") {
                 tokens.push({

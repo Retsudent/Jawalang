@@ -7,6 +7,13 @@ class ReturnSignal {
         this.value = value;
     }
 }
+class JawascriptErrorSignal extends Error {
+    constructor(value, message) {
+        super(message);
+        this.name = "JawascriptErrorSignal";
+        this.value = value;
+    }
+}
 
 class Environment {
     constructor(parent = null) {
@@ -835,6 +842,45 @@ function interpreter(ast) {
             }
 
             // =========================
+            // KANGGO SABEN (foreach loop)
+            // =========================
+            if (node.type === "ForEachStatement") {
+                const iterable = getValue(node.iterable, env);
+
+                if (!Array.isArray(iterable)) {
+                    throw new Error(
+                        `Foreach "kanggo saben" mung bisa digunakake kanggo array, nanging ditemu: "${getType(iterable)}" (Foreach hanya bisa digunakan untuk array)`
+                    );
+                }
+
+                const items = [...iterable];
+                let iterations = 0;
+
+                for (let idx = 0; idx < items.length; idx++) {
+                    iterations++;
+                    if (iterations > MAX_LOOP_ITERATIONS) {
+                        throw new Error("Perulangan ngluwihi wates maksimum (Potensi infinite loop terdeteksi)");
+                    }
+
+                    env.define(node.iterator, items[idx]);
+
+                    try {
+                        execute(node.body, env);
+                    } catch (e) {
+                        if (e instanceof BreakSignal) {
+                            break;
+                        }
+                        if (e instanceof ContinueSignal) {
+                            continue;
+                        }
+                        throw e;
+                    }
+                }
+
+                continue;
+            }
+
+            // =========================
             // KANGGO (for loop)
             // =========================
             if (node.type === "ForStatement") {
@@ -887,6 +933,57 @@ function interpreter(ast) {
                 }
                 functions[node.name] = node;
                 continue;
+            }
+
+            // =========================
+            // COBA / TANGKEP (try / catch)
+            // =========================
+            if (node.type === "TryCatchStatement") {
+                try {
+                    execute(node.tryBlock, env);
+                } catch (e) {
+                    if (e instanceof ReturnSignal || e instanceof BreakSignal || e instanceof ContinueSignal) {
+                        throw e; // ISOLATION: Jangan tangkap control flow signal!
+                    }
+
+                    // Tentukan error value
+                    let errorVal;
+                    if (e instanceof JawascriptErrorSignal) {
+                        errorVal = e.value;
+                    } else if (e instanceof Error) {
+                        errorVal = e.message;
+                    } else {
+                        errorVal = String(e);
+                    }
+
+                    // Eksekusi catch block dengan mengikat catchParameter
+                    const paramName = node.catchParameter;
+                    const hadPrevious = paramName in env.bindings;
+                    const previousVal = env.bindings[paramName];
+
+                    env.define(paramName, errorVal);
+
+                    try {
+                        execute(node.catchBlock, env);
+                    } finally {
+                        if (hadPrevious) {
+                            env.bindings[paramName] = previousVal;
+                        } else {
+                            delete env.bindings[paramName];
+                        }
+                    }
+                }
+
+                continue;
+            }
+
+            // =========================
+            // LEMPAR (throw)
+            // =========================
+            if (node.type === "ThrowStatement") {
+                const val = getValue(node.expression, env);
+                const msg = formatValue(val, true);
+                throw new JawascriptErrorSignal(val, msg);
             }
 
             // =========================

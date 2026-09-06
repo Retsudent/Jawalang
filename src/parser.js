@@ -562,10 +562,49 @@ function parser(tokens) {
         }
 
         // =========================
-        // KANGGO (For loop: kanggo i = 1 nganti 10 [langkah 2] { ... })
+        // KANGGO (For loop: kanggo i = 1 nganti 10 [langkah 2] { ... } UTAWA kanggo saben item ing array { ... })
         // =========================
         if (token.type === "KANGGO") {
             i++; // lewati "kanggo"
+
+            // Foreach loop: kanggo saben <variable> ing <array> { ... }
+            if (tokens[i] && tokens[i].type === "SABEN") {
+                i++; // lewati "saben"
+
+                const iteratorToken = tokens[i];
+                if (!iteratorToken || iteratorToken.type !== "IDENTIFIER") {
+                    throw new Error('Sawise "saben" kudu ana jeneng variabel iterator');
+                }
+                const iterator = iteratorToken.value;
+                i++; // lewati nama variabel iterator
+
+                const ingToken = tokens[i];
+                if (!ingToken || ingToken.type !== "ING") {
+                    throw new Error('Perulangan "kanggo saben" mbutuhake tembung kunci "ing"');
+                }
+                i++; // lewati "ing"
+
+                if (i >= tokens.length || tokens[i].type === "LEFT_BRACE") {
+                    throw new Error('Dibutuhake ekspresi sumber sawise "ing"');
+                }
+
+                const iterable = parseExpression();
+
+                if (!tokens[i] || tokens[i].type !== "LEFT_BRACE") {
+                    throw new Error('Sawise ekspresi "ing" kudu ana blok "{"');
+                }
+
+                loopDepth++;
+                const body = parseBlock();
+                loopDepth--;
+
+                return {
+                    type: "ForEachStatement",
+                    iterator: iterator,
+                    iterable: iterable,
+                    body: body
+                };
+            }
 
             const variableToken = tokens[i];
             if (!variableToken || variableToken.type !== "IDENTIFIER") {
@@ -708,6 +747,83 @@ function parser(tokens) {
         }
 
         // =========================
+        // COBA / TANGKEP (Try / Catch)
+        // =========================
+        if (token.type === "COBA") {
+            i++; // lewati "coba"
+
+            if (!tokens[i] || tokens[i].type !== "LEFT_BRACE") {
+                throw new Error('Sawise "coba" kudu ana blok "{"');
+            }
+
+            const tryBlock = parseBlock();
+
+            if (!tokens[i] || tokens[i].type !== "TANGKEP") {
+                throw new Error('Blok "coba" mbutuhake blok "tangkep"');
+            }
+            i++; // lewati "tangkep"
+
+            const paramToken = tokens[i];
+            if (!paramToken || paramToken.type !== "IDENTIFIER") {
+                throw new Error('Sawise "tangkep" kudu ana jeneng variabel error');
+            }
+            const catchParameter = paramToken.value;
+            i++; // lewati nama variabel error
+
+            if (!tokens[i] || tokens[i].type !== "LEFT_BRACE") {
+                throw new Error('Sawise parameter "tangkep" kudu ana blok "{"');
+            }
+
+            const catchBlock = parseBlock();
+
+            return {
+                type: "TryCatchStatement",
+                tryBlock: tryBlock,
+                catchParameter: catchParameter,
+                catchBlock: catchBlock
+            };
+        }
+
+        if (token.type === "TANGKEP") {
+            throw new Error('"tangkep" mung bisa digunakake sawise blok "coba"');
+        }
+
+        // =========================
+        // LEMPAR (Throw)
+        // =========================
+        if (token.type === "LEMPAR") {
+            i++; // lewati "lempar"
+
+            const statementTokens = [
+                "TULIS",
+                "GAWE",
+                "YEN",
+                "LIYANE",
+                "NALIKA",
+                "KANGGO",
+                "MANDHEG",
+                "LANJUT",
+                "BALI",
+                "FUNGSI",
+                "COBA",
+                "TANGKEP",
+                "LEMPAR",
+                "RIGHT_BRACE"
+            ];
+
+            if (i >= tokens.length || statementTokens.includes(tokens[i].type)) {
+                throw new Error('Dibutuhake ekspresi sawise "lempar"');
+            }
+
+            const expr = parseExpression();
+
+            return {
+                type: "ThrowStatement",
+                expression: expr
+            };
+        }
+
+        // =========================
         // BALI (Return)
         // =========================
         if (token.type === "BALI") {
@@ -727,6 +843,9 @@ function parser(tokens) {
                 "LANJUT",
                 "BALI",
                 "FUNGSI",
+                "COBA",
+                "TANGKEP",
+                "LEMPAR",
                 "RIGHT_BRACE"
             ];
 

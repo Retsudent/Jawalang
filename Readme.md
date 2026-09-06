@@ -21,10 +21,14 @@ Basa pamrograman prasaja mawa sintaks basa Jawa (A simple programming language u
 | `kanggo` | Perulangan cacahe diitung (`for`) | `kanggo i = 1 nganti 5 { ... }` |
 | `nganti` | Wates pungkasan ing perulangan `kanggo` | `kanggo i = 1 nganti 10 { ... }` |
 | `langkah` | Tambahan/pengurangan nilai saben iterasi (`step`) | `kanggo i = 1 nganti 10 langkah 2 { ... }` |
+| `kanggo saben ... ing` | Perulangan elemen array (`foreach`) | `kanggo saben x ing data { ... }` |
 | `mandheg` | Mandhegake perulangan saknalika (`break`) | `yen i == 5 { mandheg }` |
 | `lanjut` | Nglompati menyang iterasi sabanjure (`continue`) | `yen i == 3 { lanjut }` |
 | `fungsi` | Deklarasi fungsi anyar (`function`) | `fungsi tambah(a, b) { ... }` |
 | `bali` | Mbalekake nilai saka fungsi (`return`) | `bali a + b` |
+| `coba` | Blok pananganan kesalahan (`try`) | `coba { ... } tangkep err { ... }` |
+| `tangkep` | Blok penangkep kesalahan (`catch`) | `coba { ... } tangkep err { ... }` |
+| `lempar` | Mbuwang kesalahan / eksepsi (`throw`) | `lempar "Data ora valid"` |
 | `[ ]` | Kurung kothak array & indeks | `gawe data = [10, 20]; data[0] = 5` |
 | `+`, `-`, `*`, `/` | Operator matématika (tambah, kurang, ping, bagi) | `tulis 2 + 3 * 4` |
 | `==`, `!=`, `>`, `<`, `>=`, `<=` | Operator perbandingan | `yen nilai == 100 { ... }` |
@@ -479,6 +483,187 @@ tulis duwe(user, "alamat")  // salah
 
 ---
 
+## 📦 Array + Object Integration
+
+Jawascript nyengkuyung integrasi jero antarane struktur data **Array** lan **Object**.
+
+### Struktur Bersarang (Nested)
+
+- **Array ngemot Object**:
+  ```jawa
+  gawe siswa = [
+      {"nama": "Budi", "umur": 20},
+      {"nama": "Siti", "umur": 21}
+  ]
+  tulis siswa[0]["nama"]   // Budi
+  ```
+
+- **Object ngemot Array**:
+  ```jawa
+  gawe sekolah = {
+      "nama": "SMK Jawascript",
+      "siswa": ["Budi", "Siti", "Joko"]
+  }
+  tulis sekolah["siswa"][0]  // Budi
+  ```
+
+- **Array of Array & Object of Object**:
+  Struktur kompleks multi-dimensi (kayata matriks object `data[0][1]["nama"]` utawa nested object `data["alamat"]["kota"]`) didhukung kanthi fleksibel.
+
+### Chained Indexing & Deep Assignment
+
+Akses lan modifikasi bisa ditindakake kanthi chaining tanpa watesan level:
+
+```jawa
+gawe data = {
+    "sekolah": {
+        "siswa": [
+            {
+                "nama": "Budi",
+                "nilai": [80, 90, 100]
+            }
+        ]
+    }
+}
+
+// Deep indexing
+tulis data["sekolah"]["siswa"][0]["nilai"][1]   // 90
+
+// Deep assignment
+data["sekolah"]["siswa"][0]["nama"] = "Dewi"
+data["sekolah"]["siswa"][0]["nilai"][1] = 95
+```
+
+### Reference Semantics
+
+Kabeh struktur array lan object nggunakake **reference semantics**:
+- Nyimpen referensi menyang variabel liya utawa ngirim menyang fungsi ora nggawe salinan (copy), mula owah-owahan ing siji panggonan bakal langsung katon ing panggonan liyane.
+- Utilitas `nilai(obj)` mbalekake referensi asli kanggo elemen bertipe array utawa object.
+
+### Integrasi Built-in, Function, Loop, & Conditional
+
+- **Built-in Array ing Object Property**: `dawa(user["hobi"])`, `jupuk(user["hobi"], 0)`, `nambah(user["hobi"], "olahraga")`.
+- **Built-in Object ing Array Element**: `kunci(siswa[0])`, `nilai(siswa[0])`, `duwe(siswa[0], "nama")`.
+- **Function**: Fungsi bisa nampa, mbalekake, lan ngowahi struktur nested.
+- **Loop**: Iterasi array of objects liwat `nalika` utawa `kanggo`.
+- **Conditional**: Struktur nested bisa diuji nganggo `yen`, operator logika `lan`/`utawa`, lan `duwe()`.
+- **Null & Type**: Nilai `null` ing struktur nested tetep sah (`jinis(data["user"]["alamat"])` -> `"null"`).
+
+---
+
+## 🔁 Foreach / Iteration
+
+Jawascript nyedhiyakake sintaks **foreach** kanggo ngiterasi elemen array kanthi gampang:
+
+```jawa
+kanggo saben <variable> ing <array> {
+    ...
+}
+```
+
+### Katrangan Sintaks
+
+- `kanggo`: Tembung kunci wiwitan perulangan.
+- `saben`: Tandha mode iterasi foreach.
+- `<variable>`: Jeneng variabel iterator sing nampa saben elemen array.
+- `ing`: Tembung kunci penghubung sadurunge ekspresi sumber.
+- `<array>`: Ekspresi sumber sing kudu ngasilake array (bisa awujud variabel, array literal, panggilan fungsi kayata `kunci()` utawa `nilai()`, utawa akses nested properti).
+
+### Tuladha Panggunaan
+
+```jawa
+gawe angka = [10, 20, 30]
+
+kanggo saben x ing angka {
+    tulis x
+}
+```
+
+### Iterasi Object liwat Built-in
+
+Object ora diiterasi kanthi langsung, nanging bisa nggunakake `kunci()` utawa `nilai()`:
+
+```jawa
+gawe user = {
+    "nama": "Budi",
+    "umur": 20
+}
+
+kanggo saben key ing kunci(user) {
+    tulis key
+}
+
+kanggo saben val ing nilai(user) {
+    tulis val
+}
+```
+
+### Fitur & Aturan V1
+
+- **Mung Array**: Sumber iterasi kudu awujud array. Nilai non-array (`number`, `string`, `boolean`, `null`, `object`) bakal ngasilake error runtime.
+- **Empty Array**: Array kosong `[]` bakal langsung nglewati blok loop tanpa error.
+- **Reference Semantics**: Elemen array sing awujud object utawa array njaga referensi asline, mula mutasi marang iterator langsung ngowahi data sumbere.
+- **Loop Control**: `mandheg` (*break*) lan `lanjut` (*continue*) lumaku kanthi bener lan mung mengaruhi loop paling cedhak.
+- **Scope Behavior**: Selaras karo aturan loop Jawascript, perulangan ora nggawe scope anyar. Variabel iterator dianyari ing scope lingkungan loop kasebut.
+
+---
+
+## ⚠️ Pananganan Kasalahan (Error Handling / Exception System)
+
+Jawascript ndhukung sistem penanganan kesalahan (*exception handling*) lengkap mawa tembung kunci basa Jawa: `coba`, `tangkep`, lan `lempar`:
+
+```jawa
+coba {
+    // blok kode sing bisa ngasilake kesalahan
+    lempar "Data ora valid"
+} tangkep err {
+    // blok penanganan kesalahan
+    tulis err
+}
+```
+
+### Katrangan Sintaks & Konstruksi
+
+1. **`coba { ... }`**:
+   Blok kode sing diawasi saka kemungkinan kesalahan runtime utawa lemparan eksepsi.
+2. **`tangkep <identifier> { ... }`**:
+   Blok penangkep sing langsung nyambung sawise `coba { ... }`. Parameter `<identifier>` bakal nampa nilai eksepsi sing dilempar.
+3. **`lempar <ekspresi>`**:
+   Mbuwang eksepsi kanthi nilai sembarang tipe data Jawascript (`string`, `number`, `boolean`, `null`, `array`, `object`).
+
+### Fitur Utama
+
+- **Tipe Data Bebas**: `lempar` bisa mbuwang kabeh jinis tipe data:
+  ```jawa
+  lempar "Pesen string"
+  lempar 404
+  lempar bener
+  lempar null
+  lempar [1, 2, 3]
+  lempar {"pesan": "Server error", "kode": 500}
+  ```
+- **Nangkep Error Runtime Bawaan**: `coba ... tangkep` bisa nangkep kesalahan eksekusi runtime internal Jawascript (kayata pembagian nol, indeks array out-of-bounds, operasi tipe null, lsp).
+- **Rethrow**: Eksepsi bisa dilempar maneh saka njero blok `tangkep` nggunakake `lempar`:
+  ```jawa
+  coba {
+      coba {
+          lempar "error jero"
+      } tangkep e {
+          tulis "ditangkep ing jero: " + e
+          lempar e // rethrow
+      }
+  } tangkep e2 {
+      tulis "ditangkep ing njaba: " + e2
+  }
+  ```
+- **Propagasi Fungsi (Call Stack)**: Eksepsi sing ora ditangkep ing njero fungsi bakal mumbul (*propagate*) menyang pemanggil fungsi nganti nemu blok `coba ... tangkep`.
+- **Isolasi Control Flow**:
+  - `bali` ing njero `coba` tetep mbalekake nilai fungsi kanthi bener tanpa kleru ditangkep dening `tangkep`.
+  - `mandheg` (*break*) lan `lanjut` (*continue*) ing njero `coba` tetep ngontrol loop tanpa dicegat dening `tangkep`.
+- **Scope**: Selaras karo aturan Jawascript, blok `coba` lan `tangkep` ora nggawe scope anyar. Variabel sing diowahi ing njero blok bakal tetep owah ing scope aktif. Parameter error mung kasedhiya sajrone eksekusi blok `tangkep`.
+
+---
+
 ## 🚀 Cara Migunakake (Cara Menjalankan)
 
 Priksa manawa **Node.js** wis diinstal ing komputer.
@@ -572,6 +757,27 @@ Tes Object Standard Library:
 ```bash
 node index.js examples/test_object_builtin.jawa
 node index.js examples/test_object_builtin_error.jawa
+```
+
+Tes Array + Object Integration:
+
+```bash
+node index.js examples/test_array_object.jawa
+node index.js examples/test_array_object_error.jawa
+```
+
+Tes Foreach / Iteration:
+
+```bash
+node index.js examples/test_foreach.jawa
+node index.js examples/test_foreach_error.jawa
+```
+
+Tes Pananganan Kasalahan (Exception System):
+
+```bash
+node index.js examples/test_exception.jawa
+node index.js examples/test_exception_error.jawa
 ```
 
 ---
