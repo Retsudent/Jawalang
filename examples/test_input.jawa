@@ -1,0 +1,40 @@
+// =============================================
+// TEST INPUT ENGINE V1 — JAWALANG
+// =============================================
+
+tulis "=== TEST INPUT ==="
+
+// 1. takon dengan prompt
+gawe nama = takon("Jeneng: ")
+tulis nama
+
+// 2. takon tanpa prompt (empty input)
+gawe kosong = takon()
+tulis kosong
+
+// 3. takon input angka (tetap string)
+gawe angka = takon("Masukkan angka: ")
+tulis angka
+
+// 4. Function + Input
+fungsi ambilNama() {
+    bali takon("Nama: ")
+}
+gawe namaFungsi = ambilNama()
+tulis namaFungsi
+
+// 5. Conditional + Input
+gawe pilihan = takon("Pilihan: ")
+yen pilihan == "ya" {
+    tulis "Sampeyan milih ya"
+} liyane {
+    tulis "Sampeyan ora milih ya"
+}
+
+// 6. Array + Input
+gawe namaArray = takon("Nama array: ")
+gawe data = [namaArray]
+tulis data
+tulis jupuk(data, 0)
+
+tulis "=== SELESAI ==="

@@ -1,0 +1,81 @@
+// =============================================
+// TEST STRING UTILITY ENGINE V1 — JAWALANG
+// =============================================
+
+// 1. dawa()
+tulis "=== 1. dawa ==="
+tulis dawa("Jawa")
+tulis dawa("")
+
+// 2. motong()
+tulis "=== 2. motong ==="
+tulis motong("Jawascript", 0, 4)
+tulis motong("Jawascript", 4, 10)
+
+// 3. ngganti()
+tulis "=== 3. ngganti ==="
+tulis ngganti("Aku seneng Jawa", "Jawa", "Jawascript")
+tulis ngganti("Halo", "XYZ", "Dunia")
+
+// 4. gedhe()
+tulis "=== 4. gedhe ==="
+tulis gedhe("jawascript")
+
+// 5. cilik()
+tulis "=== 5. cilik ==="
+tulis cilik("JAWASCRIPT")
+
+// 6. nested call
+tulis "=== 6. nested ==="
+tulis gedhe(motong("jawascript", 0, 4))
+tulis dawa(ngganti("Jawa", "J", "Java"))
+
+// 7. array integration
+tulis "=== 7. array integration ==="
+gawe data = ["jawa", "sunda", "bali"]
+tulis gedhe(jupuk(data, 0))
+gawe hasilNgganti = ngganti(jupuk(data, 0), "jawa", "jawascript")
+tulis hasilNgganti
+
+// 8. function integration
+tulis "=== 8. function integration ==="
+fungsi proses(teks) {
+    bali gedhe(teks)
+}
+tulis proses("jawa")
+
+// 9. loop integration
+tulis "=== 9. loop integration ==="
+gawe data2 = ["jawa", "sunda", "bali"]
+gawe i = 0
+nalika i < dawa(data2) {
+    tulis gedhe(jupuk(data2, i))
+    i = i + 1
+}
+
+// 10. immutability
+tulis "=== 10. immutability ==="
+gawe teksAsli = "Jawascript"
+gawe teksGedhe = gedhe(teksAsli)
+gawe teksCilik = cilik(teksAsli)
+tulis teksAsli
+tulis teksGedhe
+tulis teksCilik
+
+// 11. conditional integration
+tulis "=== 11. conditional ==="
+gawe jeneng = "Jawascript"
+yen dawa(jeneng) > 5 {
+    tulis "Jeneng dawa"
+}
+
+// 12. Alur Section 22
+tulis "=== 12. Section 22 ==="
+gawe kalimat = "Aku seneng Jawa"
+tulis dawa(kalimat)
+tulis motong(kalimat, 0, 3)
+tulis ngganti(kalimat, "Jawa", "Jawascript")
+tulis gedhe(kalimat)
+tulis cilik(kalimat)
+
+tulis "=== SEMUA TEST STRING SELESAI ==="

@@ -1,0 +1,92 @@
+// =============================================
+// TEST BUILT-IN FUNCTIONS — JAWALANG
+// =============================================
+
+// 1. dawa() array
+tulis "=== 1. dawa() array ==="
+gawe angka = [10, 20, 30]
+tulis dawa(angka)
+
+// 2. dawa() string
+tulis "=== 2. dawa() string ==="
+gawe teks = "Jawa"
+tulis dawa(teks)
+
+// 3. dawa() kosong
+tulis "=== 3. dawa() kosong ==="
+tulis dawa([])
+tulis dawa("")
+
+// 4. jupuk()
+tulis "=== 4. jupuk() ==="
+gawe angka2 = [10, 20, 30]
+tulis jupuk(angka2, 0)
+tulis jupuk(angka2, 2)
+
+// 5. nambah() mutate
+tulis "=== 5. nambah() mutate ==="
+gawe angka3 = [10, 20]
+nambah(angka3, 30)
+tulis angka3
+tulis dawa(angka3)
+
+// 6. nambah() mixed types
+tulis "=== 6. nambah() mixed types ==="
+gawe campuran = []
+nambah(campuran, 40)
+nambah(campuran, "Halo")
+nambah(campuran, bener)
+nambah(campuran, [1, 2])
+tulis campuran
+
+// 7. busak() mutate
+tulis "=== 7. busak() mutate ==="
+gawe angka4 = [10, 20, 30]
+busak(angka4, 1)
+tulis angka4
+
+// 8. nested built-in
+tulis "=== 8. nested built-in ==="
+gawe data = [[1, 2], [3, 4]]
+tulis dawa(jupuk(data, 0))
+
+// 9. function integration
+tulis "=== 9. function integration ==="
+fungsi ukuran(data) {
+    bali dawa(data)
+}
+gawe angka5 = [1, 2, 3, 4]
+tulis ukuran(angka5)
+
+// 10. loop integration
+tulis "=== 10. loop integration ==="
+gawe deret = [10, 20, 30]
+gawe i = 0
+nalika i < dawa(deret) {
+    tulis jupuk(deret, i)
+    i = i + 1
+}
+
+// 11. conditional integration
+tulis "=== 11. conditional integration ==="
+yen dawa(deret) > 2 {
+    tulis "Data akeh"
+}
+
+// 12. reference semantics
+tulis "=== 12. reference semantics ==="
+gawe ref1 = [10, 20]
+gawe ref2 = ref1
+nambah(ref1, 30)
+tulis ref2
+
+// 13. Hasil akhir yang diharapkan (Section 22)
+tulis "=== 13. Alur Section 22 ==="
+gawe dataAkhir = [10, 20, 30]
+tulis dawa(dataAkhir)
+tulis jupuk(dataAkhir, 0)
+nambah(dataAkhir, 40)
+busak(dataAkhir, 1)
+tulis dataAkhir
+
+tulis "=== SEMUA TEST BUILT-IN SELESAI ==="

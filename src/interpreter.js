@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 class BreakSignal {}
 class ContinueSignal {}
 class ReturnSignal {
@@ -52,6 +54,240 @@ function interpreter(ast) {
     const MAX_CALL_STACK = 500;
     let callStackDepth = 0;
 
+    // Helper validasi indeks array (digunakake bareng dening IndexExpression, IndexAssignment, lan built-in)
+    function validateIndex(arr, idx) {
+        if (typeof idx !== "number" || !Number.isInteger(idx)) {
+            throw new Error(`Index array kudu bilangan bulat, nanging ditemu: "${idx}" (Index harus bilangan bulat)`);
+        }
+        if (idx < 0) {
+            throw new Error(`Index array ora oleh negatif: ${idx} (Index tidak boleh negatif)`);
+        }
+        if (idx >= arr.length) {
+            throw new Error(`Index array ${idx} ngluwihi ukuran array ${arr.length} (Index melebihi ukuran array)`);
+        }
+    }
+
+    // Built-in Function Registry Resmi
+    const builtins = {
+        dawa(args) {
+            if (args.length !== 1) {
+                throw new Error(
+                    `Function built-in "dawa" mbutuhake 1 argument, nanging diwenehi ${args.length} (Function built-in "dawa" membutuhkan 1 argument)`
+                );
+            }
+            const target = args[0];
+            if (!Array.isArray(target) && typeof target !== "string") {
+                throw new Error(
+                    `dawa() mung bisa digunakake kanggo array utawa string, nanging ditemu: "${typeof target}" (dawa() hanya bisa digunakan untuk array atau string)`
+                );
+            }
+            return target.length;
+        },
+
+        jupuk(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "jupuk" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "jupuk" membutuhkan 2 argument)`
+                );
+            }
+            const target = args[0];
+            if (!Array.isArray(target)) {
+                throw new Error(
+                    `Mung array sing bisa diindex, nanging ditemu: "${typeof target}" (Hanya array yang bisa diindex)`
+                );
+            }
+            validateIndex(target, args[1]);
+            return target[args[1]];
+        },
+
+        nambah(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "nambah" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "nambah" membutuhkan 2 argument)`
+                );
+            }
+            const target = args[0];
+            if (!Array.isArray(target)) {
+                throw new Error(
+                    `nambah() mbutuhake array, nanging ditemu: "${typeof target}" (nambah() membutuhkan array)`
+                );
+            }
+            target.push(args[1]);
+            return null;
+        },
+
+        busak(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "busak" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "busak" membutuhkan 2 argument)`
+                );
+            }
+            const target = args[0];
+            if (!Array.isArray(target)) {
+                throw new Error(
+                    `busak() mbutuhake array, nanging ditemu: "${typeof target}" (busak() membutuhkan array)`
+                );
+            }
+            validateIndex(target, args[1]);
+            target.splice(args[1], 1);
+            return null;
+        },
+
+        // =====================================
+        // STRING UTILITY ENGINE V1
+        // =====================================
+        motong(args) {
+            if (args.length !== 3) {
+                throw new Error(
+                    `Function built-in "motong" mbutuhake 3 argument, nanging diwenehi ${args.length} (Function built-in "motong" membutuhkan 3 argument)`
+                );
+            }
+            const target = args[0];
+            if (typeof target !== "string") {
+                throw new Error(
+                    `motong() mung bisa digunakake kanggo string, nanging ditemu: "${typeof target}" (motong() hanya bisa digunakan untuk string)`
+                );
+            }
+            const mulai = args[1];
+            if (typeof mulai !== "number" || !Number.isInteger(mulai)) {
+                throw new Error(
+                    `Index wiwitan motong() kudu bilangan bulat, nanging ditemu: "${mulai}" (Index awal motong() harus bilangan bulat)`
+                );
+            }
+            if (mulai < 0) {
+                throw new Error(
+                    `Index wiwitan motong() ora oleh negatif: ${mulai} (Index awal motong() tidak boleh negatif)`
+                );
+            }
+            const akhir = args[2];
+            if (typeof akhir !== "number" || !Number.isInteger(akhir)) {
+                throw new Error(
+                    `Index pungkasan motong() kudu bilangan bulat, nanging ditemu: "${akhir}" (Index akhir motong() harus bilangan bulat)`
+                );
+            }
+            if (akhir < 0) {
+                throw new Error(
+                    `Index pungkasan motong() ora oleh negatif: ${akhir} (Index akhir motong() tidak boleh negatif)`
+                );
+            }
+            if (mulai > akhir) {
+                throw new Error(
+                    `Index wiwitan ora oleh luwih gedhe tinimbang index pungkasan (Index awal tidak boleh lebih besar dari index akhir)`
+                );
+            }
+            if (mulai > target.length) {
+                throw new Error(
+                    `Index wiwitan motong() ${mulai} ngluwihi dawa string ${target.length} (Index awal motong() melebihi panjang string)`
+                );
+            }
+            if (akhir > target.length) {
+                throw new Error(
+                    `Index pungkasan motong() ${akhir} ngluwihi dawa string ${target.length} (Index akhir motong() melebihi panjang string)`
+                );
+            }
+            return target.slice(mulai, akhir);
+        },
+
+        ngganti(args) {
+            if (args.length !== 3) {
+                throw new Error(
+                    `Function built-in "ngganti" mbutuhake 3 argument, nanging diwenehi ${args.length} (Function built-in "ngganti" membutuhkan 3 argument)`
+                );
+            }
+            const target = args[0];
+            if (typeof target !== "string") {
+                throw new Error(
+                    `Argument kapisan ngganti() kudu string, nanging ditemu: "${typeof target}" (Argument pertama ngganti() harus string)`
+                );
+            }
+            const lama = args[1];
+            if (typeof lama !== "string") {
+                throw new Error(
+                    `Argument kapindho ngganti() kudu string, nanging ditemu: "${typeof lama}" (Argument kedua ngganti() harus string)`
+                );
+            }
+            const anyar = args[2];
+            if (typeof anyar !== "string") {
+                throw new Error(
+                    `Argument katelu ngganti() kudu string, nanging ditemu: "${typeof anyar}" (Argument ketiga ngganti() harus string)`
+                );
+            }
+            return target.split(lama).join(anyar);
+        },
+
+        gedhe(args) {
+            if (args.length !== 1) {
+                throw new Error(
+                    `Function built-in "gedhe" mbutuhake 1 argument, nanging diwenehi ${args.length} (Function built-in "gedhe" membutuhkan 1 argument)`
+                );
+            }
+            const target = args[0];
+            if (typeof target !== "string") {
+                throw new Error(
+                    `gedhe() mung bisa digunakake kanggo string, nanging ditemu: "${typeof target}" (gedhe() hanya bisa digunakan untuk string)`
+                );
+            }
+            return target.toUpperCase();
+        },
+
+        cilik(args) {
+            if (args.length !== 1) {
+                throw new Error(
+                    `Function built-in "cilik" mbutuhake 1 argument, nanging diwenehi ${args.length} (Function built-in "cilik" membutuhkan 1 argument)`
+                );
+            }
+            const target = args[0];
+            if (typeof target !== "string") {
+                throw new Error(
+                    `cilik() mung bisa digunakake kanggo string, nanging ditemu: "${typeof target}" (cilik() hanya bisa digunakan untuk string)`
+                );
+            }
+            return target.toLowerCase();
+        },
+
+        // =====================================
+        // INPUT ENGINE V1
+        // =====================================
+        takon(args) {
+            if (args.length > 1) {
+                throw new Error(
+                    `Function built-in "takon" mbutuhake 0 utawa 1 argument, nanging diwenehi ${args.length} (Function built-in "takon" membutuhkan 0 atau 1 argument)`
+                );
+            }
+            if (args.length === 1 && typeof args[0] !== "string") {
+                throw new Error(
+                    `Argumen prompt ing "takon" kudu string, nanging ditemu: "${typeof args[0]}" (Argumen prompt pada "takon" harus string)`
+                );
+            }
+            const prompt = args.length === 1 ? args[0] : "";
+            if (prompt) {
+                process.stdout.write(prompt);
+            }
+
+            const buf = Buffer.alloc(1);
+            const bytes = [];
+            while (true) {
+                let bytesRead = 0;
+                try {
+                    bytesRead = fs.readSync(0, buf, 0, 1, null);
+                } catch (e) {
+                    break;
+                }
+                if (bytesRead === 0) {
+                    break;
+                }
+                const b = buf[0];
+                if (b === 10) { // \n
+                    break;
+                }
+                if (b !== 13) { // \r
+                    bytes.push(b);
+                }
+            }
+            return Buffer.from(bytes).toString("utf8");
+        }
+    };
+
     function getValue(node, env) {
         if (!node) {
             throw new Error("Node ekspresi kosong");
@@ -91,44 +327,51 @@ function interpreter(ast) {
         if (node.type === "CallExpression") {
             const callee = node.callee;
 
-            if (!(callee in functions)) {
-                throw new Error(`Function "${callee}" durung digawe`);
-            }
-
-            const fn = functions[callee];
-
             // Evaluasi argument pada scope pemanggil (caller environment)
             const evaluatedArgs = node.arguments.map(arg => getValue(arg, env));
 
-            if (evaluatedArgs.length !== fn.parameters.length) {
-                throw new Error(
-                    `Function "${callee}" mbutuhake ${fn.parameters.length} argument, nanging diwenehi ${evaluatedArgs.length}`
-                );
-            }
+            // 1. Cek User-defined function (prioritas luwih dhuwur, ngidini override)
+            if (callee in functions) {
+                const fn = functions[callee];
 
-            if (callStackDepth >= MAX_CALL_STACK) {
-                throw new Error("Batas kedalaman pemanggilan function terlampaui (Potensi infinite recursion)");
-            }
-
-            // Buat local environment baru yang merujuk ke globalEnv
-            const localEnv = new Environment(globalEnv);
-
-            for (let p = 0; p < fn.parameters.length; p++) {
-                localEnv.define(fn.parameters[p], evaluatedArgs[p]);
-            }
-
-            callStackDepth++;
-            try {
-                execute(fn.body, localEnv);
-                return null; // Return default jika fungsi selesai tanpa "bali"
-            } catch (e) {
-                if (e instanceof ReturnSignal) {
-                    return e.value;
+                if (evaluatedArgs.length !== fn.parameters.length) {
+                    throw new Error(
+                        `Function "${callee}" mbutuhake ${fn.parameters.length} argument, nanging diwenehi ${evaluatedArgs.length}`
+                    );
                 }
-                throw e;
-            } finally {
-                callStackDepth--;
+
+                if (callStackDepth >= MAX_CALL_STACK) {
+                    throw new Error("Batas kedalaman pemanggilan function terlampaui (Potensi infinite recursion)");
+                }
+
+                // Buat local environment baru yang merujuk ke globalEnv
+                const localEnv = new Environment(globalEnv);
+
+                for (let p = 0; p < fn.parameters.length; p++) {
+                    localEnv.define(fn.parameters[p], evaluatedArgs[p]);
+                }
+
+                callStackDepth++;
+                try {
+                    execute(fn.body, localEnv);
+                    return null; // Return default jika fungsi selesai tanpa "bali"
+                } catch (e) {
+                    if (e instanceof ReturnSignal) {
+                        return e.value;
+                    }
+                    throw e;
+                } finally {
+                    callStackDepth--;
+                }
             }
+
+            // 2. Cek Built-in function
+            if (callee in builtins) {
+                return builtins[callee](evaluatedArgs);
+            }
+
+            // 3. Undefined function
+            throw new Error(`Function "${callee}" durung digawe`);
         }
 
         // =========================
@@ -247,15 +490,7 @@ function interpreter(ast) {
                 throw new Error(`Mung array sing bisa diindex, nanging ditemu: "${typeof obj}" (Hanya array yang bisa diindex)`);
             }
             const idx = getValue(node.index, env);
-            if (typeof idx !== "number" || !Number.isInteger(idx)) {
-                throw new Error(`Index array kudu bilangan bulat, nanging ditemu: "${idx}" (Index harus bilangan bulat)`);
-            }
-            if (idx < 0) {
-                throw new Error(`Index array ora oleh negatif: ${idx} (Index tidak boleh negatif)`);
-            }
-            if (idx >= obj.length) {
-                throw new Error(`Index array ${idx} ngluwihi ukuran array ${obj.length} (Index melebihi ukuran array)`);
-            }
+            validateIndex(obj, idx);
             return obj[idx];
         }
 
@@ -305,15 +540,7 @@ function interpreter(ast) {
                     throw new Error(`Mung array sing bisa diubah elemente, nanging ditemu: "${typeof obj}" (Hanya array yang bisa diubah elemennya)`);
                 }
                 const idx = getValue(node.index, env);
-                if (typeof idx !== "number" || !Number.isInteger(idx)) {
-                    throw new Error(`Index array kudu bilangan bulat, nanging ditemu: "${idx}" (Index harus bilangan bulat)`);
-                }
-                if (idx < 0) {
-                    throw new Error(`Index array ora oleh negatif: ${idx} (Index tidak boleh negatif)`);
-                }
-                if (idx >= obj.length) {
-                    throw new Error(`Index array ${idx} ngluwihi ukuran array ${obj.length} (Index melebihi ukuran array)`);
-                }
+                validateIndex(obj, idx);
                 obj[idx] = getValue(node.value, env);
                 continue;
             }

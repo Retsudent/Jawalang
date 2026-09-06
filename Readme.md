@@ -159,6 +159,116 @@ tulis a[0] // 999
 
 ---
 
+## Built-in Function
+
+Jawalang nyedhiyakake fungsi bawaan runtime (*Built-in Function Engine*) resmi mawa kosakata basa Jawa:
+
+| Built-in | Arti | Katrangan & Validasi Argument | Tuladha (Contoh) |
+| :--- | :--- | :--- | :--- |
+| `dawa(x)` | panjang | Mbutuhake 1 argument (array utawa string). Mbalekake gunggunge elemen / dawa karakter. | `dawa([10, 20, 30])` $\to$ `3`<br>`dawa("Jawa")` $\to$ `4` |
+| `jupuk(array, index)` | mengambil | Mbutuhake 2 argument (array lan integer index non-negatif). Mbalekake nilai elemen tanpa mutasi. | `jupuk(data, 0)` $\to$ `10` |
+| `nambah(array, value)` | menambah | Mbutuhake 2 argument (array lan nilai anyar). Nambahake elemen ing mburi array (*mutation*) lan mbalekake `null`. | `nambah(data, 40)` |
+| `busak(array, index)` | menghapus | Mbutuhake 2 argument (array lan integer index valid). Mbusak elemen array (*mutation*) lan mbalekake `null`. | `busak(data, 1)` |
+
+### Tuladha Panggunaan Resmi
+```jawa
+gawe data = [10, 20, 30]
+
+// 1. Ngetung dawa array lan string
+tulis dawa(data)   // 3
+tulis dawa("Jawa") // 4
+
+// 2. Njupuk elemen adhedhasar indeks
+tulis jupuk(data, 0) // 10
+
+// 3. Nambah elemen anyar (mutasi langsung)
+nambah(data, 40)
+tulis data // [10, 20, 30, 40]
+
+// 4. Mbusak elemen adhedhasar indeks (mutasi langsung)
+busak(data, 1)
+tulis data // [10, 30, 40]
+
+// 5. Digunakake ing njero ekspresi & perulangan
+gawe i = 0
+nalika i < dawa(data) {
+    tulis jupuk(data, i)
+    i = i + 1
+}
+```
+
+> [!NOTE]
+> - `nambah()` lan `busak()` langsung ngowahi array asli (*reference semantics*) lan mbalekake nilai `null`.
+> - **Prioritas**: Yen ana fungsi gawean panganggo (`fungsi`) kanthi jeneng sing padha, fungsi gawean kasebut bakal ngalahake (*override*) fungsi built-in.
+
+---
+
+## String Utility
+
+Jawalang nyedhiyakake fungsi manipulasi teks (String Utility Engine V1) resmi mawa sifat *immutable* (ora ngowahi teks asli):
+
+| Fungsi | Parameter & Validasi | Katrangan | Return Value | Tuladha (Contoh) |
+| :--- | :--- | :--- | :--- | :--- |
+| `dawa(teks)` | 1 argument (string) | Ngetung dawa karakter string | `number` | `dawa("Jawa")` $\to$ `4` |
+| `motong(teks, mulai, akhir)` | 3 argument (string, integer $\ge 0$, integer $\ge 0$) | Njupuk bagean string saka indeks `mulai` nganti sadurunge `akhir` | `string` anyar | `motong("Jawascript", 0, 4)` $\to$ `"Jawa"` |
+| `ngganti(teks, lama, anyar)` | 3 argument (kabeh kudu string) | Ngganti bagean string `lama` dadi `anyar` | `string` anyar | `ngganti("Halo Jawa", "Jawa", "Dunia")` $\to$ `"Halo Dunia"` |
+| `gedhe(teks)` | 1 argument (string) | Ngowahi kabeh aksara dadi huruf gedhe (kapital) | `string` anyar | `gedhe("jawa")` $\to$ `"JAWA"` |
+| `cilik(teks)` | 1 argument (string) | Ngowahi kabeh aksara dadi huruf cilik | `string` anyar | `cilik("JAWA")` $\to$ `"jawa"` |
+
+### Tuladha Panggunaan String Utility
+```jawa
+gawe teks = "Aku seneng Jawa"
+
+tulis dawa(teks)                          // 15
+tulis motong(teks, 0, 3)                  // "Aku"
+tulis ngganti(teks, "Jawa", "Jawascript") // "Aku seneng Jawascript"
+tulis gedhe(teks)                         // "AKU SENENG JAWA"
+tulis cilik(teks)                         // "aku seneng jawa"
+
+// String tetep ora owah (immutable):
+tulis teks // "Aku seneng Jawa"
+```
+
+---
+
+## Input
+
+Jawalang nyedhiyakake fungsi bawaan `takon()` kanggo maca input interaktif saka pangguna (Input Engine V1):
+
+| Fungsi | Parameter & Validasi | Katrangan | Return Value |
+| :--- | :--- | :--- | :--- |
+| `takon()` | 0 argument | Maca sak baris input saka pangguna tanpa teks pituduh (*prompt*) | `string` |
+| `takon(prompt)` | 1 argument (kudu `string`) | Nampilake pituduh (*prompt*) banjur maca sak baris input saka pangguna | `string` |
+
+### Sifat & Ketentuan Input
+- **Tansah String**: Asil pamanggilan `takon()` tansah ngasilake nilai kanthi tipe data `string`, kalebu yen pangguna ngetik angka (kayata `"123"`).
+- **Input Kosong**: Yen pangguna langsung mencet `ENTER` tanpa ngetik karakter, `takon()` bakal ngasilake string kosong `""` (dudu `null`).
+- **Validasi Argument**: Mung nampa 0 utawa 1 argument, lan argument prompt kudu awujud string.
+
+### Tuladha Panggunaan Input
+```jawa
+// 1. Input kanthi prompt
+gawe jeneng = takon("Sapa jenengmu? ")
+tulis jeneng
+
+// 2. Input ing percabangan kondisi
+gawe pilihan = takon("Milih ya utawa ora? ")
+yen pilihan == "ya" {
+    tulis "Sampeyan milih ya"
+} liyane {
+    tulis "Sampeyan ora milih ya"
+}
+
+// 3. Input ing njero fungsi
+fungsi jupukUmur() {
+    bali takon("Pira umurmu? ")
+}
+gawe umur = jupukUmur()
+tulis umur
+```
+
+---
+
 ## 🚀 Cara Migunakake (Cara Menjalankan)
 
 Priksa manawa **Node.js** wis diinstal ing komputer.
@@ -210,6 +320,27 @@ Tes Array Engine:
 ```bash
 node index.js examples/test_array.jawa
 node index.js examples/test_array_error.jawa
+```
+
+Tes Built-in Functions:
+
+```bash
+node index.js examples/test_builtin.jawa
+node index.js examples/test_builtin_error.jawa
+```
+
+Tes String Utility Engine:
+
+```bash
+node index.js examples/test_string.jawa
+node index.js examples/test_string_error.jawa
+```
+
+Tes Input Engine:
+
+```bash
+node index.js examples/test_input.jawa
+node index.js examples/test_input_error.jawa
 ```
 
 ---
