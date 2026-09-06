@@ -341,6 +341,92 @@ tulis jinis([1, 2, 3])  // "array"
 
 ---
 
+## 🗂️ Object / Dictionary
+
+Jawascript ndhukung struktur data **object** sing nyimpen pasangan **key → value**.
+
+### Literal Object
+
+```jawa
+gawe wong = {
+    "jeneng": "Budi",
+    "umur": 20,
+    "aktif": bener,
+    "alamat": null
+}
+```
+
+- Key **kudu** string literal (diubengi tanda petik).
+- Value bisa apa wae: number, string, boolean, null, array, object, utawa hasil ekspresi.
+- Object kosong diijinake: `{}`.
+- Yen kunci ganda, **kunci pungkasan sing menang** (*last key wins*).
+
+### Ngakses Property
+
+```jawa
+tulis wong["jeneng"]   // Budi
+tulis wong["umur"]     // 20
+```
+
+- Property sing ora ana → ngasilake `null` (ora error).
+
+```jawa
+tulis wong["ora_ana"]  // null
+```
+
+### Ngowahi / Nambah Property
+
+```jawa
+wong["umur"] = 21
+wong["kutha"] = "Madiun"   // property anyar
+```
+
+### Kunci Dinamis
+
+```jawa
+gawe field = "jeneng"
+tulis wong[field]      // Budi
+```
+
+### Object Bersarang
+
+```jawa
+gawe data = {
+    "profil": {
+        "jeneng": "Siti",
+        "umur": 25
+    }
+}
+tulis data["profil"]["jeneng"]   // Siti
+```
+
+### Reference Semantics
+
+Object nggunakake **reference semantics** — mutasi ing jero fungsi katon ing njaban.
+
+```jawa
+fungsi ubah(o) {
+    o["jeneng"] = "Ayu"
+}
+ubah(wong)
+tulis wong["jeneng"]   // Ayu
+```
+
+### Jinis
+
+```jawa
+tulis jinis(wong)      // object
+tulis jinis({})        // object
+```
+
+### Catatan V1
+
+- Mung sintaks `obj["key"]` sing diijinake. Dot-notation (`obj.key`) **durung dhewe**.
+- Key kudu bertipe string; index integer **ora kanggo** object.
+- Object **ora** bisa diindeks karo number (error runtime).
+
+---
+
 ## 🚀 Cara Migunakake (Cara Menjalankan)
 
 Priksa manawa **Node.js** wis diinstal ing komputer.
@@ -420,6 +506,13 @@ Tes Type System & Null:
 ```bash
 node index.js examples/test_type.jawa
 node index.js examples/test_type_error.jawa
+```
+
+Tes Object / Dictionary Engine:
+
+```bash
+node index.js examples/test_object.jawa
+node index.js examples/test_object_error.jawa
 ```
 
 ---

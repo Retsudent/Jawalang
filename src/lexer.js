@@ -265,6 +265,12 @@ function lexer(source) {
             continue;
         }
 
+        if (source[i] === ":") {
+            tokens.push({ type: "COLON", value: ":" });
+            i++;
+            continue;
+        }
+
         // =========================
         // KURUNG & BLOK
         // =========================

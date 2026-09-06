@@ -54,10 +54,34 @@ function interpreter(ast) {
     const MAX_CALL_STACK = 500;
     let callStackDepth = 0;
 
+    // Helper format nilai kanggo cithak (PrintStatement, arrayToString, lan error)
+    function formatValue(val, isTopLevel = false) {
+        if (val === null) return "null";
+        if (val === true) return "bener";
+        if (val === false) return "salah";
+        if (typeof val === "string") {
+            return isTopLevel ? val : `"${val}"`;
+        }
+        if (typeof val === "number") return String(val);
+        if (Array.isArray(val)) {
+            return "[" + val.map(el => formatValue(el, false)).join(", ") + "]";
+        }
+        if (val && typeof val === "object" && val._isFunction) {
+            return `<fungsi ${val.name || ""}>`.trim();
+        }
+        if (val && typeof val === "object") {
+            const keys = Object.keys(val);
+            if (keys.length === 0) return "{}";
+            const pairs = keys.map(k => `"${k}": ${formatValue(val[k], false)}`);
+            return "{" + pairs.join(", ") + "}";
+        }
+        return String(val);
+    }
+
     // Helper validasi indeks array (digunakake bareng dening IndexExpression, IndexAssignment, lan built-in)
     function validateIndex(arr, idx) {
         if (typeof idx !== "number" || !Number.isInteger(idx)) {
-            throw new Error(`Index array kudu bilangan bulat, nanging ditemu: "${idx}" (Index harus bilangan bulat)`);
+            throw new Error(`Index array kudu bilangan bulat, nanging ditemu: "${formatValue(idx, false)}" (Index harus bilangan bulat)`);
         }
         if (idx < 0) {
             throw new Error(`Index array ora oleh negatif: ${idx} (Index tidak boleh negatif)`);
@@ -75,6 +99,7 @@ function interpreter(ast) {
         if (typeof val === "number") return "number";
         if (typeof val === "string") return "string";
         if (typeof val === "function" || (val && typeof val === "object" && val._isFunction)) return "function";
+        if (typeof val === "object") return "object";
         return "unknown";
     }
 
@@ -417,11 +442,17 @@ function interpreter(ast) {
                 if (arg === null) {
                     throw new Error(`Operator unary "-" ora bisa digunakake kanggo null (Operator unary "-" tidak bisa digunakan untuk null)`);
                 }
+                if (typeof arg === "object") {
+                    throw new Error(`Operator unary "-" ora bisa digunakake kanggo ${getType(arg)} (Operator unary "-" tidak bisa digunakan untuk ${getType(arg)})`);
+                }
                 return -arg;
             }
             if (node.operator === "+") {
                 if (arg === null) {
                     throw new Error(`Operator unary "+" ora bisa digunakake kanggo null (Operator unary "+" tidak bisa digunakan untuk null)`);
+                }
+                if (typeof arg === "object") {
+                    throw new Error(`Operator unary "+" ora bisa digunakake kanggo ${getType(arg)} (Operator unary "+" tidak bisa digunakan untuk ${getType(arg)})`);
                 }
                 return +arg;
             }
@@ -478,11 +509,19 @@ function interpreter(ast) {
                     if (left === null || right === null) {
                         throw new Error(`Operasi "+" ora bisa digunakake kanggo null (Operasi "+" tidak bisa digunakan untuk null)`);
                     }
+                    if (typeof left === "object" || typeof right === "object") {
+                        const badType = typeof left === "object" ? getType(left) : getType(right);
+                        throw new Error(`Operasi "+" ora bisa digunakake kanggo ${badType} (Operasi "+" tidak bisa digunakan untuk ${badType})`);
+                    }
                     return left + right;
 
                 case "-":
                     if (left === null || right === null) {
                         throw new Error(`Operasi "-" ora bisa digunakake kanggo null (Operasi "-" tidak bisa digunakan untuk null)`);
+                    }
+                    if (typeof left === "object" || typeof right === "object") {
+                        const badType = typeof left === "object" ? getType(left) : getType(right);
+                        throw new Error(`Operasi "-" ora bisa digunakake kanggo ${badType} (Operasi "-" tidak bisa digunakan untuk ${badType})`);
                     }
                     return left - right;
 
@@ -490,11 +529,19 @@ function interpreter(ast) {
                     if (left === null || right === null) {
                         throw new Error(`Operasi "*" ora bisa digunakake kanggo null (Operasi "*" tidak bisa digunakan untuk null)`);
                     }
+                    if (typeof left === "object" || typeof right === "object") {
+                        const badType = typeof left === "object" ? getType(left) : getType(right);
+                        throw new Error(`Operasi "*" ora bisa digunakake kanggo ${badType} (Operasi "*" tidak bisa digunakan untuk ${badType})`);
+                    }
                     return left * right;
 
                 case "/":
                     if (left === null || right === null) {
                         throw new Error(`Operasi "/" ora bisa digunakake kanggo null (Operasi "/" tidak bisa digunakan untuk null)`);
+                    }
+                    if (typeof left === "object" || typeof right === "object") {
+                        const badType = typeof left === "object" ? getType(left) : getType(right);
+                        throw new Error(`Operasi "/" ora bisa digunakake kanggo ${badType} (Operasi "/" tidak bisa digunakan untuk ${badType})`);
                     }
                     if (right === 0) {
                         throw new Error("Ora bisa dibagi 0! (Tidak bisa membagi dengan nol)");
@@ -506,11 +553,19 @@ function interpreter(ast) {
                     if (left === null || right === null) {
                         throw new Error(`Operasi ">" ora bisa digunakake kanggo null (Operasi ">" tidak bisa digunakan untuk null)`);
                     }
+                    if (typeof left === "object" || typeof right === "object") {
+                        const badType = typeof left === "object" ? getType(left) : getType(right);
+                        throw new Error(`Operasi ">" ora bisa digunakake kanggo ${badType} (Operasi ">" tidak bisa digunakan untuk ${badType})`);
+                    }
                     return left > right;
 
                 case "<":
                     if (left === null || right === null) {
                         throw new Error(`Operasi "<" ora bisa digunakake kanggo null (Operasi "<" tidak bisa digunakan untuk null)`);
+                    }
+                    if (typeof left === "object" || typeof right === "object") {
+                        const badType = typeof left === "object" ? getType(left) : getType(right);
+                        throw new Error(`Operasi "<" ora bisa digunakake kanggo ${badType} (Operasi "<" tidak bisa digunakan untuk ${badType})`);
                     }
                     return left < right;
 
@@ -518,11 +573,19 @@ function interpreter(ast) {
                     if (left === null || right === null) {
                         throw new Error(`Operasi ">=" ora bisa digunakake kanggo null (Operasi ">=" tidak bisa digunakan untuk null)`);
                     }
+                    if (typeof left === "object" || typeof right === "object") {
+                        const badType = typeof left === "object" ? getType(left) : getType(right);
+                        throw new Error(`Operasi ">=" ora bisa digunakake kanggo ${badType} (Operasi ">=" tidak bisa digunakan untuk ${badType})`);
+                    }
                     return left >= right;
 
                 case "<=":
                     if (left === null || right === null) {
                         throw new Error(`Operasi "<=" ora bisa digunakake kanggo null (Operasi "<=" tidak bisa digunakan untuk null)`);
+                    }
+                    if (typeof left === "object" || typeof right === "object") {
+                        const badType = typeof left === "object" ? getType(left) : getType(right);
+                        throw new Error(`Operasi "<=" ora bisa digunakake kanggo ${badType} (Operasi "<=" tidak bisa digunakan untuk ${badType})`);
                     }
                     return left <= right;
 
@@ -545,16 +608,40 @@ function interpreter(ast) {
         }
 
         // =========================
-        // INDEX EXPRESSION (arr[i])
+        // OBJECT (ObjectExpression)
+        // =========================
+        if (node.type === "ObjectExpression") {
+            const obj = {};
+            for (const prop of node.properties) {
+                obj[prop.key] = getValue(prop.value, env);
+            }
+            return obj;
+        }
+
+        // =========================
+        // INDEX EXPRESSION (arr[i], obj[k])
         // =========================
         if (node.type === "IndexExpression") {
             const obj = getValue(node.object, env);
-            if (!Array.isArray(obj)) {
-                throw new Error(`Mung array sing bisa diindex, nanging ditemu: "${getType(obj)}" (Hanya array yang bisa diindex)`);
+            if (obj === null) {
+                throw new Error('Ora bisa ngakses property saka null (Tidak bisa mengakses property dari null)');
             }
-            const idx = getValue(node.index, env);
-            validateIndex(obj, idx);
-            return obj[idx];
+            if (Array.isArray(obj)) {
+                const idx = getValue(node.index, env);
+                validateIndex(obj, idx);
+                return obj[idx];
+            }
+            if (typeof obj === "object" && !obj._isFunction) {
+                const key = getValue(node.index, env);
+                if (typeof key !== "string") {
+                    throw new Error(`Object mung bisa diakses nganggo key string, nanging ditemu: "${getType(key)}" (Object hanya bisa diakses dengan key string)`);
+                }
+                if (key in obj) {
+                    return obj[key];
+                }
+                return null;
+            }
+            throw new Error(`Mung array utawa object sing bisa diindex, nanging ditemu: "${getType(obj)}" (Hanya array atau object yang bisa diindex)`);
         }
 
         throw new Error(`Ora bisa nemokake nilai saka "${node.type}"`);
@@ -595,17 +682,28 @@ function interpreter(ast) {
             }
 
             // =========================
-            // UBAH NILAI ELEMEN ARRAY (arr[i] = ...)
+            // UBAH NILAI ELEMEN ARRAY / PROPERTY OBJECT (arr[i] = ..., obj[k] = ...)
             // =========================
             if (node.type === "IndexAssignmentStatement") {
                 const obj = getValue(node.object, env);
-                if (!Array.isArray(obj)) {
-                    throw new Error(`Mung array sing bisa diubah elemente, nanging ditemu: "${getType(obj)}" (Hanya array yang bisa diubah elemennya)`);
+                if (obj === null) {
+                    throw new Error('Ora bisa ngowahi property saka null (Tidak bisa mengubah property dari null)');
                 }
-                const idx = getValue(node.index, env);
-                validateIndex(obj, idx);
-                obj[idx] = getValue(node.value, env);
-                continue;
+                if (Array.isArray(obj)) {
+                    const idx = getValue(node.index, env);
+                    validateIndex(obj, idx);
+                    obj[idx] = getValue(node.value, env);
+                    continue;
+                }
+                if (typeof obj === "object" && !obj._isFunction) {
+                    const key = getValue(node.index, env);
+                    if (typeof key !== "string") {
+                        throw new Error(`Key object kudu awujud string, nanging ditemu: "${getType(key)}" (Key object harus berupa string)`);
+                    }
+                    obj[key] = getValue(node.value, env);
+                    continue;
+                }
+                throw new Error(`Mung array utawa object sing bisa diubah elemente, nanging ditemu: "${getType(obj)}" (Hanya array atau object yang bisa diubah elemennya)`);
             }
 
             // =========================
@@ -613,17 +711,7 @@ function interpreter(ast) {
             // =========================
             if (node.type === "PrintStatement") {
                 const val = getValue(node.expression, env);
-                if (Array.isArray(val)) {
-                    console.log(arrayToString(val));
-                } else if (val === true) {
-                    console.log("bener");
-                } else if (val === false) {
-                    console.log("salah");
-                } else if (val && typeof val === "object" && val._isFunction) {
-                    console.log(`<fungsi ${val.name || ""}>`.trim());
-                } else {
-                    console.log(val);
-                }
+                console.log(formatValue(val, true));
                 continue;
             }
 

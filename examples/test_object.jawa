@@ -1,0 +1,135 @@
+// ===========================================
+// TEST OBJECT / DICTIONARY ENGINE V1 - JAWALANG
+// ==========================================
+
+tulis "=== OBJECT TEST ==="
+
+gawe kosong = {}
+tulis kosong
+tulis jinis(kosong)
+
+gawe wong = {
+    "jeneng": "Budi",
+    "umur": 20,
+    "aktif": bener,
+    "alamat": null
+}
+
+tulis wong
+tulis jinis(wong)
+
+tulis wong["jeneng"]
+tulis wong["umur"]
+tulis wong["aktif"]
+tulis wong["alamat"]
+
+gawe kunci = "jeneng"
+tulis wong[kunci]
+
+wong["umur"] = 21
+wong["kutha"] = "Madiun"
+
+tulis wong["umur"]
+tulis wong["kutha"]
+
+gawe nested = {
+    "user": {
+        "nama": "Siti",
+        "umur": 21
+    }
+}
+
+tulis nested["user"]["nama"]
+tulis nested["user"]["umur"]
+
+gawe campur = {
+    "angka": 10,
+    "teks": "Jawa",
+    "bool": bener,
+    "kosong": null,
+    "array": [1, 2, 3]
+}
+
+tulis jinis(campur["angka"])
+tulis jinis(campur["teks"])
+tulis jinis(campur["bool"])
+tulis jinis(campur["kosong"])
+tulis jinis(campur["array"])
+
+// Section 39: Test Object + Array
+gawe users = [
+    {
+        "nama": "Budi",
+        "umur": 20
+    },
+    {
+        "nama": "Siti",
+        "umur": 21
+    }
+]
+
+tulis users[0]["nama"]
+tulis users[1]["nama"]
+tulis users[0]["umur"]
+
+// Section 40: Test Object + Function
+fungsi tampilkan(u) {
+    tulis u["nama"]
+}
+
+gawe user1 = {
+    "nama": "Budi"
+}
+
+tampilkan(user1)
+
+// Section 41: Test Object Mutation
+fungsi ubah(u) {
+    u["nama"] = "Siti"
+}
+
+gawe userMutasi = {
+    "nama": "Budi"
+}
+
+ubah(userMutasi)
+
+tulis userMutasi["nama"]
+
+// Section 42: Test Missing Property
+gawe userHilang = {
+    "nama": "Budi"
+}
+
+tulis userHilang["umur"]
+tulis jinis(userHilang["umur"])
+
+// Section 14: Reference semantics
+gawe asli = {
+    "nama": "Budi"
+}
+gawe salinan = asli
+salinan["nama"] = "Siti"
+tulis asli["nama"]
+
+// Section 34: Function return object
+fungsi gaweUser() {
+    bali {
+        "nama": "Budi",
+        "umur": 20
+    }
+}
+gawe hasilFn = gaweUser()
+tulis hasilFn["nama"]
+
+// Section 36: Object + String utility
+tulis gedhe(user1["nama"])
+
+// Section 37: Object + Array built-in
+gawe dataArray = {
+    "hobi": ["coding", "musik"]
+}
+tulis dawa(dataArray["hobi"])
+tulis jupuk(dataArray["hobi"], 0)
+
+tulis "=== SELESAI ==="

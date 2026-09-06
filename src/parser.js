@@ -51,6 +51,59 @@ function parser(tokens) {
             };
         }
 
+        // Object literal { ... }
+        if (token.type === "LEFT_BRACE") {
+            i++; // lewati "{"
+
+            const properties = [];
+
+            if (tokens[i] && tokens[i].type !== "RIGHT_BRACE") {
+                while (true) {
+                    if (!tokens[i]) {
+                        throw new Error('Kurung kurawal "{" ing object kudu ditutup nganggo "}"');
+                    }
+
+                    // Key kudu string ing V1
+                    const keyToken = tokens[i];
+                    if (keyToken.type !== "STRING") {
+                        throw new Error(`Key object kudu awujud string, nanging ditemu: "${keyToken.value}" (Key object harus berupa string)`);
+                    }
+                    i++; // lewati string key
+
+                    if (!tokens[i] || tokens[i].type !== "COLON") {
+                        throw new Error('Sawise key object kudu ana tanda ":" (Setelah key object harus ada tanda ":")');
+                    }
+                    i++; // lewati ":"
+
+                    const valNode = parseExpression();
+
+                    properties.push({
+                        key: keyToken.value,
+                        value: valNode
+                    });
+
+                    if (tokens[i] && tokens[i].type === "COMMA") {
+                        i++; // lewati ","
+                        if (tokens[i] && tokens[i].type === "RIGHT_BRACE") {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            if (!tokens[i] || tokens[i].type !== "RIGHT_BRACE") {
+                throw new Error('Kurung kurawal "{" ing object kudu ditutup nganggo "}"');
+            }
+            i++; // lewati "}"
+
+            return {
+                type: "ObjectExpression",
+                properties: properties
+            };
+        }
+
         // Identifier atau Function Call
         if (token.type === "IDENTIFIER") {
             i++;
