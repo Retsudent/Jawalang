@@ -330,6 +330,60 @@ function interpreter(ast) {
                 }
             }
             return Buffer.from(bytes).toString("utf8");
+        },
+
+        // =====================================
+        // OBJECT STANDARD LIBRARY V1
+        // =====================================
+        kunci(args) {
+            if (args.length !== 1) {
+                throw new Error(
+                    `Function built-in "kunci" mbutuhake 1 argument, nanging diwenehi ${args.length} (Function built-in "kunci" membutuhkan 1 argument)`
+                );
+            }
+            const target = args[0];
+            if (getType(target) !== "object") {
+                throw new Error(
+                    `kunci() mung bisa digunakake kanggo object, nanging ditemu: "${getType(target)}" (kunci() hanya bisa digunakan untuk object)`
+                );
+            }
+            return Object.keys(target);
+        },
+
+        nilai(args) {
+            if (args.length !== 1) {
+                throw new Error(
+                    `Function built-in "nilai" mbutuhake 1 argument, nanging diwenehi ${args.length} (Function built-in "nilai" membutuhkan 1 argument)`
+                );
+            }
+            const target = args[0];
+            if (getType(target) !== "object") {
+                throw new Error(
+                    `nilai() mung bisa digunakake kanggo object, nanging ditemu: "${getType(target)}" (nilai() hanya bisa digunakan untuk object)`
+                );
+            }
+            return Object.keys(target).map(k => target[k]);
+        },
+
+        duwe(args) {
+            if (args.length !== 2) {
+                throw new Error(
+                    `Function built-in "duwe" mbutuhake 2 argument, nanging diwenehi ${args.length} (Function built-in "duwe" membutuhkan 2 argument)`
+                );
+            }
+            const target = args[0];
+            if (getType(target) !== "object") {
+                throw new Error(
+                    `Argument kapisan duwe() kudu object, nanging ditemu: "${getType(target)}" (Argument pertama duwe() harus object)`
+                );
+            }
+            const key = args[1];
+            if (typeof key !== "string") {
+                throw new Error(
+                    `Argument kapindho duwe() kudu string, nanging ditemu: "${getType(key)}" (Argument kedua duwe() harus string)`
+                );
+            }
+            return Object.prototype.hasOwnProperty.call(target, key);
         }
     };
 

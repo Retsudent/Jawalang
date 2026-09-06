@@ -427,6 +427,58 @@ tulis jinis({})        // object
 
 ---
 
+## 🧰 Object Standard Library
+
+Jawascript nyedhiyakake fungsi bawaan (*built-in*) resmi kanggo ngolah struktur data object:
+
+| Built-in | Parameter | Return Type | Katrangan |
+| :--- | :--- | :--- | :--- |
+| `kunci(obj)` | `(object)` | `array` | Mbalekake kabeh key (string) ing jero array anyar adhedhasar urutan panulisan (*insertion order*). |
+| `nilai(obj)` | `(object)` | `array` | Mbalekake kabeh value ing jero array anyar nututi urutan key. |
+| `duwe(obj, key)` | `(object, string)` | `boolean` | Priksa apa key ana ing jero object (`bener` utawa `salah`). |
+
+### `kunci()`
+
+Mbalekake kabeh jeneng kunci ing jero object:
+
+```jawa
+gawe user = {
+    "nama": "Budi",
+    "umur": 20
+}
+
+tulis kunci(user)   // ["nama", "umur"]
+```
+
+- Object kosong `{}` ngasilake `[]` (panjang `0`).
+- Wadah array sing dibalekake yaiku array anyar, mula ngowahi array kasebut (kayata nganggo `busak()`) ora ngrusak properti asli object.
+
+### `nilai()`
+
+Mbalekake kabeh nilai properti ing jero object:
+
+```jawa
+tulis nilai(user)   // ["Budi", 20]
+```
+
+- Urutan nilai tansah padha karo urutan `kunci()`.
+- Nilai bisa arupa tipe data apa wae (number, string, boolean, null, array, object).
+- **Reference Semantics**: Wadah array sing diasilake anyar, nanging referensi nilai bertipe object utawa array ing jerone tetep nuduhake referensi asli (ora di-deep clone). Mutasi marang elemen bersarang bakal langsung ngowahi object sumbere.
+
+### `duwe()`
+
+Ngecek anane sawijining key:
+
+```jawa
+tulis duwe(user, "nama")    // bener
+tulis duwe(user, "alamat")  // salah
+```
+
+- **Nilai `null` Tetep Dianggep Ana**: Yen properti duwe nilai `null` (tuladhane `{"alamat": null}`), `duwe(user, "alamat")` tetep ngasilake `bener` amarga kuncine pancen kadhaptar ing object.
+- Kunci dinamis bisa digunakake nganggo variabel bertipe string: `duwe(user, key)`.
+
+---
+
 ## 🚀 Cara Migunakake (Cara Menjalankan)
 
 Priksa manawa **Node.js** wis diinstal ing komputer.
@@ -513,6 +565,13 @@ Tes Object / Dictionary Engine:
 ```bash
 node index.js examples/test_object.jawa
 node index.js examples/test_object_error.jawa
+```
+
+Tes Object Standard Library:
+
+```bash
+node index.js examples/test_object_builtin.jawa
+node index.js examples/test_object_builtin_error.jawa
 ```
 
 ---
