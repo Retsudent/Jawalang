@@ -1,5 +1,5 @@
 // recursion.jawa
-ekspor fungsi faktorial(n) {
+ekspor guna faktorial(n) {
     yen n <= 1 {
         bali 1
     }

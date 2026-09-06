@@ -24,18 +24,18 @@ Basa pamrograman prasaja mawa sintaks basa Jawa (A simple programming language u
 | `kanggo saben ... ing` | Perulangan elemen array (`foreach`) | `kanggo saben x ing data { ... }` |
 | `mandheg` | Mandhegake perulangan saknalika (`break`) | `yen i == 5 { mandheg }` |
 | `lanjut` | Nglompati menyang iterasi sabanjure (`continue`) | `yen i == 3 { lanjut }` |
-| `fungsi` | Deklarasi fungsi anyar (`function`) | `fungsi tambah(a, b) { ... }` |
+| `guna` | Deklarasi fungsi anyar (`function`) | `guna tambah(a, b) { ... }` |
 | `bali` | Mbalekake nilai saka fungsi (`return`) | `bali a + b` |
 | `coba` | Blok pananganan kesalahan (`try`) | `coba { ... } tangkep err { ... }` |
 | `tangkep` | Blok penangkep kesalahan (`catch`) | `coba { ... } tangkep err { ... }` |
 | `lempar` | Mbuwang kesalahan / eksepsi (`throw`) | `lempar "Data ora valid"` |
 | `impor` | Nglumpukake / ngimpor modul liya (`import`) | `impor "matematika"` |
-| `ekspor` | Ngecakake / ngekspor fungsi utawa variabel menyang modul liya (`export`) | `ekspor fungsi tambah(a, b) { ... }` |
+| `ekspor` | Ngecakake / ngekspor fungsi utawa variabel menyang modul liya (`export`) | `ekspor guna tambah(a, b) { ... }` |
 | `[ ]` | Kurung kothak array & indeks | `gawe data = [10, 20]; data[0] = 5` |
 | `+`, `-`, `*`, `/` | Operator matématika (tambah, kurang, ping, bagi) | `tulis 2 + 3 * 4` |
 | `==`, `!=`, `>`, `<`, `>=`, `<=` | Operator perbandingan | `yen nilai == 100 { ... }` |
 | `( )` | Tanda kurung kanggo prioritas & fungsi | `tambah(10, 20)` |
-| `,` | Pamisah elemen array & argument fungsi | `[1, 2, 3]` utawa `fungsi tes(a, b)` |
+| `,` | Pamisah elemen array & argument fungsi | `[1, 2, 3]` utawa `guna tes(a, b)` |
 | `-` (unary) | Negasi angka (minus) | `gawe negatif = -10` |
 | `//` | Komentar (ora dieksekusi) | `// Iki komentar` |
 
@@ -59,11 +59,11 @@ Expression Engine ing Jawalang nggunakake *Recursive Descent Parser* kanthi hier
 
 ## ⚙️ Sistem Fungsi (Function Engine)
 
-Jawalang ndhukung deklarasi lan pamanggilan fungsi mawa tembung kunci `fungsi` lan `bali`:
+Jawalang ndhukung deklarasi lan pamanggilan fungsi mawa tembung kunci `guna` lan `bali`:
 
 ### Deklarasi & Pamanggilan
 ```jawa
-fungsi tambah(a, b) {
+guna tambah(a, b) {
     bali a + b
 }
 
@@ -94,7 +94,7 @@ Sistem scope ing Jawalang nggunakake aturan **Lexical Scoping** kanthi chain env
 ```jawa
 gawe x = 10
 
-fungsi test() {
+guna test() {
     gawe x = 20
     tulis x
 }
@@ -205,7 +205,7 @@ nalika i < dawa(data) {
 
 > [!NOTE]
 > - `nambah()` lan `busak()` langsung ngowahi array asli (*reference semantics*) lan mbalekake nilai `null`.
-> - **Prioritas**: Yen ana fungsi gawean panganggo (`fungsi`) kanthi jeneng sing padha, fungsi gawean kasebut bakal ngalahake (*override*) fungsi built-in.
+> - **Prioritas**: Yen ana fungsi gawean panganggo (`guna`) kanthi jeneng sing padha, fungsi gawean kasebut bakal ngalahake (*override*) fungsi built-in.
 
 ---
 
@@ -266,7 +266,7 @@ yen pilihan == "ya" {
 }
 
 // 3. Input ing njero fungsi
-fungsi jupukUmur() {
+guna jupukUmur() {
     bali takon("Pira umurmu? ")
 }
 gawe umur = jupukUmur()
@@ -286,7 +286,7 @@ Jawalang nduweni sistem tipe data runtime (*Runtime Type System V1*) sing konsis
 | `string` | Rerangkatan karakter ing njero tanda petik | `"Halo"`, `"Jawalang"` | `"string"` |
 | `boolean` | Nilai bebeneran basa Jawa | `bener`, `salah` | `"boolean"` |
 | `array` | Struktur data dhaptar elemen | `[1, 2, 3]`, `[]` | `"array"` |
-| `function` | Fungsi sing wis dideklarasikake nganggo `fungsi` | `halo` | `"function"` |
+| `function` | Fungsi sing wis dideklarasikake nganggo `guna` | `halo` | `"function"` |
 
 > [!NOTE]
 > - Angka desimal (pecahan) tetep digolongake menyang tipe `number`. Contone `jinis(10)` lan `jinis(3.14)` kalorone ngasilake `"number"`.
@@ -411,7 +411,7 @@ tulis data["profil"]["jeneng"]   // Siti
 Object nggunakake **reference semantics** — mutasi ing jero fungsi katon ing njaban.
 
 ```jawa
-fungsi ubah(o) {
+guna ubah(o) {
     o["jeneng"] = "Ayu"
 }
 ubah(wong)
@@ -676,7 +676,7 @@ Sawijining modul bisa ngekspor fungsi utawa variabel menyang modul liya:
 
 ```jawa
 // matematika.jawa
-ekspor fungsi tambah(a, b) {
+ekspor guna tambah(a, b) {
     bali a + b
 }
 
@@ -724,7 +724,7 @@ Variabel sing diekspor nggunakake **copy binding** — nilai disalin menyang sco
 ```jawa
 // modul.jawa
 ekspor gawe angka = 100
-ekspor fungsi baca() { bali angka }
+ekspor guna baca() { bali angka }
 ```
 
 ```jawa
@@ -793,7 +793,7 @@ Jawascript ndhukung fungsi minangka **first-class runtime value** sarta nyedhiya
 Fungsi bisa disimpen ing variabel, diwenehake minangka argumen, lan diceluk liwat variabel:
 
 ```jawa
-fungsi kuadrat(x) {
+guna kuadrat(x) {
     bali x * x
 }
 
@@ -805,16 +805,16 @@ tulis jinis(f) // "function"
 ### 2. Fungsi minangka Argumen & Return Value
 
 ```jawa
-fungsi jalankan(fn, nilai) {
+guna jalankan(fn, nilai) {
     bali fn(nilai)
 }
 
 tulis jalankan(kuadrat, 6) // 36
 
-fungsi tambah(a, b) { bali a + b }
-fungsi ping(a, b) { bali a * b }
+guna tambah(a, b) { bali a + b }
+guna ping(a, b) { bali a * b }
 
-fungsi pilihOperasi(jns) {
+guna pilihOperasi(jns) {
     yen jns == "tambah" { bali tambah }
     bali ping
 }
@@ -889,6 +889,77 @@ Jawascript nyedhiyakake fungsi bawaan (*built-in*) tambahan kanggo manipulasi la
   - `golek(fn, [])` $\to$ `null`
   - `indeks([], val)` $\to$ `-1`
 - **Error & Module Compatibility**: Kabeh callback predikat ndhukung fungsi reguler, referensi fungsi, lan fungsi sing diimpor saka modul kanthi lexical closure lan deteksi exception (`coba ... tangkep`) sing utuh.
+
+---
+
+## 🧱 Struct & Method System V1
+
+Jawascript saiki ndhukung pamrograman adhedhasar struktur data lan method (*Struct & Method System*) kanthi nggunakake tembung kunci `bentuk`, `anyar`, `iki`, lan `wiwiti`. Fitur iki dibangun ing ndhuwur dhasar Object lan First-Class Function kang wis ana.
+
+### Sintaksis Dhasar
+
+```jawa
+bentuk Wong {
+    gawe jeneng = "Anonim"
+    gawe umur = 0
+
+    // Constructor opsional (wiwiti)
+    guna wiwiti(j, u) {
+        iki["jeneng"] = j
+        iki["umur"] = u
+    }
+
+    // Method
+    guna salam() {
+        tulis "Halo, jenengku " + iki["jeneng"]
+    }
+
+    guna tambahUmur(n) {
+        iki["umur"] = iki["umur"] + n
+        bali iki["umur"]
+    }
+}
+
+// Instansiasi nganggo "anyar"
+gawe w = anyar Wong("Budi", 25)
+w["salam"]() // Halo, jenengku Budi
+w["tambahUmur"](5)
+tulis w["umur"] // 30
+```
+
+### Konsep & Aturan Utama (Semantics)
+
+1. **Deklarasi Struct (`bentuk`)**:
+   - `bentuk NamaStruct { ... }` mung bisa dideklarasikake ing **top-level** file (ora kena ing jero fungsi, loop, conditional, utawa try-catch).
+   - Anggota struct mung bisa arupa field (`gawe property = defaultExpr`) utawa method (`guna jenengMethod(params) { ... }`).
+   - Jeneng struct nuduhake namespace sing padha karo fungsi; duplikasi jeneng struct karo fungsi utawa built-in bakal ngasilake error.
+
+2. **Instansiasi (`anyar`)**:
+   - `anyar NamaStruct(args...)` nggawe instance anyar adhedhasar struct kasebut.
+   - Saben instance duwe isolasi memori dhewe. Default data sing arupa Array utawa Object di-clone kanthi mandhiri saben instance anyar digawe (*mutable default isolation*).
+
+3. **Konstruktor (`wiwiti`)**:
+   - Fungsi `wiwiti` ing jero struct lumaku minangka konstruktor nalika `anyar NamaStruct(...)` diceluk.
+   - Nilai bali (`bali ...`) saka `wiwiti` tansah diabaikan; ekspresi `anyar` tansah mbalekake referensi `instance`.
+   - Yen struct ora duwe `wiwiti`, nyedhiyakake argumen ing `anyar` bakal ngasilake error runtime.
+
+4. **Konsep `iki` (Current Receiver)**:
+   - `iki` ngrujuk marang instance aktif ing njero eksekusi method.
+   - `iki` **ora kena** di-assign langsung (`iki = ...` ditolak mawa error). Mutasi mung diidinake liwat properti (`iki["key"] = nilai`).
+   - Panggunaan `iki` ing sanjabane method bakal langsung ngasilake runtime error.
+
+5. **Bound Method**:
+   - Nalika method diakses liwat `instance["methodName"]`, sistem ngasilake *Bound Method* kang nyimpen referensi receiver `instance`.
+   - Bound method bisa disimpen ing variabel utawa dikirim minangka callback (kayata menyang `terapkan()`, `saring()`, `ana()`, `kabeh()`, `golek()`) kanthi `iki` tetep terikat marang instance asline.
+
+6. **Type System & Cithak (`formatValue`)**:
+   - `jinis(instance)` ngasilake `"instance"`.
+   - `jinis(StructName)` ngasilake `"struct"`.
+   - `jinis(instance["method"])` ngasilake `"function"`.
+   - Cithak `tulis instance` ngasilake format `NamaStruct{"field1": val1, "field2": val2}` kanthi proteksi siklik (*circular reference guard*).
+
+7. **Integrasi Modul (Factory Pattern)**:
+   - Struct bersifat modul-private. Kanggo ngekspor fungsionalitas struct saka modul, gunakake pola *factory function* (`ekspor guna gaweWong(...) { bali anyar Wong(...) }`).
 
 ---
 
@@ -1035,6 +1106,137 @@ Tes Collection & Functional Standard Library V2:
 node index.js examples/test_collection_v2.jawa
 node index.js examples/test_collection_v2_error.jawa
 ```
+
+Tes Struct & Method System V1:
+
+```bash
+node index.js examples/test_struct.jawa
+node index.js examples/test_struct_error.jawa
+```
+
+Tes Module System V2:
+
+```bash
+node index.js examples/test_module_v2.jawa
+node index.js examples/test_module_v2_error.jawa
+```
+
+Tes Module System V3:
+
+```bash
+node index.js examples/test_module_v3.jawa
+node index.js examples/test_module_v3_error.jawa
+```
+
+---
+
+## 📦 Module System V3 — Namespace, Selective Import & Alias
+
+Module System V3 nambah dhukungan **selective import**, **import alias**, lan **module namespace**, kanthi backward compatibility jangkep marang V1 lan V2.
+
+### 1. Selective Import (`impor { ... } saka "..."`)
+
+Mung ngimpor simbol tartamtu menyang local scope:
+
+```jawa
+impor { tambah, pi } saka "modules/matematika"
+
+tulis tambah(10, 20)  // => 30
+tulis pi              // => 3.14
+```
+
+Simbol privat utawa simbol sing ora diekspor bakal ditolak kanthi pesen kesalahan:
+`Simbol "x" minangka simbol privat lan ora bisa diimpor`.
+
+### 2. Import Alias (`minangka`)
+
+Ngowahi jeneng simbol nalika diimpor:
+
+```jawa
+impor { tambah minangka plus, pi minangka angkaPi } saka "modules/matematika"
+
+tulis plus(5, 15)     // => 20
+tulis angkaPi         // => 3.14
+```
+
+Jeneng asli (`tambah`) tetep undefined ing local scope kajaba dideklarasikake dhewe.
+
+### 3. Module Namespace (`impor "..." minangka ns`)
+
+Ngimpor modul minangka namespace mandiri tanpa nyampur local scope:
+
+```jawa
+impor "modules/matematika" minangka math
+
+// Akses fungsi liwat bracket syntax
+gawe hasil = math["tambah"](10, 20)
+tulis hasil           // => 30
+
+// Akses variabel liwat bracket syntax
+tulis math["pi"]      // => 3.14
+
+// Akses struct liwat bracket syntax
+gawe titik = anyar math["Titik"](5, 10)
+tulis titik["info"]() // => (5, 10)
+```
+
+> [!IMPORTANT]
+> **Dot notation BELUM diimplementasikan.** Akses namespace WAJIB nggunakake bracket syntax: `math["tambah"]()`, dudu `math.tambah()`.
+
+### 4. Namespace Reference Semantics & HOF
+
+Fungsi lan struct saka namespace tetep minangka *first-class value*:
+
+```jawa
+impor "modules/matematika" minangka math
+
+// Simpen fungsi namespace ing variabel
+gawe fn = math["tambah"]
+tulis fn(10, 20)      // => 30
+
+// Kirim fungsi namespace menyang Higher-Order Function
+gawe hasil = terapkan(math["kuadrat"], [1, 2, 3])
+tulis hasil           // => [1, 4, 9]
+
+// Simpen struct definition ing variabel
+gawe Wong = math["Wong"]
+gawe a = anyar Wong("A")
+gawe b = anyar Wong("B")
+
+// a lan b duwe instance lan mutable default sing beda (terisolasi)
+a["tambahHobi"]("Mancing")
+tulis dawa(a["getHobi"]()) // => 1
+tulis dawa(b["getHobi"]()) // => 0
+```
+
+### 5. Aturan Collision Detection
+
+Sistem impor V3 nolak tubrukan jeneng (collision) marang:
+- **Variabel**
+- **Fungsi**
+- **Struct**
+- **Built-in**
+- **Namespace liyane**
+- **Duplikat ing dhaftar impor**
+
+Tuladha tubrukan sing ditolak:
+```jawa
+gawe math = 10
+impor "modules/matematika" minangka math  // ERROR: Jeneng "math" wis digunakake minangka variabel
+```
+
+```jawa
+impor { tambah, tambah } saka "..."      // ERROR: Jeneng "tambah" wis ana ing dhaftar impor
+```
+
+### 6. Batasan Module System V3
+
+> [!IMPORTANT]
+> - **Ora ana dot notation**: Akses properti tetep nggunakake bracket syntax `obj["key"]`
+> - **Ora ana warisan (inheritance)**: Ora ana `extends`, ora ana `super`
+> - **Ora ana wildcard import**: Ora ana `impor *`
+> - **Ora ana re-export**: Simbol impor ora bisa langsung diekspor maneh
+> - **Namespace bersifat read-only**: Nyoba nulis `math["tambah"] = 123` bakal ditolak
 
 ---
 

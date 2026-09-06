@@ -182,7 +182,7 @@ tulis dataMissing["user"]["alamat"]
 tulis jinis(dataMissing["user"]["alamat"])
 
 // 14. Function Integration & Mutation
-fungsi tampilkan(u) {
+guna tampilkan(u) {
     tulis u["nama"]
     tulis u["umur"]
 }
@@ -193,7 +193,7 @@ gawe userFn = {
 }
 tampilkan(userFn)
 
-fungsi ambilNama(d) {
+guna ambilNama(d) {
     bali d["user"]["nama"]
 }
 
@@ -204,7 +204,7 @@ gawe dataFn = {
 }
 tulis ambilNama(dataFn)
 
-fungsi ubahFn(u) {
+guna ubahFn(u) {
     u["nama"] = "Dewi"
 }
 ubahFn(userFn)

@@ -1,4 +1,4 @@
 // helper.jawa
-ekspor fungsi gabung(a, b) {
+ekspor guna gabung(a, b) {
     bali a + " - " + b
 }

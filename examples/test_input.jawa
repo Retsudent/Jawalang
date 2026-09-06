@@ -1,5 +1,5 @@
 // =============================================
-// TEST INPUT ENGINE V1 — JAWALANG
+// TEST INPUT ENGINE V1 ï¿½ JAWALANG
 // =============================================
 
 tulis "=== TEST INPUT ==="
@@ -17,7 +17,7 @@ gawe angka = takon("Masukkan angka: ")
 tulis angka
 
 // 4. Function + Input
-fungsi ambilNama() {
+guna ambilNama() {
     bali takon("Nama: ")
 }
 gawe namaFungsi = ambilNama()

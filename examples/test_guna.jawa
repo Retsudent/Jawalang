@@ -1,0 +1,62 @@
+// ==========================================================
+// TEST KHUSUS KEYWORD ANYAR: guna
+// ==========================================================
+
+tulis "=== TEST KEYWORD GUNA ==="
+
+// 1. Function tanpa parameter
+guna salam() {
+    bali "Halo"
+}
+tulis salam()
+
+// 2. Function kanthi parameter
+guna tambah(a, b) {
+    bali a + b
+}
+
+guna cek(angka) {
+    yen (angka > 10) {
+        bali bener
+    }
+    bali salah
+}
+
+tulis tambah(10, 20)
+tulis cek(20)
+tulis cek(5)
+
+// 3. Rekursi kanthi guna
+guna faktorial(n) {
+    yen (n <= 1) {
+        bali 1
+    }
+    bali n * faktorial(n - 1)
+}
+
+tulis faktorial(5)
+
+// 4. Higher-order function mawa guna
+guna kuadrat(x) {
+    bali x * x
+}
+
+gawe angka = [1, 2, 3]
+gawe hasil = terapkan(kuadrat, angka)
+tulis hasil
+
+// 5. Struct method mawa guna
+bentuk Counter {
+    gawe nilai = 0
+
+    guna tambah() {
+        iki["nilai"] = iki["nilai"] + 1
+        bali iki["nilai"]
+    }
+}
+
+gawe c = anyar Counter()
+tulis c["tambah"]()
+tulis c["tambah"]()
+
+tulis "=== SELESAI TEST GUNA ==="

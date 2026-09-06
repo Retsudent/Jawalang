@@ -37,7 +37,7 @@ x = null
 tulis x
 
 // Test Function Return Null
-fungsi tanpaNilai() {
+guna tanpaNilai() {
     bali
 }
 
@@ -45,7 +45,7 @@ gawe hasilFn = tanpaNilai()
 tulis hasilFn
 tulis jinis(hasilFn)
 
-fungsi tanpaBali() {
+guna tanpaBali() {
 }
 
 gawe hasilFn2 = tanpaBali()

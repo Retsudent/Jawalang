@@ -127,6 +127,109 @@ function parser(tokens) {
             };
         }
 
+        // iki (current receiver reference)
+        if (token.type === "IKI") {
+            i++;
+            return {
+                type: "IkiExpression"
+            };
+        }
+
+        // anyar StructName(args...) utawa anyar ns["StructName"](args...)
+        if (token.type === "ANYAR") {
+            const nextToken = tokens[i + 1];
+            if (nextToken && nextToken.type === "IDENTIFIER" && tokens[i + 2] && tokens[i + 2].type === "LEFT_PAREN") {
+                i++; // lewati "anyar"
+
+                const targetToken = tokens[i];
+                const targetName = targetToken.value;
+                i++; // lewati nama struct
+                i++; // lewati "("
+
+                const args = [];
+                if (tokens[i] && tokens[i].type !== "RIGHT_PAREN") {
+                    while (true) {
+                        args.push(parseExpression());
+                        if (tokens[i] && tokens[i].type === "COMMA") {
+                            i++; // lewati ","
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                if (!tokens[i] || tokens[i].type !== "RIGHT_PAREN") {
+                    throw new Error('"anyar" mbutuhake kurung tutup ")" sawise argumen');
+                }
+                i++; // lewati ")"
+
+                return {
+                    type: "NewExpression",
+                    target: targetName,
+                    arguments: args
+                };
+            }
+
+            if (nextToken && nextToken.type === "IDENTIFIER" && tokens[i + 2] && tokens[i + 2].type === "LEFT_BRACKET") {
+                i++; // lewati "anyar"
+
+                let targetNode = {
+                    type: "IDENTIFIER",
+                    value: tokens[i].value
+                };
+                i++; // lewati identifier
+
+                while (tokens[i] && tokens[i].type === "LEFT_BRACKET") {
+                    i++; // lewati "["
+                    const indexExpr = parseExpression();
+                    if (!tokens[i] || tokens[i].type !== "RIGHT_BRACKET") {
+                        throw new Error('Kurung kotak "[" ing akses struct kudu ditutup nganggo "]"');
+                    }
+                    i++; // lewati "]"
+                    targetNode = {
+                        type: "IndexExpression",
+                        object: targetNode,
+                        index: indexExpr
+                    };
+                }
+
+                if (!tokens[i] || tokens[i].type !== "LEFT_PAREN") {
+                    throw new Error('"anyar" mbutuhake kurung buka "(" kanggo argumen');
+                }
+                i++; // lewati "("
+
+                const args = [];
+                if (tokens[i] && tokens[i].type !== "RIGHT_PAREN") {
+                    while (true) {
+                        args.push(parseExpression());
+                        if (tokens[i] && tokens[i].type === "COMMA") {
+                            i++; // lewati ","
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                if (!tokens[i] || tokens[i].type !== "RIGHT_PAREN") {
+                    throw new Error('"anyar" mbutuhake kurung tutup ")" sawise argumen');
+                }
+                i++; // lewati ")"
+
+                return {
+                    type: "NewExpression",
+                    target: targetNode,
+                    arguments: args
+                };
+            }
+
+            // Yen dudu "anyar StructName(...)", anyar dianggep minangka identifier
+            i++;
+            return {
+                type: "IDENTIFIER",
+                value: "anyar"
+            };
+        }
+
         throw new Error(`Nilai ora valid: "${token.value}"`);
     }
 
@@ -389,7 +492,7 @@ function parser(tokens) {
             i++; // lewati "gawe"
 
             const nama = tokens[i];
-            if (!nama || nama.type !== "IDENTIFIER") {
+            if (!nama || (nama.type !== "IDENTIFIER" && nama.type !== "ANYAR")) {
                 throw new Error('Sawise "gawe" kudu ana jeneng variabel');
             }
             i++; // lewati nama
@@ -521,6 +624,110 @@ function parser(tokens) {
                     expression: expr
                 };
             }
+        }
+
+        // =========================
+        // IKI (assignment / call statement)
+        // =========================
+        if (token.type === "IKI") {
+            // iki = val → DITOLAK
+            if (tokens[i + 1] && tokens[i + 1].type === "EQUALS") {
+                throw new Error('"iki" ora bisa di-assign langsung (iki tidak bisa di-assign). Gunakake iki["property"] = nilai');
+            }
+
+            // Check if: iki["prop"]...["prop"] = val (index assignment)
+            // vs: iki["prop"]()... (expression statement)
+            if (tokens[i + 1] && tokens[i + 1].type === "LEFT_BRACKET") {
+                // Scan forward past all bracket chains
+                let look = i + 1;
+                let bDepth = 0;
+                while (look < tokens.length) {
+                    if (tokens[look].type === "LEFT_BRACKET") {
+                        bDepth++;
+                    } else if (tokens[look].type === "RIGHT_BRACKET") {
+                        bDepth--;
+                        if (bDepth === 0) {
+                            if (tokens[look + 1] && tokens[look + 1].type === "LEFT_BRACKET") {
+                                look++;
+                                continue;
+                            }
+                            look++;
+                            break;
+                        }
+                    }
+                    look++;
+                }
+
+                if (tokens[look] && tokens[look].type === "EQUALS") {
+                    // Index assignment: iki["prop"]... = val
+                    i++; // lewati "iki"
+                    let objectNode = { type: "IkiExpression" };
+
+                    const indices = [];
+                    while (tokens[i] && tokens[i].type === "LEFT_BRACKET") {
+                        i++; // lewati "["
+                        indices.push(parseExpression());
+                        if (!tokens[i] || tokens[i].type !== "RIGHT_BRACKET") {
+                            throw new Error('Kurung kotak "[" kudu ditutup nganggo "]"');
+                        }
+                        i++; // lewati "]"
+                    }
+
+                    if (!tokens[i] || tokens[i].type !== "EQUALS") {
+                        throw new Error('Sawise akses index "iki" kudu ana tanda "=" kanggo assignment');
+                    }
+                    i++; // lewati "="
+
+                    const nilai = parseExpression();
+
+                    let targetObject = objectNode;
+                    for (let k = 0; k < indices.length - 1; k++) {
+                        targetObject = {
+                            type: "IndexExpression",
+                            object: targetObject,
+                            index: indices[k]
+                        };
+                    }
+
+                    return {
+                        type: "IndexAssignmentStatement",
+                        object: targetObject,
+                        index: indices[indices.length - 1],
+                        value: nilai
+                    };
+                }
+            }
+
+            // iki["method"]() or iki["prop"] standalone → ExpressionStatement
+            const expr = parseExpression();
+            return {
+                type: "ExpressionStatement",
+                expression: expr
+            };
+        }
+
+        // =========================
+        // ANYAR (anyar Struct() as statement OR anyar = ... re-assignment)
+        // =========================
+        if (token.type === "ANYAR") {
+            if (tokens[i + 1] && tokens[i + 1].type === "EQUALS") {
+                const nama = token.value;
+                i += 2; // lewati nama dan "="
+                if (i >= tokens.length) {
+                    throw new Error('Dibutuhake nilai sawise "="');
+                }
+                const nilai = parseExpression();
+                return {
+                    type: "AssignmentStatement",
+                    name: nama,
+                    value: nilai
+                };
+            }
+            const expr = parseExpression();
+            return {
+                type: "ExpressionStatement",
+                expression: expr
+            };
         }
 
         // =========================
@@ -727,17 +934,17 @@ function parser(tokens) {
         }
 
         // =========================
-        // FUNGSI (Deklarasi Fungsi)
+        // GUNA (Deklarasi Fungsi)
         // =========================
-        if (token.type === "FUNGSI") {
+        if (token.type === "GUNA") {
             if (inFunction) {
-                throw new Error('Deklarasi "fungsi" ing njero fungsi ora diidinake');
+                throw new Error('Deklarasi "guna" ing njero fungsi ora diidinake');
             }
-            i++; // lewati "fungsi"
+            i++; // lewati "guna"
 
             const nameToken = tokens[i];
             if (!nameToken || nameToken.type !== "IDENTIFIER") {
-                throw new Error('Sawise "fungsi" kudu ana jeneng fungsi');
+                throw new Error('Sawise "guna" kudu ana jeneng fungsi');
             }
             i++; // lewati nama fungsi
 
@@ -750,7 +957,7 @@ function parser(tokens) {
             if (tokens[i] && tokens[i].type !== "RIGHT_PAREN") {
                 while (true) {
                     const paramToken = tokens[i];
-                    if (!paramToken || paramToken.type !== "IDENTIFIER") {
+                    if (!paramToken || (paramToken.type !== "IDENTIFIER" && paramToken.type !== "ANYAR")) {
                         throw new Error('Jeneng parameter fungsi kudu arupa identifier');
                     }
                     parameters.push(paramToken.value);
@@ -845,12 +1052,13 @@ function parser(tokens) {
                 "MANDHEG",
                 "LANJUT",
                 "BALI",
-                "FUNGSI",
+                "GUNA",
                 "COBA",
                 "TANGKEP",
                 "LEMPAR",
                 "IMPOR",
                 "EKSPOR",
+                "BENTUK",
                 "RIGHT_BRACE"
             ];
 
@@ -867,7 +1075,7 @@ function parser(tokens) {
         }
 
         // =========================
-        // IMPOR (Import Module)
+        // IMPOR (Import Module V1/V2/V3)
         // =========================
         if (token.type === "IMPOR") {
             if (blockDepth > 0) {
@@ -881,16 +1089,99 @@ function parser(tokens) {
             }
             i++; // lewati "impor"
 
-            const pathToken = tokens[i];
-            if (!pathToken || pathToken.type !== "STRING") {
+            const nextToken = tokens[i];
+            if (!nextToken) {
                 throw new Error('Dibutuhake string path modul sawise "impor" (misal: impor "nama_modul")');
             }
-            i++; // lewati string path
 
-            return {
-                type: "ImportStatement",
-                path: pathToken.value
-            };
+            // Form 1: Selective import — impor { a, b minangka c } saka "path"
+            if (nextToken.type === "LEFT_BRACE") {
+                i++; // lewati "{"
+
+                const specifiers = [];
+                if (!tokens[i] || tokens[i].type === "RIGHT_BRACE") {
+                    throw new Error('Dhaftar simbol ing njero "{" ora kena kosong ing selective import');
+                }
+
+                while (tokens[i] && tokens[i].type !== "RIGHT_BRACE") {
+                    if (tokens[i].type !== "IDENTIFIER") {
+                        throw new Error(`Dibutuhake jeneng simbol ing dhaftar impor, nanging ditemu: "${tokens[i].value}"`);
+                    }
+                    const imported = tokens[i].value;
+                    i++; // lewati imported symbol
+
+                    let local = imported;
+                    if (tokens[i] && tokens[i].type === "MINANGKA") {
+                        i++; // lewati "minangka"
+                        if (!tokens[i] || tokens[i].type !== "IDENTIFIER") {
+                            throw new Error('Dibutuhake jeneng alias sawise "minangka"');
+                        }
+                        local = tokens[i].value;
+                        i++; // lewati local alias
+                    }
+
+                    specifiers.push({ imported, local });
+
+                    if (tokens[i] && tokens[i].type === "COMMA") {
+                        i++; // lewati ","
+                    } else {
+                        break;
+                    }
+                }
+
+                if (!tokens[i] || tokens[i].type !== "RIGHT_BRACE") {
+                    throw new Error('Kurung kurawal "{" ing impor kudu ditutup nganggo "}"');
+                }
+                i++; // lewati "}"
+
+                if (!tokens[i] || tokens[i].type !== "SAKA") {
+                    throw new Error('Dibutuhake keyword "saka" sawise dhaftar impor "{ ... }"');
+                }
+                i++; // lewati "saka"
+
+                const pathToken = tokens[i];
+                if (!pathToken || pathToken.type !== "STRING") {
+                    throw new Error('Dibutuhake string path modul sawise "saka"');
+                }
+                i++; // lewati string path
+
+                return {
+                    type: "ImportStatement",
+                    mode: "selective",
+                    path: pathToken.value,
+                    specifiers: specifiers
+                };
+            }
+
+            // Form 2 & 3: String path -> Namespace import utawa Legacy import
+            if (nextToken.type === "STRING") {
+                const importPath = nextToken.value;
+                i++; // lewati string path
+
+                if (tokens[i] && tokens[i].type === "MINANGKA") {
+                    i++; // lewati "minangka"
+                    const nsToken = tokens[i];
+                    if (!nsToken || nsToken.type !== "IDENTIFIER") {
+                        throw new Error('Dibutuhake jeneng namespace sawise "minangka"');
+                    }
+                    i++; // lewati namespace identifier
+
+                    return {
+                        type: "ImportStatement",
+                        mode: "namespace",
+                        path: importPath,
+                        namespace: nsToken.value
+                    };
+                }
+
+                return {
+                    type: "ImportStatement",
+                    mode: "legacy",
+                    path: importPath
+                };
+            }
+
+            throw new Error('Dibutuhake string path modul sawise "impor" (misal: impor "nama_modul" utawa impor { x } saka "nama_modul")');
         }
 
         // =========================
@@ -910,10 +1201,10 @@ function parser(tokens) {
 
             const nextToken = tokens[i];
             if (!nextToken) {
-                throw new Error('Dibutuhake deklarasi fungsi utawa variabel sawise "ekspor" (contoh: ekspor fungsi ... utawa ekspor gawe ...)');
+                throw new Error('Dibutuhake deklarasi fungsi utawa variabel sawise "ekspor" (contoh: ekspor guna ... utawa ekspor gawe ...)');
             }
 
-            if (nextToken.type === "FUNGSI") {
+            if (nextToken.type === "GUNA") {
                 const decl = parseStatement();
                 decl.isExported = true;
                 return {
@@ -931,7 +1222,157 @@ function parser(tokens) {
                 };
             }
 
+            if (nextToken.type === "BENTUK") {
+                const decl = parseStatement();
+                decl.isExported = true;
+                return {
+                    type: "ExportStatement",
+                    declaration: decl
+                };
+            }
+
             throw new Error(`Dibutuhake deklarasi fungsi utawa variabel sawise "ekspor", nanging ditemu: "${nextToken.value || nextToken.type}"`);
+        }
+
+        // =========================
+        // BENTUK (Struct Declaration)
+        // =========================
+        if (token.type === "BENTUK") {
+            // Top-level only
+            if (blockDepth > 0) {
+                if (inFunction) {
+                    throw new Error('"bentuk" ora bisa digunakake ing njero fungsi (Struct hanya bisa dideklarasikake di top-level)');
+                }
+                if (loopDepth > 0) {
+                    throw new Error('"bentuk" ora bisa digunakake ing njero loop (Struct hanya bisa dideklarasikake di top-level)');
+                }
+                throw new Error('"bentuk" mung bisa digunakake ing top-level (Struct hanya bisa dideklarasikake di top-level)');
+            }
+            i++; // lewati "bentuk"
+
+            const nameToken = tokens[i];
+            if (!nameToken || nameToken.type !== "IDENTIFIER") {
+                throw new Error('Sawise "bentuk" kudu ana jeneng struct');
+            }
+            const structName = nameToken.value;
+            i++; // lewati nama struct
+
+            if (!tokens[i] || tokens[i].type !== "LEFT_BRACE") {
+                throw new Error(`Sawise jeneng struct "${structName}" kudu ana "{"`);
+            }
+            i++; // lewati "{"
+            blockDepth++;
+
+            const fields = [];
+            const methods = [];
+
+            while (i < tokens.length && tokens[i].type !== "RIGHT_BRACE") {
+                const memberToken = tokens[i];
+
+                // Field: gawe nama = defaultExpr
+                if (memberToken.type === "GAWE") {
+                    i++; // lewati "gawe"
+                    const fieldNameToken = tokens[i];
+                    if (!fieldNameToken || fieldNameToken.type !== "IDENTIFIER") {
+                        throw new Error(`Sawise "gawe" ing struct "${structName}" kudu ana jeneng property`);
+                    }
+                    const fieldName = fieldNameToken.value;
+                    if (fields.some(f => f.name === fieldName)) {
+                        throw new Error(`Property "${fieldName}" wis dideklarasikake ing struct "${structName}"`);
+                    }
+                    i++; // lewati nama field
+
+                    if (!tokens[i] || tokens[i].type !== "EQUALS") {
+                        throw new Error(`Sawise jeneng property "${fieldName}" ing struct kudu ana "="`);
+                    }
+                    i++; // lewati "="
+
+                    const defaultVal = parseExpression();
+                    fields.push({
+                        type: "FieldDeclaration",
+                        name: fieldName,
+                        defaultValue: defaultVal
+                    });
+                    continue;
+                }
+
+                // Method: guna nama(params) { ... }
+                if (memberToken.type === "GUNA") {
+                    i++; // lewati "guna"
+
+                    const methodNameToken = tokens[i];
+                    if (!methodNameToken || (methodNameToken.type !== "IDENTIFIER" && methodNameToken.type !== "WIWITI")) {
+                        throw new Error(`Sawise "guna" ing struct "${structName}" kudu ana jeneng method`);
+                    }
+                    const methodName = methodNameToken.value;
+                    if (methods.some(m => m.name === methodName)) {
+                        throw new Error(`Method "${methodName}" wis dideklarasikake ing struct "${structName}"`);
+                    }
+                    i++; // lewati nama method
+
+                    if (!tokens[i] || tokens[i].type !== "LEFT_PAREN") {
+                        throw new Error(`Sawise jeneng method "${methodName}" kudu ana "("`);
+                    }
+                    i++; // lewati "("
+
+                    const params = [];
+                    if (tokens[i] && tokens[i].type !== "RIGHT_PAREN") {
+                        while (true) {
+                            const paramToken = tokens[i];
+                            if (!paramToken || (paramToken.type !== "IDENTIFIER" && paramToken.type !== "ANYAR")) {
+                                throw new Error("Jeneng parameter method kudu arupa identifier");
+                            }
+                            params.push(paramToken.value);
+                            i++;
+
+                            if (tokens[i] && tokens[i].type === "COMMA") {
+                                i++; // lewati ","
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!tokens[i] || tokens[i].type !== "RIGHT_PAREN") {
+                        throw new Error(`Daftar parameter method "${methodName}" kudu ditutup nganggo ")"`);
+                    }
+                    i++; // lewati ")"
+
+                    // Parse method body: methods can use iki but can't have nested guna decl
+                    const prevInFunction = inFunction;
+                    const prevLoopDepth = loopDepth;
+                    inFunction = true;
+                    loopDepth = 0;
+
+                    const body = parseBlock();
+
+                    inFunction = prevInFunction;
+                    loopDepth = prevLoopDepth;
+
+                    methods.push({
+                        type: "MethodDeclaration",
+                        name: methodName,
+                        parameters: params,
+                        body: body
+                    });
+                    continue;
+                }
+
+                throw new Error(`Ing njero struct "${structName}" mung diijinake deklarasi "gawe" (property) utawa "guna" (method), nanging ditemu: "${memberToken.value || memberToken.type}"`);
+            }
+
+            blockDepth--;
+            if (!tokens[i] || tokens[i].type !== "RIGHT_BRACE") {
+                throw new Error(`Blok struct "${structName}" kudu ditutup nganggo "}"`);
+            }
+            i++; // lewati "}"
+
+            return {
+                type: "StructDeclaration",
+                name: structName,
+                fields: fields,
+                methods: methods
+            };
         }
 
         // =========================
@@ -953,12 +1394,13 @@ function parser(tokens) {
                 "MANDHEG",
                 "LANJUT",
                 "BALI",
-                "FUNGSI",
+                "GUNA",
                 "COBA",
                 "TANGKEP",
                 "LEMPAR",
                 "IMPOR",
                 "EKSPOR",
+                "BENTUK",
                 "RIGHT_BRACE"
             ];
 
@@ -975,6 +1417,7 @@ function parser(tokens) {
 
         throw new Error(`Statement ora dikenal: "${token.value}"`);
     }
+
 
     const ast = [];
 

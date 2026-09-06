@@ -120,7 +120,7 @@ kanggo saben baris ing dataMutasi {
 tulis dataMutasi
 
 // 10. Iteration + function & function call as iterable
-fungsi tampilkan(data) {
+guna tampilkan(data) {
     kanggo saben item ing data {
         tulis item
     }
@@ -129,7 +129,7 @@ fungsi tampilkan(data) {
 gawe angkaFn = [10, 20, 30]
 tampilkan(angkaFn)
 
-fungsi dataGen() {
+guna dataGen() {
     bali [10, 20, 30]
 }
 

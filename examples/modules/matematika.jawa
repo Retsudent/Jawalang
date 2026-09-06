@@ -1,9 +1,9 @@
 // matematika.jawa
-ekspor fungsi tambah(a, b) {
+ekspor guna tambah(a, b) {
     bali a + b
 }
 
-ekspor fungsi ping(a, b) {
+ekspor guna ping(a, b) {
     bali a * b
 }
 

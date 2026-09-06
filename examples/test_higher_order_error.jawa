@@ -1,5 +1,5 @@
 // test_higher_order_error.jawa — Test error handling callback saring (non-boolean return)
-fungsi duduBoolean(x) {
+guna duduBoolean(x) {
     bali "ora sah"
 }
 

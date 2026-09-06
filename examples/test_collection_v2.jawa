@@ -49,7 +49,7 @@ tulis "8. urut() Empty:"
 tulis urut([])
 
 // 9. ana() True & False
-fungsi luwihSakaLima(x) {
+guna luwihSakaLima(x) {
     bali x > 5
 }
 
@@ -62,7 +62,7 @@ tulis "10. ana() Empty:"
 tulis ana(luwihSakaLima, [])
 
 // 11. kabeh() True & False
-fungsi positif(x) {
+guna positif(x) {
     bali x > 0
 }
 
@@ -75,7 +75,7 @@ tulis "12. kabeh() Empty:"
 tulis kabeh(positif, [])
 
 // 13. golek() Found & Not Found
-fungsi padhaTelu(x) {
+guna padhaTelu(x) {
     bali x == 3
 }
 
@@ -93,7 +93,7 @@ gawe users = [
     {"nama": "Budi", "aktif": bener}
 ]
 
-fungsi cekAktif(u) {
+guna cekAktif(u) {
     bali u["aktif"]
 }
 
@@ -125,7 +125,7 @@ tulis "18. Built-in as Callback:"
 tulis terapkan(fGedhe, teksList)
 
 // 19. Function Returned from Function as Callback
-fungsi gawaPredikat() {
+guna gawaPredikat() {
     bali positif
 }
 

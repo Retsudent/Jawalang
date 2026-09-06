@@ -94,7 +94,7 @@ tulis duwe(dataNull, "ada")
 tulis duwe(dataNull, "ora_ana")
 
 // 10. Function integration
-fungsi cek(u) {
+guna cek(u) {
     bali duwe(u, "nama")
 }
 tulis cek(user)

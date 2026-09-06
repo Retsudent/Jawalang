@@ -1,0 +1,15 @@
+﻿// examples/modules/mod_struct_err.jawa
+// Module dengan struct yang bisa lempar error
+
+ekspor bentuk Tester {
+    guna error() {
+        lempar "kesalahan dari method"
+    }
+
+    guna bagi(a, b) {
+        yen b == 0 {
+            lempar "pembagi ora kena nol"
+        }
+        bali a / b
+    }
+}

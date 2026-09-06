@@ -70,7 +70,7 @@ nalika idx < 3 {
 
 // 12. Array dikembalikan dari fungsi
 tulis "=== 12. Array dari Fungsi ==="
-fungsi buatArray() {
+guna buatArray() {
     bali [7, 8, 9]
 }
 gawe arr = buatArray()
@@ -79,7 +79,7 @@ tulis arr[1]
 
 // 13. Array dikirim ke fungsi
 tulis "=== 13. Array ke Fungsi ==="
-fungsi cetakPertama(arr) {
+guna cetakPertama(arr) {
     tulis arr[0]
 }
 cetakPertama([42, 43, 44])

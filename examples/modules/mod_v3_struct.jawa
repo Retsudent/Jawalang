@@ -1,0 +1,42 @@
+﻿// mod_v3_struct.jawa
+// Module fixture for struct semantics in V3
+
+ekspor gawe modulePrefix = "Wong:"
+
+ekspor bentuk Wong {
+    gawe jeneng = "Anonim"
+    gawe hobi = []
+
+    guna wiwiti(n) {
+        iki["jeneng"] = n
+    }
+
+    guna salam() {
+        bali modulePrefix + " " + iki["jeneng"]
+    }
+
+    guna tambahHobi(h) {
+        nambah(iki["hobi"], h)
+    }
+
+    guna getHobi() {
+        bali iki["hobi"]
+    }
+}
+
+ekspor bentuk Kucing {
+    gawe jeneng = ""
+
+    guna wiwiti(n) {
+        iki["jeneng"] = n
+    }
+
+    guna swara() {
+        bali "Meow " + iki["jeneng"]
+    }
+}
+
+bentuk RahasiaWong {
+    gawe kunci = "pwd"
+}
+

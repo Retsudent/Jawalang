@@ -93,7 +93,7 @@ coba {
 }
 
 // 11. Function propagation
-fungsi gagal() {
+guna gagal() {
     lempar "fungsi gagal"
 }
 
@@ -104,7 +104,7 @@ coba {
 }
 
 // 12. Function handler
-fungsi tangani(e) {
+guna tangani(e) {
     tulis "Ditangani dening fungsi:"
     tulis e
 }
@@ -116,7 +116,7 @@ coba {
 }
 
 // 13. Return + try / catch
-fungsi testBali() {
+guna testBali() {
     coba {
         bali 99
     } tangkep err {

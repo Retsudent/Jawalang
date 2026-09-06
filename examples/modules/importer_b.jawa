@@ -1,6 +1,6 @@
 // importer_b.jawa
 impor "common"
 
-ekspor fungsi getStatusB() {
+ekspor guna getStatusB() {
     bali "B:" + status
 }

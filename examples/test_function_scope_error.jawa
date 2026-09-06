@@ -1,6 +1,6 @@
 // NEGATIVE TEST: Local variable leakage (ora kena bocor metu)
 
-fungsi test() {
+guna test() {
     gawe rahasia = 123
 }
 

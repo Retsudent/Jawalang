@@ -1,0 +1,18 @@
+﻿// mod_v3_private.jawa
+// Module fixture with explicitly private symbols
+
+gawe privVar = "privat"
+
+guna privFunc() {
+    bali "ora kena diakses"
+}
+
+bentuk PrivStruct {
+    gawe data = 123
+}
+
+ekspor gawe pubVar = "publik"
+
+ekspor guna pubFunc() {
+    bali "bisa diakses"
+}

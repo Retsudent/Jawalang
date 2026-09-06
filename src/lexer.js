@@ -173,10 +173,10 @@ function lexer(source) {
                     type: "LANJUT",
                     value: "lanjut"
                 });
-            } else if (value === "fungsi") {
+            } else if (value === "guna") {
                 tokens.push({
-                    type: "FUNGSI",
-                    value: "fungsi"
+                    type: "GUNA",
+                    value: "guna"
                 });
             } else if (value === "bali") {
                 tokens.push({
@@ -208,10 +208,40 @@ function lexer(source) {
                     type: "EKSPOR",
                     value: "ekspor"
                 });
+            } else if (value === "bentuk") {
+                tokens.push({
+                    type: "BENTUK",
+                    value: "bentuk"
+                });
+            } else if (value === "anyar") {
+                tokens.push({
+                    type: "ANYAR",
+                    value: "anyar"
+                });
+            } else if (value === "iki") {
+                tokens.push({
+                    type: "IKI",
+                    value: "iki"
+                });
+            } else if (value === "wiwiti") {
+                tokens.push({
+                    type: "WIWITI",
+                    value: "wiwiti"
+                });
             } else if (value === "null") {
                 tokens.push({
                     type: "NULL",
                     value: null
+                });
+            } else if (value === "saka") {
+                tokens.push({
+                    type: "SAKA",
+                    value: "saka"
+                });
+            } else if (value === "minangka") {
+                tokens.push({
+                    type: "MINANGKA",
+                    value: "minangka"
                 });
             } else {
                 tokens.push({

@@ -1,6 +1,6 @@
 // export_var_semantics.jawa
 ekspor gawe angkaAsli = 100
 
-ekspor fungsi bacaAsli() {
+ekspor guna bacaAsli() {
     bali angkaAsli
 }

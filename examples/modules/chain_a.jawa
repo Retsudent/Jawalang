@@ -1,6 +1,6 @@
 // chain_a.jawa
 impor "chain_b"
 
-ekspor fungsi nilaiA() {
+ekspor guna nilaiA() {
     bali nilaiB() + 1
 }

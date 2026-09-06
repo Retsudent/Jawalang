@@ -1,5 +1,5 @@
 // all_builtins.jawa
-ekspor fungsi tesBuiltin() {
+ekspor guna tesBuiltin() {
     gawe arr = [10, 20, 30]
     gawe lenArr = dawa(arr)
     gawe item0 = jupuk(arr, 0)

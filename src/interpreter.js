@@ -72,11 +72,36 @@ function interpreter(ast, filePathOrOptions) {
     const loader = new ModuleLoader();
     const globalEnv = new Environment();
     const globalFunctions = {};
-    const rootExports = { variables: {}, functions: {} };
+    const globalStructs = {};
+    const rootExports = { variables: {}, functions: {}, structs: {} };
 
     let activeFunctions = globalFunctions;
+    let activeStructs = globalStructs;
     let activeFilePath = entryFilePath;
     let activeExports = rootExports;
+
+    // Receiver stack kanggo iki (current instance during method invocation)
+    const receiverStack = [];
+
+    function getCurrentReceiver() {
+        return receiverStack.length > 0 ? receiverStack[receiverStack.length - 1] : null;
+    }
+
+    // Helper: deep clone default value kanggo mutable struct fields
+    // Array lan plain object defaults diclone supaya saben instance entuk copy dhewe
+    function deepCloneDefault(val) {
+        if (val === null || typeof val !== "object") return val; // primitive / null
+        if (val._isFunction || val._isInstance || val._isStruct) return val; // reference semantics
+        if (Array.isArray(val)) {
+            return val.map(el => deepCloneDefault(el));
+        }
+        // Plain object
+        const cloned = {};
+        for (const k of Object.keys(val)) {
+            cloned[k] = deepCloneDefault(val[k]);
+        }
+        return cloned;
+    }
 
     // Register root entry module in loader cache
     loader.cache.set(entryFilePath, {
@@ -84,6 +109,7 @@ function interpreter(ast, filePathOrOptions) {
         canonicalPath: entryFilePath,
         env: globalEnv,
         functions: globalFunctions,
+        structs: globalStructs,
         exports: rootExports
     });
 
@@ -92,7 +118,7 @@ function interpreter(ast, filePathOrOptions) {
     let callStackDepth = 0;
 
     // Helper format nilai kanggo cithak (PrintStatement, arrayToString, lan error)
-    function formatValue(val, isTopLevel = false) {
+    function formatValue(val, isTopLevel = false, _seen = null) {
         if (val === null) return "null";
         if (val === true) return "bener";
         if (val === false) return "salah";
@@ -101,15 +127,35 @@ function interpreter(ast, filePathOrOptions) {
         }
         if (typeof val === "number") return String(val);
         if (Array.isArray(val)) {
-            return "[" + val.map(el => formatValue(el, false)).join(", ") + "]";
+            return "[" + val.map(el => formatValue(el, false, _seen)).join(", ") + "]";
+        }
+        if (val && typeof val === "object" && val._isNamespace) {
+            return `<namespace ${val.name}>`;
+        }
+        if (val && typeof val === "object" && val._isBoundMethod) {
+            return `<method ${val.name || ""}>`.trim();
         }
         if (val && typeof val === "object" && val._isFunction) {
             return `<fungsi ${val.name || ""}>`.trim();
         }
+        if (val && typeof val === "object" && val._isStruct) {
+            return `<struct ${val.name}>`;
+        }
+        if (val && typeof val === "object" && val._isInstance) {
+            // Cycle guard
+            if (_seen === null) _seen = new Set();
+            if (_seen.has(val)) return `${val._structName}{...}`;
+            _seen.add(val);
+            const pairs = Object.keys(val._fields).map(k =>
+                `"${k}": ${formatValue(val._fields[k], false, _seen)}`
+            );
+            _seen.delete(val);
+            return `${val._structName}{${pairs.join(", ")}}`;
+        }
         if (val && typeof val === "object") {
             const keys = Object.keys(val);
             if (keys.length === 0) return "{}";
-            const pairs = keys.map(k => `"${k}": ${formatValue(val[k], false)}`);
+            const pairs = keys.map(k => `"${k}": ${formatValue(val[k], false, _seen)}`);
             return "{" + pairs.join(", ") + "}";
         }
         return String(val);
@@ -135,6 +181,9 @@ function interpreter(ast, filePathOrOptions) {
         if (typeof val === "boolean") return "boolean";
         if (typeof val === "number") return "number";
         if (typeof val === "string") return "string";
+        if (val && typeof val === "object" && val._isNamespace) return "namespace";
+        if (val && typeof val === "object" && val._isInstance) return "instance";
+        if (val && typeof val === "object" && val._isStruct) return "struct";
         if (typeof val === "function" || (val && typeof val === "object" && val._isFunction)) return "function";
         if (typeof val === "object") return "object";
         return "unknown";
@@ -731,7 +780,7 @@ function interpreter(ast, filePathOrOptions) {
 
         callStackDepth++;
         try {
-            execute(fn.body, localEnv, fn.functions || activeFunctions, fn.filePath || activeFilePath);
+            execute(fn.body, localEnv, fn.functions || activeFunctions, fn.filePath || activeFilePath, undefined, fn.structs || activeStructs);
             return null; // Return default jika fungsi selesai tanpa "bali"
         } catch (e) {
             if (e instanceof ReturnSignal) {
@@ -743,7 +792,54 @@ function interpreter(ast, filePathOrOptions) {
         }
     }
 
+    function invokeMethodWithReceiver(fn, evaluatedArgs, receiver, displayName) {
+        const name = displayName || fn.name || "method";
+
+        if (evaluatedArgs.length !== fn.parameters.length) {
+            throw new Error(
+                `Method "${name}" mbutuhake ${fn.parameters.length} argument, nanging diwenehi ${evaluatedArgs.length}`
+            );
+        }
+
+        if (callStackDepth >= MAX_CALL_STACK) {
+            throw new Error("Batas kedalaman pemanggilan function terlampaui (Potensi infinite recursion)");
+        }
+
+        // Lexical scope: parent adalah fn.env (lingkungan deklarasi method)
+        const localEnv = new Environment(fn.env || globalEnv);
+
+        // Bind parameters
+        for (let p = 0; p < fn.parameters.length; p++) {
+            localEnv.define(fn.parameters[p], evaluatedArgs[p]);
+        }
+
+        // Push receiver so iki works inside method body
+        receiverStack.push(receiver);
+        callStackDepth++;
+        try {
+            execute(fn.body, localEnv, fn.functions || activeFunctions, fn.filePath || activeFilePath, undefined, fn.structs || activeStructs);
+            return null;
+        } catch (e) {
+            if (e instanceof ReturnSignal) {
+                return e.value;
+            }
+            throw e;
+        } finally {
+            receiverStack.pop();
+            callStackDepth--;
+        }
+    }
+
     function invokeCallable(candidate, evaluatedArgs, displayName) {
+        // BoundMethod (method retrieved via instance["methodName"])
+        if (candidate && typeof candidate === "object" && candidate._isBoundMethod) {
+            return invokeMethodWithReceiver(
+                candidate.function,
+                evaluatedArgs,
+                candidate.receiver,
+                displayName || candidate.name
+            );
+        }
         if (candidate && typeof candidate === "object" && candidate._isFunction) {
             if (candidate._isBuiltin) {
                 const builtinFn = builtins[candidate.name];
@@ -806,6 +902,10 @@ function interpreter(ast, filePathOrOptions) {
             if (activeFunctions && node.value in activeFunctions) {
                 return activeFunctions[node.value];
             }
+            // Struct reference
+            if (activeStructs && node.value in activeStructs) {
+                return activeStructs[node.value];
+            }
             if (node.value in builtins) {
                 return {
                     _isFunction: true,
@@ -813,7 +913,81 @@ function interpreter(ast, filePathOrOptions) {
                     name: node.value
                 };
             }
-            return env.get(node.value);
+            return env.get(node.value); // will throw if not found
+        }
+
+        // =========================
+        // IKI (current receiver)
+        // =========================
+        if (node.type === "IkiExpression") {
+            const receiver = getCurrentReceiver();
+            if (receiver === null) {
+                throw new Error('"iki" mung bisa digunakake ing njero method (iki hanya bisa digunakan di dalam method)');
+            }
+            return receiver;
+        }
+
+        // =========================
+        // NEW EXPRESSION (anyar Struct(...))
+        // =========================
+        if (node.type === "NewExpression") {
+            let structDef = null;
+            let structName = null;
+
+            if (typeof node.target === "string") {
+                structName = node.target;
+                if (activeStructs && structName in activeStructs) {
+                    structDef = activeStructs[structName];
+                }
+                if (!structDef && env && env.has(structName)) {
+                    const val = env.get(structName);
+                    if (val && typeof val === "object" && val._isStruct) {
+                        structDef = val;
+                    }
+                }
+            } else if (node.target && typeof node.target === "object") {
+                const evaluatedTarget = getValue(node.target, env);
+                if (evaluatedTarget && typeof evaluatedTarget === "object" && evaluatedTarget._isStruct) {
+                    structDef = evaluatedTarget;
+                    structName = structDef.name;
+                } else {
+                    throw new Error(`Nilai sawise "anyar" kudu arupa struct`);
+                }
+            }
+
+            if (!structDef) {
+                throw new Error(`Struct "${structName || "ora dingerteni"}" durung digawe (Struct belum dideklarasikan)`);
+            }
+
+            // Evaluate constructor args
+            const evaluatedArgs = node.arguments.map(arg => getValue(arg, env));
+
+            // Clone field defaults — mutable defaults get their own copy per instance
+            const fields = {};
+            for (const fd of structDef.fieldDefs) {
+                const rawDefault = fd._evaluatedDefault;
+                fields[fd.name] = deepCloneDefault(rawDefault);
+            }
+
+            // Create instance
+            const instance = {
+                _isInstance: true,
+                _structName: structName,
+                _fields: fields,
+                _methods: structDef.methodDefs
+            };
+
+            // Run constructor (wiwiti) if defined
+            if ("wiwiti" in structDef.methodDefs) {
+                const constructorFn = structDef.methodDefs["wiwiti"];
+                invokeMethodWithReceiver(constructorFn, evaluatedArgs, instance, "wiwiti");
+            } else if (evaluatedArgs.length > 0) {
+                throw new Error(
+                    `Struct "${structName}" ora duwe constructor "wiwiti", nanging diwenehi ${evaluatedArgs.length} argument`
+                );
+            }
+
+            return instance;
         }
 
         // =========================
@@ -1044,7 +1218,7 @@ function interpreter(ast, filePathOrOptions) {
         }
 
         // =========================
-        // INDEX EXPRESSION (arr[i], obj[k])
+        // INDEX EXPRESSION (arr[i], obj[k], instance[prop])
         // =========================
         if (node.type === "IndexExpression") {
             const obj = getValue(node.object, env);
@@ -1056,7 +1230,48 @@ function interpreter(ast, filePathOrOptions) {
                 validateIndex(obj, idx);
                 return obj[idx];
             }
-            if (typeof obj === "object" && !obj._isFunction) {
+            // Instance property/method lookup
+            if (typeof obj === "object" && obj._isInstance) {
+                const key = getValue(node.index, env);
+                if (typeof key !== "string") {
+                    throw new Error(`Instance mung bisa diakses nganggo key string, nanging ditemu: "${getType(key)}"`);
+                }
+                // 1. Instance field takes priority
+                if (key in obj._fields) {
+                    return obj._fields[key];
+                }
+                // 2. Struct method → return BoundMethod
+                if (key in obj._methods) {
+                    const rawFn = obj._methods[key];
+                    return {
+                        _isFunction: true,
+                        _isBoundMethod: true,
+                        name: key,
+                        function: rawFn,
+                        receiver: obj
+                    };
+                }
+                // 3. Not found → null
+                return null;
+            }
+            // Namespace member lookup (Module System V3)
+            if (typeof obj === "object" && obj._isNamespace) {
+                const key = getValue(node.index, env);
+                if (typeof key !== "string") {
+                    throw new Error(`Namespace mung bisa diakses nganggo key string, nanging ditemu: "${getType(key)}"`);
+                }
+                if (obj.exports.variables && key in obj.exports.variables) {
+                    return obj.exports.variables[key];
+                }
+                if (obj.exports.functions && key in obj.exports.functions) {
+                    return obj.exports.functions[key];
+                }
+                if (obj.exports.structs && key in obj.exports.structs) {
+                    return obj.exports.structs[key];
+                }
+                return null;
+            }
+            if (typeof obj === "object" && !obj._isFunction && !obj._isBoundMethod) {
                 const key = getValue(node.index, env);
                 if (typeof key !== "string") {
                     throw new Error(`Object mung bisa diakses nganggo key string, nanging ditemu: "${getType(key)}" (Object hanya bisa diakses dengan key string)`);
@@ -1066,6 +1281,7 @@ function interpreter(ast, filePathOrOptions) {
                 }
                 return null;
             }
+
             throw new Error(`Mung array utawa object sing bisa diindex, nanging ditemu: "${getType(obj)}" (Hanya array atau object yang bisa diindex)`);
         }
 
@@ -1084,16 +1300,18 @@ function interpreter(ast, filePathOrOptions) {
         return "[" + val.map(arrayToString).join(", ") + "]";
     }
 
-    function execute(statements, env, currentFunctions, currentFilePath, currentExports) {
+    function execute(statements, env, currentFunctions, currentFilePath, currentExports, currentStructs) {
         if (!Array.isArray(statements)) {
             return;
         }
 
         const prevFunctions = activeFunctions;
+        const prevStructs = activeStructs;
         const prevFilePath = activeFilePath;
         const prevExports = activeExports;
 
         if (currentFunctions !== undefined) activeFunctions = currentFunctions;
+        if (currentStructs !== undefined) activeStructs = currentStructs;
         if (currentFilePath !== undefined) activeFilePath = currentFilePath;
         if (currentExports !== undefined) activeExports = currentExports;
 
@@ -1103,6 +1321,15 @@ function interpreter(ast, filePathOrOptions) {
                 // DEKLARASI VARIABEL (gawe ...)
                 // =========================
                 if (node.type === "VariableDeclaration") {
+                    if (activeStructs && node.name in activeStructs) {
+                        throw new Error(`Jeneng "${node.name}" wis digunakake minangka struct`);
+                    }
+                    if (env && env.has(node.name)) {
+                        const existing = env.get(node.name);
+                        if (existing && typeof existing === "object" && existing._isNamespace) {
+                            throw new Error(`Jeneng "${node.name}" wis digunakake minangka namespace`);
+                        }
+                    }
                     const val = getValue(node.value, env);
                     env.define(node.name, val);
                     if (node.isExported && activeExports) {
@@ -1115,12 +1342,16 @@ function interpreter(ast, filePathOrOptions) {
             // UBAH NILAI VARIABEL (x = ...)
             // =========================
             if (node.type === "AssignmentStatement") {
+                // Guard: iki = val harus ditolak di runtime juga (parser juga guards ini)
+                if (node.name === "iki") {
+                    throw new Error('"iki" ora bisa di-assign langsung (iki tidak bisa di-assign)');
+                }
                 env.assign(node.name, getValue(node.value, env));
                 continue;
             }
 
             // =========================
-            // UBAH NILAI ELEMEN ARRAY / PROPERTY OBJECT (arr[i] = ..., obj[k] = ...)
+            // UBAH NILAI ELEMEN ARRAY / PROPERTY OBJECT / INSTANCE FIELD (arr[i] = ..., obj[k] = ..., instance[k] = ...)
             // =========================
             if (node.type === "IndexAssignmentStatement") {
                 const obj = getValue(node.object, env);
@@ -1133,7 +1364,22 @@ function interpreter(ast, filePathOrOptions) {
                     obj[idx] = getValue(node.value, env);
                     continue;
                 }
-                if (typeof obj === "object" && !obj._isFunction) {
+                // Instance field assignment
+                if (typeof obj === "object" && obj._isInstance) {
+                    const key = getValue(node.index, env);
+                    if (typeof key !== "string") {
+                        throw new Error(`Key instance kudu awujud string, nanging ditemu: "${getType(key)}"`);
+                    }
+                    if (key === "iki") {
+                        throw new Error('"iki" ora bisa digunakake minangka property instance');
+                    }
+                    obj._fields[key] = getValue(node.value, env);
+                    continue;
+                }
+                if (typeof obj === "object" && obj._isNamespace) {
+                    throw new Error('Namespace ora bisa diowahi (Namespace tidak bisa diubah / bersifat read-only)');
+                }
+                if (typeof obj === "object" && !obj._isFunction && !obj._isBoundMethod) {
                     const key = getValue(node.index, env);
                     if (typeof key !== "string") {
                         throw new Error(`Key object kudu awujud string, nanging ditemu: "${getType(key)}" (Key object harus berupa string)`);
@@ -1141,6 +1387,7 @@ function interpreter(ast, filePathOrOptions) {
                     obj[key] = getValue(node.value, env);
                     continue;
                 }
+
                 throw new Error(`Mung array utawa object sing bisa diubah elemente, nanging ditemu: "${getType(obj)}" (Hanya array atau object yang bisa diubah elemennya)`);
             }
 
@@ -1308,6 +1555,15 @@ function interpreter(ast, filePathOrOptions) {
                 if (activeFunctions && node.name in activeFunctions) {
                     throw new Error(`Function "${node.name}" wis ana`);
                 }
+                if (activeStructs && node.name in activeStructs) {
+                    throw new Error(`Jeneng "${node.name}" wis digunakake minangka struct`);
+                }
+                if (env && env.has(node.name)) {
+                    const existing = env.get(node.name);
+                    if (existing && typeof existing === "object" && existing._isNamespace) {
+                        throw new Error(`Jeneng "${node.name}" wis digunakake minangka namespace`);
+                    }
+                }
                 const fnObj = {
                     _isFunction: true,
                     name: node.name,
@@ -1316,6 +1572,7 @@ function interpreter(ast, filePathOrOptions) {
                     isExported: !!node.isExported,
                     env: env,
                     functions: activeFunctions,
+                    structs: activeStructs,
                     filePath: activeFilePath
                 };
                 if (activeFunctions) {
@@ -1328,11 +1585,85 @@ function interpreter(ast, filePathOrOptions) {
             }
 
             // =========================
+            // BENTUK (Deklarasi Struct)
+            // =========================
+            if (node.type === "StructDeclaration") {
+                if (activeStructs && node.name in activeStructs) {
+                    throw new Error(`Struct "${node.name}" wis ana`);
+                }
+                if (activeFunctions && node.name in activeFunctions) {
+                    throw new Error(`Jeneng "${node.name}" wis digunakake minangka fungsi`);
+                }
+                if (env && env.has(node.name)) {
+                    const existing = env.get(node.name);
+                    if (existing && typeof existing === "object" && existing._isNamespace) {
+                        throw new Error(`Jeneng "${node.name}" wis digunakake minangka namespace`);
+                    }
+                    throw new Error(`Jeneng "${node.name}" wis digunakake minangka variabel`);
+                }
+                if (node.name in builtins) {
+                    throw new Error(`Jeneng "${node.name}" wis digunakake dening built-in`);
+                }
+
+                // Evaluate methods and default values
+                const fieldDefs = [];
+                for (const f of node.fields) {
+                    fieldDefs.push({
+                        name: f.name,
+                        defaultValueNode: f.defaultValue,
+                        _evaluatedDefault: getValue(f.defaultValue, env)
+                    });
+                }
+
+                const methodDefs = {};
+                for (const m of node.methods) {
+                    methodDefs[m.name] = {
+                        _isFunction: true,
+                        _isMethod: true,
+                        name: m.name,
+                        parameters: m.parameters,
+                        body: m.body,
+                        env: env,
+                        functions: activeFunctions,
+                        structs: activeStructs,
+                        filePath: activeFilePath
+                    };
+                }
+
+                const structDef = {
+                    _isStruct: true,
+                    name: node.name,
+                    fieldDefs: fieldDefs,
+                    methodDefs: methodDefs,
+                    isExported: !!node.isExported,
+                    env: env,
+                    filePath: activeFilePath
+                };
+
+                if (activeStructs) {
+                    activeStructs[node.name] = structDef;
+                }
+                if (node.isExported && activeExports) {
+                    activeExports.structs[node.name] = structDef;
+                }
+                continue;
+            }
+
+            // =========================
             // EKSPOR (Export Statement)
             // =========================
             if (node.type === "ExportStatement") {
                 const decl = node.declaration;
                 if (decl.type === "VariableDeclaration") {
+                    if (activeStructs && decl.name in activeStructs) {
+                        throw new Error(`Jeneng "${decl.name}" wis digunakake minangka struct`);
+                    }
+                    if (env && env.has(decl.name)) {
+                        const existing = env.get(decl.name);
+                        if (existing && typeof existing === "object" && existing._isNamespace) {
+                            throw new Error(`Jeneng "${decl.name}" wis digunakake minangka namespace`);
+                        }
+                    }
                     const val = getValue(decl.value, env);
                     env.define(decl.name, val);
                     if (activeExports) {
@@ -1342,6 +1673,16 @@ function interpreter(ast, filePathOrOptions) {
                     if (activeFunctions && decl.name in activeFunctions) {
                         throw new Error(`Function "${decl.name}" wis ana`);
                     }
+                    if (activeStructs && decl.name in activeStructs) {
+                        throw new Error(`Jeneng "${decl.name}" wis digunakake minangka struct`);
+                    }
+                    if (env && env.has(decl.name)) {
+                        const existing = env.get(decl.name);
+                        if (existing && typeof existing === "object" && existing._isNamespace) {
+                            throw new Error(`Jeneng "${decl.name}" wis digunakake minangka namespace`);
+                        }
+                        throw new Error(`Jeneng "${decl.name}" wis digunakake minangka variabel`);
+                    }
                     const fnObj = {
                         _isFunction: true,
                         name: decl.name,
@@ -1350,6 +1691,7 @@ function interpreter(ast, filePathOrOptions) {
                         isExported: true,
                         env: env,
                         functions: activeFunctions,
+                        structs: activeStructs,
                         filePath: activeFilePath
                     };
                     if (activeFunctions) {
@@ -1358,21 +1700,81 @@ function interpreter(ast, filePathOrOptions) {
                     if (activeExports) {
                         activeExports.functions[decl.name] = fnObj;
                     }
+                } else if (decl.type === "StructDeclaration") {
+                    if (activeStructs && decl.name in activeStructs) {
+                        throw new Error(`Struct "${decl.name}" wis ana`);
+                    }
+                    if (activeFunctions && decl.name in activeFunctions) {
+                        throw new Error(`Jeneng "${decl.name}" wis digunakake minangka fungsi`);
+                    }
+                    if (env && env.has(decl.name)) {
+                        const existing = env.get(decl.name);
+                        if (existing && typeof existing === "object" && existing._isNamespace) {
+                            throw new Error(`Jeneng "${decl.name}" wis digunakake minangka namespace`);
+                        }
+                        throw new Error(`Jeneng "${decl.name}" wis digunakake minangka variabel`);
+                    }
+                    if (decl.name in builtins) {
+                        throw new Error(`Jeneng "${decl.name}" wis digunakake dening built-in`);
+                    }
+
+                    const fieldDefs = [];
+                    for (const f of decl.fields) {
+                        fieldDefs.push({
+                            name: f.name,
+                            defaultValueNode: f.defaultValue,
+                            _evaluatedDefault: getValue(f.defaultValue, env)
+                        });
+                    }
+
+                    const methodDefs = {};
+                    for (const m of decl.methods) {
+                        methodDefs[m.name] = {
+                            _isFunction: true,
+                            _isMethod: true,
+                            name: m.name,
+                            parameters: m.parameters,
+                            body: m.body,
+                            env: env,
+                            functions: activeFunctions,
+                            structs: activeStructs,
+                            filePath: activeFilePath
+                        };
+                    }
+
+                    const structDef = {
+                        _isStruct: true,
+                        name: decl.name,
+                        fieldDefs: fieldDefs,
+                        methodDefs: methodDefs,
+                        isExported: true,
+                        env: env,
+                        filePath: activeFilePath
+                    };
+
+                    if (activeStructs) {
+                        activeStructs[decl.name] = structDef;
+                    }
+                    if (activeExports) {
+                        activeExports.structs[decl.name] = structDef;
+                    }
                 }
                 continue;
             }
 
             // =========================
-            // IMPOR (Import Statement)
+            // IMPOR (Import Statement V1/V2/V3)
             // =========================
             if (node.type === "ImportStatement") {
                 const canonicalPath = loader.resolve(node.path, activeFilePath);
                 const mod = loader.load(canonicalPath, (modAst, modPath, modRecord) => {
                     const modEnv = new Environment(null);
                     const modFunctions = {};
+                    const modStructs = {};
                     modRecord.env = modEnv;
                     modRecord.functions = modFunctions;
-                    execute(modAst, modEnv, modFunctions, modPath, modRecord.exports);
+                    modRecord.structs = modStructs;
+                    execute(modAst, modEnv, modFunctions, modPath, modRecord.exports, modStructs);
                     // Re-sync exported variables from modEnv with their final post-init values
                     for (const varName of Object.keys(modRecord.exports.variables)) {
                         if (modEnv.has(varName)) {
@@ -1381,6 +1783,100 @@ function interpreter(ast, filePathOrOptions) {
                     }
                 });
 
+                // Mode 1: Namespace import — impor "path" minangka ns
+                if (node.mode === "namespace") {
+                    const ns = node.namespace;
+                    if (ns in builtins) {
+                        throw new Error(`Jeneng "${ns}" wis digunakake dening built-in`);
+                    }
+                    if (activeFunctions && ns in activeFunctions) {
+                        throw new Error(`Jeneng "${ns}" wis digunakake minangka fungsi`);
+                    }
+                    if (activeStructs && ns in activeStructs) {
+                        throw new Error(`Jeneng "${ns}" wis digunakake minangka struct`);
+                    }
+                    if (env && env.has(ns)) {
+                        const existing = env.get(ns);
+                        if (existing && typeof existing === "object" && existing._isNamespace) {
+                            throw new Error(`Jeneng "${ns}" wis digunakake minangka namespace`);
+                        }
+                        throw new Error(`Jeneng "${ns}" wis digunakake minangka variabel`);
+                    }
+
+                    const nsObj = {
+                        _isNamespace: true,
+                        name: ns,
+                        modulePath: canonicalPath,
+                        exports: {
+                            variables: mod.exports.variables,
+                            functions: mod.exports.functions,
+                            structs: mod.exports.structs
+                        }
+                    };
+                    env.define(ns, nsObj);
+                    continue;
+                }
+
+                // Mode 2: Selective import — impor { a, b minangka c } saka "path"
+                if (node.mode === "selective") {
+                    const seenLocals = new Set();
+                    for (const spec of node.specifiers) {
+                        if (seenLocals.has(spec.local)) {
+                            throw new Error(`Jeneng "${spec.local}" wis ana ing dhaftar impor (Duplikat jeneng impor)`);
+                        }
+                        seenLocals.add(spec.local);
+                    }
+
+                    for (const spec of node.specifiers) {
+                        const local = spec.local;
+                        const imported = spec.imported;
+
+                        if (local in builtins) {
+                            throw new Error(`Jeneng "${local}" wis digunakake dening built-in`);
+                        }
+                        if (activeFunctions && local in activeFunctions) {
+                            throw new Error(`Jeneng "${local}" wis digunakake minangka fungsi`);
+                        }
+                        if (activeStructs && local in activeStructs) {
+                            throw new Error(`Jeneng "${local}" wis digunakake minangka struct`);
+                        }
+                        if (env && env.has(local)) {
+                            const existing = env.get(local);
+                            if (existing && typeof existing === "object" && existing._isNamespace) {
+                                throw new Error(`Jeneng "${local}" wis digunakake minangka namespace`);
+                            }
+                            throw new Error(`Jeneng "${local}" wis digunakake minangka variabel`);
+                        }
+
+                        if (imported in mod.exports.variables) {
+                            env.define(local, mod.exports.variables[imported]);
+                        } else if (imported in mod.exports.functions) {
+                            const rawFn = mod.exports.functions[imported];
+                            const boundFn = (local === imported) ? rawFn : { ...rawFn, name: local };
+                            if (activeFunctions) {
+                                activeFunctions[local] = boundFn;
+                            }
+                        } else if (imported in mod.exports.structs) {
+                            const rawStruct = mod.exports.structs[imported];
+                            const boundStruct = (local === imported) ? rawStruct : { ...rawStruct, name: local };
+                            if (activeStructs) {
+                                activeStructs[local] = boundStruct;
+                            }
+                        } else {
+                            const isPrivate = (mod.functions && imported in mod.functions) ||
+                                              (mod.structs && imported in mod.structs) ||
+                                              (mod.env && mod.env.has(imported));
+                            if (isPrivate) {
+                                throw new Error(`Simbol "${imported}" minangka simbol privat lan ora bisa diimpor (Simbol privat tidak bisa diimpor)`);
+                            } else {
+                                throw new Error(`Simbol "${imported}" ora ditemokake ing modul "${node.path}" (Simbol tidak ditemukan di exports)`);
+                            }
+                        }
+                    }
+                    continue;
+                }
+
+                // Mode 3: Legacy import (V1/V2 backward compatible)
                 // Copy exported variables into current env
                 for (const [varName, varVal] of Object.entries(mod.exports.variables)) {
                     env.define(varName, varVal);
@@ -1389,6 +1885,12 @@ function interpreter(ast, filePathOrOptions) {
                 for (const [fnName, fnObj] of Object.entries(mod.exports.functions)) {
                     if (activeFunctions) {
                         activeFunctions[fnName] = fnObj;
+                    }
+                }
+                // Copy exported structs into activeStructs
+                for (const [structName, structDef] of Object.entries(mod.exports.structs)) {
+                    if (activeStructs) {
+                        activeStructs[structName] = structDef;
                     }
                 }
                 continue;
@@ -1457,13 +1959,14 @@ function interpreter(ast, filePathOrOptions) {
         }
     } finally {
         activeFunctions = prevFunctions;
+        activeStructs = prevStructs;
         activeFilePath = prevFilePath;
         activeExports = prevExports;
     }
 }
 
     try {
-        execute(ast, globalEnv, globalFunctions, entryFilePath, rootExports);
+        execute(ast, globalEnv, globalFunctions, entryFilePath, rootExports, globalStructs);
         const rootRecord = loader.cache.get(entryFilePath);
         if (rootRecord) {
             rootRecord.status = "LOADED";

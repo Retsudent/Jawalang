@@ -73,7 +73,7 @@ tulis users[1]["nama"]
 tulis users[0]["umur"]
 
 // Section 40: Test Object + Function
-fungsi tampilkan(u) {
+guna tampilkan(u) {
     tulis u["nama"]
 }
 
@@ -84,7 +84,7 @@ gawe user1 = {
 tampilkan(user1)
 
 // Section 41: Test Object Mutation
-fungsi ubah(u) {
+guna ubah(u) {
     u["nama"] = "Siti"
 }
 
@@ -113,7 +113,7 @@ salinan["nama"] = "Siti"
 tulis asli["nama"]
 
 // Section 34: Function return object
-fungsi gaweUser() {
+guna gaweUser() {
     bali {
         "nama": "Budi",
         "umur": 20

@@ -2,7 +2,7 @@
 
 gawe globalNama = "Global"
 
-fungsi bacaGlobal() {
+guna bacaGlobal() {
     tulis globalNama
 }
 
@@ -13,7 +13,7 @@ bacaGlobal()
 
 gawe nama = "Global"
 
-fungsi shadow() {
+guna shadow() {
     gawe nama = "Local"
     tulis nama
 }
@@ -27,7 +27,7 @@ tulis nama
 
 gawe angka = 100
 
-fungsi parameterTest(angka) {
+guna parameterTest(angka) {
     tulis angka
 }
 
@@ -40,7 +40,7 @@ tulis angka
 
 gawe counter = 0
 
-fungsi tambahCounter() {
+guna tambahCounter() {
     counter = counter + 1
 }
 
@@ -54,7 +54,7 @@ tulis counter
 
 gawe nilai = 10
 
-fungsi localTest() {
+guna localTest() {
     gawe nilai = 100
     nilai = nilai + 1
     tulis nilai
@@ -67,7 +67,7 @@ tulis nilai
 
 // RECURSIVE SCOPE
 
-fungsi hitung(n) {
+guna hitung(n) {
 
     gawe lokal = n
 

@@ -1,0 +1,15 @@
+// ==========================================================
+// NEGATIVE TEST: Struct & Method System V1
+// "iki" ora bisa di-assign langsung
+// ==========================================================
+
+bentuk Wong {
+    gawe jeneng = "Budi"
+
+    guna rusak() {
+        iki = "ora kena"
+    }
+}
+
+gawe w = anyar Wong()
+w["rusak"]()

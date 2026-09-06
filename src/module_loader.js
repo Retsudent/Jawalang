@@ -77,9 +77,11 @@ class ModuleLoader {
             canonicalPath: canonicalPath,
             env: null,
             functions: {},
+            structs: {},
             exports: {
                 variables: {},
-                functions: {}
+                functions: {},
+                structs: {}
             },
             error: null
         };

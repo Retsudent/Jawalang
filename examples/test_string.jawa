@@ -1,5 +1,5 @@
 // =============================================
-// TEST STRING UTILITY ENGINE V1 — JAWALANG
+// TEST STRING UTILITY ENGINE V1 ï¿½ JAWALANG
 // =============================================
 
 // 1. dawa()
@@ -39,7 +39,7 @@ tulis hasilNgganti
 
 // 8. function integration
 tulis "=== 8. function integration ==="
-fungsi proses(teks) {
+guna proses(teks) {
     bali gedhe(teks)
 }
 tulis proses("jawa")

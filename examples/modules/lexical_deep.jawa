@@ -2,18 +2,18 @@
 gawe varA = 10
 gawe varB = 20
 
-fungsi innerPrivate() {
+guna innerPrivate() {
     bali varA + varB
 }
 
-ekspor fungsi hitungTotal() {
+ekspor guna hitungTotal() {
     bali innerPrivate() * 2
 }
 
-ekspor fungsi setA(anyar) {
+ekspor guna setA(anyar) {
     varA = anyar
 }
 
-ekspor fungsi getA() {
+ekspor guna getA() {
     bali varA
 }
