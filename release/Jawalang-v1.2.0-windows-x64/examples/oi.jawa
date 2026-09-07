@@ -1,0 +1,23 @@
+tulis "Halo dunia!"
+
+gawe jeneng = "Barch"
+gawe umur = 20
+
+tulis jeneng
+tulis umur
+
+gawe a = 10
+gawe b = 20
+
+tulis a + b
+tulis a - b
+tulis a * b
+tulis a / b
+
+gawe umur = 20
+
+yen umur >= 17 {
+    tulis "Wis dewasa"
+} liyane {
+    tulis "Durung dewasa"
+}

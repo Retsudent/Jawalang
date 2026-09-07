@@ -1,0 +1,11 @@
+// ===========================================
+// TEST OBJECT ERROR - JAWALANG
+// ==========================================
+// Akses object mawa key non-string (angka) kudu error
+
+gawe data = {
+    "nama": "Budi"
+}
+
+tulis "Coba akses data[0]:"
+tulis data[0]

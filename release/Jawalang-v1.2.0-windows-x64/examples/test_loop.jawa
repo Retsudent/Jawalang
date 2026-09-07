@@ -1,0 +1,59 @@
+// WHILE
+
+gawe i = 1
+
+nalika i <= 5 {
+    tulis i
+    i = i + 1
+}
+
+// FOR
+
+kanggo j = 1 nganti 5 {
+    tulis j
+}
+
+// IF + LOOP
+
+gawe x = 1
+
+nalika x <= 5 {
+
+    yen x == 3 {
+        tulis "Telu"
+    } liyane {
+        tulis x
+    }
+
+    x = x + 1
+}
+
+// BREAK
+
+gawe a = 1
+
+nalika a <= 10 {
+
+    tulis a
+
+    yen a == 5 {
+        mandheg
+    }
+
+    a = a + 1
+}
+
+// CONTINUE
+
+gawe b = 0
+
+nalika b < 5 {
+
+    b = b + 1
+
+    yen b == 3 {
+        lanjut
+    }
+
+    tulis b
+}

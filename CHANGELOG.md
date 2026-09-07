@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `jawa repl` explicit command.
   - Running `jawa` with no arguments in interactive terminal (TTY) automatically launches the REPL.
   - Updated CLI `--help` with REPL usage and command description.
-- **REPL Test Suite (`scratch/test_repl.js`)**: Added 23 comprehensive tests validating basic expressions, variable/function/struct persistence, inheritance, HOF, error recovery, module imports, namespaces, multiline input, and process piping.
+- **REPL Test Suite (`scratch/test_repl.js`)**: Added 32 comprehensive tests validating basic expressions, variable/function/struct persistence, inheritance, HOF, error recovery, module imports, namespaces, multiline input, meta commands, input validation, and process piping.
 - **Language Specification Audit (`docs/LANGUAGE_SPEC_AUDIT_V1.2.0.md` & `docs/language-inventory-v1.2.0.json`)**: Comprehensive 35-section specification and machine-readable inventory.
 
 #### Changed

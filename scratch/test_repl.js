@@ -1,6 +1,7 @@
 const assert = require('assert');
 const path = require('path');
-const { execSync, spawn } = require('child_process');
+const fs = require('fs');
+const { execSync, spawnSync } = require('child_process');
 
 const { ReplSession, isCompleteInput, BANNER_TEXT, HELP_TEXT } = require('../src/repl');
 const PROJECT_ROOT = path.resolve(__dirname, '..');
@@ -25,7 +26,7 @@ console.log('           JAWALANG V1.2.0 REPL TEST SUITE          ');
 console.log('====================================================\n');
 
 // 1. Basic Expressions
-runTest('Basic Arithmetic Expression: 10 + 20 -> 30', () => {
+runTest('Scenario 1: Basic Arithmetic Expression (10 + 20 -> 30)', () => {
     const session = new ReplSession();
     const res = session.eval('10 + 20');
     assert.strictEqual(res.ok, true);
@@ -34,7 +35,7 @@ runTest('Basic Arithmetic Expression: 10 + 20 -> 30', () => {
     assert.strictEqual(res.formatted, '30');
 });
 
-runTest('Basic String Literal Expression: "halo" -> halo', () => {
+runTest('Scenario 2: Basic String Literal Expression ("halo" -> halo)', () => {
     const session = new ReplSession();
     const res = session.eval('"halo"');
     assert.strictEqual(res.ok, true);
@@ -43,7 +44,7 @@ runTest('Basic String Literal Expression: "halo" -> halo', () => {
     assert.strictEqual(res.formatted, 'halo');
 });
 
-runTest('Basic Boolean Expressions: 10 > 5 -> bener, 10 < 5 -> salah', () => {
+runTest('Scenario 3: Basic Boolean Expressions (10 > 5 -> bener, 10 < 5 -> salah)', () => {
     const session = new ReplSession();
     const res1 = session.eval('10 > 5');
     assert.strictEqual(res1.ok, true);
@@ -56,7 +57,7 @@ runTest('Basic Boolean Expressions: 10 > 5 -> bener, 10 < 5 -> salah', () => {
     assert.strictEqual(res2.formatted, 'salah');
 });
 
-runTest('Basic Null Expression: null -> null', () => {
+runTest('Scenario 4: Basic Null Expression (null -> null)', () => {
     const session = new ReplSession();
     const res = session.eval('null');
     assert.strictEqual(res.ok, true);
@@ -65,7 +66,7 @@ runTest('Basic Null Expression: null -> null', () => {
 });
 
 // 2. Variable Persistence & Reassignment
-runTest('Variable Declaration & Persistence across inputs', () => {
+runTest('Scenario 5: Variable Declaration & Persistence across inputs (gawe x = 10, x + 5 -> 15)', () => {
     const session = new ReplSession();
     const resDecl = session.eval('gawe x = 10');
     assert.strictEqual(resDecl.ok, true);
@@ -78,7 +79,7 @@ runTest('Variable Declaration & Persistence across inputs', () => {
     assert.strictEqual(resUse.formatted, '15');
 });
 
-runTest('Variable Reassignment across inputs', () => {
+runTest('Scenario 6: Variable Reassignment across inputs (x = x + 10, x -> 20)', () => {
     const session = new ReplSession();
     session.eval('gawe x = 10');
     const resAssign = session.eval('x = x + 10');
@@ -93,7 +94,7 @@ runTest('Variable Reassignment across inputs', () => {
 });
 
 // 3. Function Declaration & Persistence
-runTest('Function Declaration & Persistence across inputs', () => {
+runTest('Scenario 7: Function Declaration & Persistence across inputs', () => {
     const session = new ReplSession();
     const resDecl = session.eval(`
         guna tambah(a, b) {
@@ -111,7 +112,7 @@ runTest('Function Declaration & Persistence across inputs', () => {
 });
 
 // 4. Arrays & Objects
-runTest('Array Literal and Member Indexing', () => {
+runTest('Scenario 8: Array Literal and Member Indexing', () => {
     const session = new ReplSession();
     const resArray = session.eval('[1, 2, 3]');
     assert.strictEqual(resArray.ok, true);
@@ -123,7 +124,7 @@ runTest('Array Literal and Member Indexing', () => {
     assert.strictEqual(resElem.value, 20);
 });
 
-runTest('Object Literal and Property Access', () => {
+runTest('Scenario 9: Object Literal and Property Access', () => {
     const session = new ReplSession();
     const resObj = session.eval('{"nama": "Budi", "umur": 20}');
     assert.strictEqual(resObj.ok, true);
@@ -136,7 +137,7 @@ runTest('Object Literal and Property Access', () => {
 });
 
 // 5. Struct, Constructor, Method & Self (iki)
-runTest('Struct Declaration, Instantiation & Methods (iki)', () => {
+runTest('Scenario 10: Struct Declaration, Instantiation & Methods (iki)', () => {
     const session = new ReplSession();
     const resStruct = session.eval(`
         bentuk Wong {
@@ -158,7 +159,7 @@ runTest('Struct Declaration, Instantiation & Methods (iki)', () => {
 });
 
 // 6. Inheritance & super
-runTest('Inheritance (ngembangake) & super calls', () => {
+runTest('Scenario 11: Inheritance (ngembangake) & super calls', () => {
     const session = new ReplSession();
     session.eval(`
         bentuk Wong {
@@ -188,7 +189,7 @@ runTest('Inheritance (ngembangake) & super calls', () => {
 });
 
 // 7. Higher-Order Functions
-runTest('Higher-Order Functions: terapkan, saring, itung, gabung, balik', () => {
+runTest('Scenario 12: Higher-Order Functions: terapkan, saring, itung, gabung, balik', () => {
     const session = new ReplSession();
     session.eval('guna kaliLoro(x) { bali x * 2 }');
     const resMap = session.eval('terapkan(kaliLoro, [1, 2, 3])');
@@ -214,7 +215,7 @@ runTest('Higher-Order Functions: terapkan, saring, itung, gabung, balik', () => 
 });
 
 // 8. Error Recovery & Session Survivability
-runTest('Runtime error (division by zero) does not terminate session', () => {
+runTest('Scenario 13: Runtime error (division by zero) does not terminate session', () => {
     const session = new ReplSession();
     session.eval('gawe a = 50');
     const resErr = session.eval('10 / 0');
@@ -227,7 +228,7 @@ runTest('Runtime error (division by zero) does not terminate session', () => {
     assert.strictEqual(resNext.value, 60);
 });
 
-runTest('Syntax error does not terminate session', () => {
+runTest('Scenario 14: Syntax error does not terminate session', () => {
     const session = new ReplSession();
     session.eval('gawe b = 100');
     const resErr = session.eval('gawe = 123');
@@ -239,8 +240,8 @@ runTest('Syntax error does not terminate session', () => {
     assert.strictEqual(resNext.value, 200);
 });
 
-// 9. Control Flow Validation (bali, mandheg, lanjut outside valid scope)
-runTest('Illegal top-level control flow throws clean error and session survives', () => {
+// 9. Control Flow Validation
+runTest('Scenario 15: Illegal top-level control flow throws clean error and session survives', () => {
     const session = new ReplSession();
     const resBali = session.eval('bali 10');
     assert.strictEqual(resBali.ok, false);
@@ -260,7 +261,7 @@ runTest('Illegal top-level control flow throws clean error and session survives'
 });
 
 // 10. Module Import & Namespace Support
-runTest('Module relative import and symbol usage', () => {
+runTest('Scenario 16: Module relative import and symbol usage', () => {
     const session = new ReplSession({ cwd: PROJECT_ROOT });
     const resImport = session.eval('impor "./examples/modules/konstanta.jawa"');
     assert.strictEqual(resImport.ok, true);
@@ -270,7 +271,7 @@ runTest('Module relative import and symbol usage', () => {
     assert.strictEqual(resPi.value, 3.14);
 });
 
-runTest('Namespace import (impor ... minangka ns) and member access', () => {
+runTest('Scenario 17: Namespace import (impor ... minangka ns) and member access', () => {
     const session = new ReplSession({ cwd: PROJECT_ROOT });
     const resImport = session.eval('impor "./examples/modules/matematika.jawa" minangka math');
     assert.strictEqual(resImport.ok, true);
@@ -284,43 +285,134 @@ runTest('Namespace import (impor ... minangka ns) and member access', () => {
     assert.strictEqual(resTambah.value, 5);
 });
 
-// 11. Multiline Input Detection
-runTest('Multiline input detector: isCompleteInput() handles brackets, parens, braces, strings, operators', () => {
-    // Incomplete cases
-    assert.strictEqual(isCompleteInput('guna tambah(a, b) {'), false);
-    assert.strictEqual(isCompleteInput('(10 +'), false);
-    assert.strictEqual(isCompleteInput('[1, 2,'), false);
-    assert.strictEqual(isCompleteInput('{"nama": "Budi",'), false);
-    assert.strictEqual(isCompleteInput('"halo'), false);
-    assert.strictEqual(isCompleteInput('10 +'), false);
-    assert.strictEqual(isCompleteInput('10 >'), false);
-    assert.strictEqual(isCompleteInput('gawe x ='), false);
+// 11. Built-in input takon() validation in REPL
+runTest('Scenario 18: Built-in input "takon" argument validation in REPL', () => {
+    const session = new ReplSession();
+    const resArgCount = session.eval('takon("A", "B")');
+    assert.strictEqual(resArgCount.ok, false);
+    assert.ok(resArgCount.error.includes('mbutuhake 0 utawa 1 argument'));
+
+    const resArgType = session.eval('takon(123)');
+    assert.strictEqual(resArgType.ok, false);
+    assert.ok(resArgType.error.includes('kudu string'));
+});
+
+// 12. Multiline Function Definition
+runTest('Scenario 19: Multiline Function input spanning multiple lines', () => {
+    const session = new ReplSession();
+    const multilineFunc = [
+        'guna hitungTotal(a, b, c) {',
+        '    gawe subtotal = a + b',
+        '    bali subtotal * c',
+        '}'
+    ].join('\n');
+    assert.strictEqual(isCompleteInput(multilineFunc), true);
+
+    const resDecl = session.eval(multilineFunc);
+    assert.strictEqual(resDecl.ok, true);
+    assert.strictEqual(resDecl.printed, false);
+
+    const resCall = session.eval('hitungTotal(2, 3, 4)');
+    assert.strictEqual(resCall.ok, true);
+    assert.strictEqual(resCall.value, 20);
+});
+
+// 13. Multiline Struct Definition
+runTest('Scenario 20: Multiline Struct input spanning multiple lines', () => {
+    const session = new ReplSession();
+    const multilineStruct = [
+        'bentuk Titik {',
+        '    gawe x = 0',
+        '    gawe y = 0',
+        '    guna wiwiti(xVal, yVal) {',
+        '        iki.x = xVal',
+        '        iki.y = yVal',
+        '    }',
+        '    guna jarakKuadrat() {',
+        '        bali iki.x * iki.x + iki.y * iki.y',
+        '    }',
+        '}'
+    ].join('\n');
+    assert.strictEqual(isCompleteInput(multilineStruct), true);
+
+    const resDecl = session.eval(multilineStruct);
+    assert.strictEqual(resDecl.ok, true);
+
+    session.eval('gawe p = anyar Titik(3, 4)');
+    const resJarak = session.eval('p.jarakKuadrat()');
+    assert.strictEqual(resJarak.ok, true);
+    assert.strictEqual(resJarak.value, 25);
+});
+
+// 14. Multiline Arrays & Objects
+runTest('Scenario 21: Multiline Arrays & Objects spanning multiple lines', () => {
+    const session = new ReplSession();
+    const multilineArray = '[\n  "siji",\n  "loro",\n  "telu"\n]';
+    assert.strictEqual(isCompleteInput(multilineArray), true);
+    const resArr = session.eval(multilineArray);
+    assert.strictEqual(resArr.ok, true);
+    assert.strictEqual(resArr.formatted, '["siji", "loro", "telu"]');
+
+    const multilineObj = '{\n  "status": "aktif",\n  "kode": 200\n}';
+    assert.strictEqual(isCompleteInput(multilineObj), true);
+    const resObj = session.eval(multilineObj);
+    assert.strictEqual(resObj.ok, true);
+    assert.strictEqual(resObj.formatted, '{"status": "aktif", "kode": 200}');
+});
+
+// 15. Multiline continuation on binary operators and keywords
+runTest('Scenario 22: Multiline operator continuation (+, -, *, /, ==, lan, utawa)', () => {
+    assert.strictEqual(isCompleteInput('100 +'), false);
+    assert.strictEqual(isCompleteInput('50 -'), false);
+    assert.strictEqual(isCompleteInput('10 *'), false);
+    assert.strictEqual(isCompleteInput('20 /'), false);
+    assert.strictEqual(isCompleteInput('x =='), false);
     assert.strictEqual(isCompleteInput('bener lan'), false);
+    assert.strictEqual(isCompleteInput('salah utawa'), false);
+    assert.strictEqual(isCompleteInput('gawe a ='), false);
 
-    // Complete cases
-    assert.strictEqual(isCompleteInput('guna tambah(a, b) {\n    bali a + b\n}'), true);
-    assert.strictEqual(isCompleteInput('(10 +\n20)'), true);
-    assert.strictEqual(isCompleteInput('[1, 2,\n3]'), true);
-    assert.strictEqual(isCompleteInput('{"nama": "Budi"}'), true);
-    assert.strictEqual(isCompleteInput('"halo"'), true);
-    assert.strictEqual(isCompleteInput('10 + 20'), true);
-    assert.strictEqual(isCompleteInput('gawe x = 10'), true);
+    const session = new ReplSession();
+    const res = session.eval('100 +\n200 +\n300');
+    assert.strictEqual(res.ok, true);
+    assert.strictEqual(res.value, 600);
 });
 
-// 12. Session Isolation
-runTest('Session Isolation: separate sessions do not leak variables', () => {
-    const sessionA = new ReplSession();
-    sessionA.eval('gawe rahasia = 999');
-    assert.strictEqual(sessionA.eval('rahasia').value, 999);
-
-    const sessionB = new ReplSession();
-    const resB = sessionB.eval('rahasia');
-    assert.strictEqual(resB.ok, false);
-    assert.ok(resB.error.includes('durung digawe'));
+// 16. Multiline detector isCompleteInput() edge cases
+runTest('Scenario 23: Multiline detector isCompleteInput() string & bracket parity', () => {
+    assert.strictEqual(isCompleteInput('"teks durung rampung'), false);
+    assert.strictEqual(isCompleteInput('"teks rampung"'), true);
+    assert.strictEqual(isCompleteInput('([{}])'), true);
+    assert.strictEqual(isCompleteInput('([{]'), false);
+    assert.strictEqual(isCompleteInput(''), true);
+    assert.strictEqual(isCompleteInput('   '), true);
 });
 
-// 13. Empty Input Handling
-runTest('Empty or whitespace input returns cleanly without error', () => {
+// 17. Meta-commands constants & text
+runTest('Scenario 24: Meta-commands constants (.help, .bantu, .exit, .metu, .clear, .resik)', () => {
+    assert.ok(BANNER_TEXT.includes('Jawalang REPL v1.2.0'));
+    assert.ok(BANNER_TEXT.includes('.bantu'));
+    assert.ok(HELP_TEXT.includes('.help'));
+    assert.ok(HELP_TEXT.includes('.bantu'));
+    assert.ok(HELP_TEXT.includes('.exit'));
+    assert.ok(HELP_TEXT.includes('.metu'));
+    assert.ok(HELP_TEXT.includes('.clear'));
+    assert.ok(HELP_TEXT.includes('.resik'));
+});
+
+// 18. Session Reset Method
+runTest('Scenario 25: Session reset() method clears declared variables and functions', () => {
+    const session = new ReplSession();
+    session.eval('gawe data = 123');
+    assert.strictEqual(session.eval('data').value, 123);
+
+    session.reset();
+    const resAfter = session.eval('data');
+    assert.strictEqual(resAfter.ok, false);
+    assert.ok(resAfter.error.includes('durung digawe'));
+});
+
+// 19. Empty & Whitespace Input
+runTest('Scenario 26: Empty and whitespace input handling', () => {
     const session = new ReplSession();
     const res1 = session.eval('');
     assert.strictEqual(res1.ok, true);
@@ -333,17 +425,21 @@ runTest('Empty or whitespace input returns cleanly without error', () => {
     assert.strictEqual(res2.printed, false);
 });
 
-// 14. Banner and Meta-Command Constants
-runTest('Banner and Help text constants are well-defined', () => {
-    assert.ok(BANNER_TEXT.includes('Jawalang REPL v1.2.0'));
-    assert.ok(BANNER_TEXT.includes('.bantu'));
-    assert.ok(HELP_TEXT.includes('.help'));
-    assert.ok(HELP_TEXT.includes('.exit'));
-    assert.ok(HELP_TEXT.includes('.clear'));
+// 20. Session Isolation
+runTest('Scenario 27: Session Isolation between independent instances', () => {
+    const s1 = new ReplSession();
+    const s2 = new ReplSession();
+
+    s1.eval('gawe port = 8080');
+    assert.strictEqual(s1.eval('port').value, 8080);
+
+    const resS2 = s2.eval('port');
+    assert.strictEqual(resS2.ok, false);
+    assert.ok(resS2.error.includes('durung digawe'));
 });
 
-// 15. CLI Process Integration
-runTest('CLI help contains repl command', () => {
+// 21. CLI Help contains REPL command
+runTest('Scenario 28: CLI --help documents "repl" command', () => {
     const out = execSync(`"${process.execPath}" "${path.join(PROJECT_ROOT, 'src', 'cli.js')}" --help`, {
         cwd: PROJECT_ROOT,
         encoding: 'utf8'
@@ -352,14 +448,55 @@ runTest('CLI help contains repl command', () => {
     assert.ok(out.includes('Start interactive REPL'), 'CLI help description must be present');
 });
 
-runTest('CLI interactive execution via piped input (jawa repl)', () => {
+// 22. CLI interactive execution via piped input (jawa repl)
+runTest('Scenario 29: CLI child process "jawa repl" runs commands interactively', () => {
     const out = execSync(`"${process.execPath}" "${path.join(PROJECT_ROOT, 'src', 'cli.js')}" repl`, {
         cwd: PROJECT_ROOT,
         encoding: 'utf8',
-        input: 'gawe num = 42\nnum + 8\n.exit\n'
+        input: 'gawe angka = 42\nangka + 8\n.exit\n'
     });
     assert.ok(out.includes('Jawalang REPL v1.2.0'), 'Must print REPL banner');
     assert.ok(out.includes('50'), 'Must output 50');
+});
+
+// 23. CLI alias execution (jawalang repl)
+runTest('Scenario 30: CLI alias child process "jawalang repl" runs identically', () => {
+    const out = execSync(`"${process.execPath}" "${path.join(PROJECT_ROOT, 'bin', 'jawalang.js')}" repl`, {
+        cwd: PROJECT_ROOT,
+        encoding: 'utf8',
+        input: '"Halo saka jawalang alias"\n.exit\n'
+    });
+    assert.ok(out.includes('Jawalang REPL v1.2.0'), 'Must print REPL banner');
+    assert.ok(out.includes('Halo saka jawalang alias'), 'Must evaluate string expression');
+});
+
+// 24. Debug Mode prints stack trace
+runTest('Scenario 31: CLI child process "jawa repl --debug" outputs full stack trace on error', () => {
+    const out = spawnSync(process.execPath, [path.join(PROJECT_ROOT, 'src', 'cli.js'), 'repl', '--debug'], {
+        cwd: PROJECT_ROOT,
+        encoding: 'utf8',
+        input: '10 / 0\n.exit\n'
+    });
+    const combined = (out.stdout || '') + (out.stderr || '');
+    assert.ok(combined.includes('Ora bisa dibagi'), 'Must include error message');
+    assert.ok(combined.includes('interpreter.js'), 'Debug mode must print stack trace with interpreter.js');
+});
+
+// 25. Package & Distribution Integrity
+runTest('Scenario 32: NPM package.json bin configuration and tarball integrity', () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package.json'), 'utf8'));
+    assert.strictEqual(pkg.version, '1.2.0');
+    assert.strictEqual(pkg.bin.jawa, 'bin/jawa.js');
+    assert.strictEqual(pkg.bin.jawalang, 'bin/jawa.js');
+
+    assert.ok(fs.existsSync(path.join(PROJECT_ROOT, 'bin', 'jawa.js')));
+    assert.ok(fs.existsSync(path.join(PROJECT_ROOT, 'bin', 'jawalang.js')));
+    assert.ok(fs.existsSync(path.join(PROJECT_ROOT, 'bin', 'jawa.cmd')));
+    assert.ok(fs.existsSync(path.join(PROJECT_ROOT, 'bin', 'jawalang.cmd')));
+    assert.ok(fs.existsSync(path.join(PROJECT_ROOT, 'src', 'repl.js')));
+
+    const tarballPath = path.join(PROJECT_ROOT, 'jawalang-1.2.0.tgz');
+    assert.ok(fs.existsSync(tarballPath), 'jawalang-1.2.0.tgz must exist');
 });
 
 console.log('\n====================================================');

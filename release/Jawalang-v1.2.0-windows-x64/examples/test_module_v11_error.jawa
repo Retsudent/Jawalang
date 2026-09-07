@@ -1,0 +1,3 @@
+// test_module_v11_error.jawa
+// Nguji propagasi error chain ngliwati importer (main -> mid -> leaf)
+impor "modules/chain_err_mid"

@@ -1,0 +1,11 @@
+// ============================================
+// TEST OBJECT BUILTIN ERROR - JAWASCRIPT
+// ============================================
+
+gawe data = {
+    "nama": "Budi"
+}
+
+// Harap gagal: kunci() mbutuhake 1 argument
+tulis "Coba panggil kunci() tanpa argument:"
+kunci()

@@ -1,0 +1,11 @@
+// ============================================
+// TEST ARRAY + OBJECT INTEGRATION ERROR - JAWASCRIPT
+// ============================================
+
+gawe data = {
+    "angka": 10
+}
+
+// Harap gagal: 10 bukan array atau object
+tulis "Coba akses data[\"angka\"][\"x\"]:"
+tulis data["angka"]["x"]

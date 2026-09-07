@@ -1,0 +1,203 @@
+﻿// test_module_v3.jawa
+// Positive test suite kanggo Module System V3
+
+gawe lulus = 0
+gawe gagal = 0
+
+guna cek(deskripsi, aktual, ekspektasi) {
+    yen aktual == ekspektasi {
+        tulis "[PASS] " + deskripsi
+        lulus = lulus + 1
+    } liyane {
+        tulis "[FAIL] " + deskripsi + " => dapat: " + aktual + ", ekspektasi: " + ekspektasi
+        gagal = gagal + 1
+    }
+}
+
+// ==========================================
+// 1. LEGACY IMPORT (V1/V2 backward-compat)
+// ==========================================
+impor "modules/mod_struct_v2"
+gawe gLegacy = anyar Greeter("LegacyBudi")
+cek("1. Legacy import struct instantiation", gLegacy["salam"](), "Halo, LegacyBudi")
+cek("1b. Legacy import variable", versi, 2)
+
+// ==========================================
+// 2. SELECTIVE FUNCTION IMPORT
+// ==========================================
+impor { tambah } saka "modules/mod_v3_basic"
+cek("2. Selective function import tambah(10, 5)", tambah(10, 5), 15)
+
+// ==========================================
+// 3. MULTIPLE SELECTIVE IMPORTS
+// ==========================================
+impor { kurang, kali } saka "modules/mod_v3_basic"
+cek("3a. Multiple selective kurang(20, 8)", kurang(20, 8), 12)
+cek("3b. Multiple selective kali(4, 5)", kali(4, 5), 20)
+
+// ==========================================
+// 4. SELECTIVE VARIABLE IMPORT
+// ==========================================
+impor { pi, salam } saka "modules/mod_v3_basic"
+cek("4a. Selective variable pi", pi, 3.14)
+cek("4b. Selective variable salam", salam, "Halo Jawa")
+
+// ==========================================
+// 5. SELECTIVE STRUCT IMPORT
+// ==========================================
+impor { Titik } saka "modules/mod_v3_basic"
+gawe pt = anyar Titik(3, 4)
+cek("5a. Selective struct instantiation", pt["info"](), "(3, 4)")
+cek("5b. Selective struct type", jinis(pt), "instance")
+cek("5c. Selective struct definition type", jinis(Titik), "struct")
+
+// ==========================================
+// 6. FUNCTION ALIAS
+// ==========================================
+impor { kali minangka ping } saka "modules/mod_v3_basic"
+cek("6. Function alias ping(6, 7)", ping(6, 7), 42)
+
+// ==========================================
+// 7. VARIABLE ALIAS
+// ==========================================
+impor { pi minangka angkaPi } saka "modules/mod_v3_basic"
+cek("7. Variable alias angkaPi", angkaPi, 3.14)
+
+// ==========================================
+// 8. STRUCT ALIAS
+// ==========================================
+impor { Titik minangka Poin } saka "modules/mod_v3_basic"
+gawe po = anyar Poin(10, 20)
+cek("8. Struct alias Poin(10, 20)", po["info"](), "(10, 20)")
+
+// ==========================================
+// 9. NAMESPACE IMPORT & JINIS
+// ==========================================
+impor "modules/mod_v3_namespace" minangka math
+cek("9a. Namespace type check", jinis(math), "namespace")
+
+// ==========================================
+// 10. NAMESPACE FUNCTION ACCESS
+// ==========================================
+cek("10a. math[\"tambah\"](15, 25)", math["tambah"](15, 25), 40)
+cek("10b. math[\"kali\"](3, 9)", math["kali"](3, 9), 27)
+
+// ==========================================
+// 11. NAMESPACE VARIABLE ACCESS
+// ==========================================
+cek("11a. math[\"versi\"]", math["versi"], "3.0")
+cek("11b. math[\"kuota\"]", math["kuota"], 100)
+
+// ==========================================
+// 12. NAMESPACE STRUCT ACCESS (Direct anyar)
+// ==========================================
+gawe orangDir = anyar math["Wong"]("Direct")
+cek("12a. anyar math[\"Wong\"] direct salam()", orangDir["salam"](), "Halo Direct saka ns-001")
+gawe car = anyar math["Mobil"]("Avanza")
+cek("12b. anyar math[\"Mobil\"] direct klakson()", car["klakson"](), "Telolet Avanza")
+
+// ==========================================
+// 13. NAMESPACE FUNCTION FIRST-CLASS
+// ==========================================
+gawe fTambah = math["tambah"]
+cek("13a. Namespace function in variable", fTambah(100, 200), 300)
+cek("13b. Namespace function type", jinis(fTambah), "function")
+
+// ==========================================
+// 14. SELECTIVE FUNCTION AS HOF CALLBACK
+// ==========================================
+// ping butuh 2 argumen dadi ora diceluk nganggo terapkan
+// ping(x) butuh 2 args yen diwenehi 1 bakal error; nanging kuadrat mung 1 arg
+impor { kuadrat } saka "modules/mod_v3_namespace"
+gawe hasilKuadrat = terapkan(kuadrat, [1, 2, 3])
+cek("14. Selective kuadrat in terapkan HOF", hasilKuadrat[1], 4)
+
+// ==========================================
+// 15. NAMESPACE FUNCTION AS HOF CALLBACK
+// ==========================================
+gawe hasilNsHOF = terapkan(math["kuadrat"], [2, 3, 4])
+cek("15. math[\"kuadrat\"] in terapkan HOF", hasilNsHOF[2], 16)
+
+// ==========================================
+// 16. LEXICAL CLOSURE PRESERVATION
+// ==========================================
+impor { hitung, inc, getCounter } saka "modules/mod_v3_closure"
+gawe baseValue = 999999 // Local importer variable ora kena ngganggu module closure!
+cek("16a. hitung(10) uses module baseValue (100)", hitung(10), 110)
+inc()
+inc()
+cek("16b. inc() updates module state", getCounter(), 2)
+
+// ==========================================
+// 17. MODULE CACHE SHARING
+// ==========================================
+// Import module closure maneh kanthi alias
+impor { inc minangka incLagi, getCounter minangka getCounterLagi } saka "modules/mod_v3_closure"
+incLagi()
+cek("17. Shared module cache via alias import", getCounterLagi(), 3)
+
+// ==========================================
+// 18. MIXED EXPORTS IN SINGLE MODULE
+// ==========================================
+impor { Wong minangka ModWong, Kucing, modulePrefix } saka "modules/mod_v3_struct"
+gawe k = anyar Kucing("Pus")
+cek("18a. Kucing from mixed import", k["swara"](), "Meow Pus")
+gawe mw = anyar ModWong("Tono")
+cek("18b. ModWong from mixed import", mw["salam"](), "Wong: Tono")
+
+// ==========================================
+// 19. MUTABLE STRUCT DEFAULT ISOLATION
+// ==========================================
+gawe w1 = anyar ModWong("Person1")
+gawe w2 = anyar ModWong("Person2")
+w1["tambahHobi"]("Mancing")
+w1["tambahHobi"]("Moco")
+cek("19a. w1 hobi count", dawa(w1["getHobi"]()), 2)
+cek("19b. w2 hobi count (isolated)", dawa(w2["getHobi"]()), 0)
+
+// ==========================================
+// 20. USER RECOMMENDED: NAMESPACE REFERENCE SEMANTICS
+// ==========================================
+// gawe Wong = math["Wong"]
+gawe WongRef = math["Wong"]
+cek("20a. jinis(math[\"Wong\"]) is struct", jinis(WongRef), "struct")
+
+gawe a = anyar WongRef("A")
+gawe b = anyar WongRef("B")
+
+// a != b
+cek("20b. a != b fields independent", a["jeneng"], "A")
+cek("20c. b fields independent", b["jeneng"], "B")
+
+// mutable defaults tidak shared
+a["tambahItem"]("Buku")
+a["tambahItem"]("Pulpen")
+cek("20d. a items length == 2", dawa(a["getDaftar"]()), 2)
+cek("20e. b items length == 0 (not shared)", dawa(b["getDaftar"]()), 0)
+
+// constructor tetap menggunakan module closure
+cek("20f. a salam() has module closure", a["salam"](), "Halo A saka ns-001")
+cek("20g. b salam() has module closure", b["salam"](), "Halo B saka ns-001")
+
+// array holding namespace function
+gawe arrFn = [math["tambah"]]
+cek("20h. arr holding namespace function", arrFn[0](50, 50), 100)
+
+// ==========================================
+// 21. NAMESPACE PRIVATE ISOLATION
+// ==========================================
+cek("21a. math[\"modulId\"] (private) is null", math["modulId"], null)
+cek("21b. math[\"ora_ana\"] is null", math["ora_ana"], null)
+
+// ==========================================
+// SUMMARY
+// ==========================================
+tulis ""
+tulis "========================================="
+tulis "Module V3 Test Result: " + lulus + " PASS, " + gagal + " FAIL"
+tulis "========================================="
+
+yen gagal > 0 {
+    lempar "Ana test sing gagal ing Module V3!"
+}
+

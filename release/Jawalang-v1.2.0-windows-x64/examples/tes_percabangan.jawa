@@ -1,0 +1,42 @@
+// Tes operator == dan !=
+gawe angka = 100
+
+yen angka == 100 {
+    tulis "Bener! Angka padha karo 100"
+} liyane {
+    tulis "Salah!"
+}
+
+yen angka != 50 {
+    tulis "Bener! Angka ora padha karo 50"
+}
+
+// Tes tanda kurung pada kondisi yen ( ... )
+yen (angka > 50) {
+    tulis "Angka luwih gedhe tinimbang 50"
+}
+
+// Tes liyane yen (else if)
+gawe biji = 85
+
+yen biji >= 90 {
+    tulis "Biji A"
+} liyane yen biji >= 80 {
+    tulis "Biji B"
+} liyane {
+    tulis "Biji C"
+}
+
+// Tes re-assignment variabel
+gawe skor = 10
+tulis "Skor awal:"
+tulis skor
+skor = skor + 5
+tulis "Skor anyar:"
+tulis skor
+
+// Tes boolean bener lan salah
+gawe aktif = bener
+yen aktif {
+    tulis "Status aktif: Bener!"
+}

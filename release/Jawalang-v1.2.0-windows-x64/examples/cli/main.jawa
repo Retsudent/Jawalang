@@ -1,0 +1,8 @@
+// Main entry point testing relative module import via CLI
+impor "./helper.jawa" minangka helper
+
+gawe pesen = helper.sapa("Panganggo")
+tulis pesen
+
+gawe asil = helper.petung(6, 7)
+tulis "Asil: " + asil

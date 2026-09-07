@@ -1,0 +1,8 @@
+// internal_helper.jawa
+guna rahasiaTambah(a, b) {
+    bali a + b
+}
+
+ekspor guna publikTambah(a, b) {
+    bali rahasiaTambah(a, b) + 100
+}

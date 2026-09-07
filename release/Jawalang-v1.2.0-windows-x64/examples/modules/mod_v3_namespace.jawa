@@ -1,0 +1,50 @@
+﻿// mod_v3_namespace.jawa
+// Module fixture for namespace bracket access and reference semantics
+
+gawe modulId = "ns-001"
+
+ekspor gawe versi = "3.0"
+ekspor gawe kuota = 100
+
+ekspor guna tambah(a, b) {
+    bali a + b
+}
+
+ekspor guna kali(a, b) {
+    bali a * b
+}
+
+ekspor guna kuadrat(x) {
+    bali x * x
+}
+
+ekspor bentuk Wong {
+    gawe jeneng = ""
+    gawe daftar = []
+
+    guna wiwiti(n) {
+        iki["jeneng"] = n
+    }
+
+    guna salam() {
+        bali "Halo " + iki["jeneng"] + " saka " + modulId
+    }
+
+    guna tambahItem(item) {
+        nambah(iki["daftar"], item)
+    }
+
+    guna getDaftar() {
+        bali iki["daftar"]
+    }
+}
+
+ekspor bentuk Mobil {
+    gawe merk = ""
+    guna wiwiti(m) {
+        iki["merk"] = m
+    }
+    guna klakson() {
+        bali "Telolet " + iki["merk"]
+    }
+}

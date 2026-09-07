@@ -10,7 +10,9 @@ function record(name, pass, detail) {
     results.push({ name, pass, detail });
 }
 
-const TARBALL_PATH = path.join(PROJECT_ROOT, 'jawalang-1.1.0.tgz');
+const pkgInfo = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package.json'), 'utf8'));
+const CURRENT_VERSION = pkgInfo.version;
+const TARBALL_PATH = path.join(PROJECT_ROOT, `jawalang-${CURRENT_VERSION}.tgz`);
 const TEMP_DIR = path.join(os.tmpdir(), `Jawalang NPM Test Space ${Date.now()}`);
 
 try {
@@ -18,7 +20,7 @@ try {
     try {
         const pkg = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package.json'), 'utf8'));
         const ok = pkg.name === 'jawalang' &&
-                   pkg.version === '1.1.0' &&
+                   pkg.version === CURRENT_VERSION &&
                    pkg.main === 'index.js' &&
                    pkg.engines && pkg.engines.node &&
                    pkg.repository && pkg.repository.url;
@@ -126,7 +128,7 @@ try {
     // 7. npx jawa
     try {
         const out = execSync('npx jawa --version', { cwd: TEMP_DIR, encoding: 'utf8' }).trim();
-        if (out.includes('Jawalang v1.1.0')) {
+        if (out.includes(`Jawalang v${CURRENT_VERSION}`)) {
             record('npx jawa', true);
         } else {
             record('npx jawa', false, `Unexpected output: ${out}`);
@@ -138,7 +140,7 @@ try {
     // 8. npx jawalang
     try {
         const out = execSync('npx jawalang --version', { cwd: TEMP_DIR, encoding: 'utf8' }).trim();
-        if (out.includes('Jawalang v1.1.0')) {
+        if (out.includes(`Jawalang v${CURRENT_VERSION}`)) {
             record('npx jawalang', true);
         } else {
             record('npx jawalang', false, `Unexpected output: ${out}`);
@@ -158,7 +160,7 @@ try {
     // 10. jawa command
     try {
         const out = execSync('jawa --version', { cwd: TEMP_DIR, encoding: 'utf8' }).trim();
-        if (out.includes('Jawalang v1.1.0')) {
+        if (out.includes(`Jawalang v${CURRENT_VERSION}`)) {
             record('jawa command', true);
         } else {
             record('jawa command', false, `Unexpected output: ${out}`);
@@ -170,7 +172,7 @@ try {
     // 11. jawalang command
     try {
         const out = execSync('jawalang --version', { cwd: TEMP_DIR, encoding: 'utf8' }).trim();
-        if (out.includes('Jawalang v1.1.0')) {
+        if (out.includes(`Jawalang v${CURRENT_VERSION}`)) {
             record('jawalang command', true);
         } else {
             record('jawalang command', false, `Unexpected output: ${out}`);
@@ -182,11 +184,11 @@ try {
     // 12. Program execution
     try {
         const helloFile = path.join(TEMP_DIR, 'hello.jawa');
-        fs.writeFileSync(helloFile, 'tulis "Sugeng Rawuh V1.1.0"\n', 'utf8');
+        fs.writeFileSync(helloFile, `tulis "Sugeng Rawuh V${CURRENT_VERSION}"\n`, 'utf8');
         const outJawa = execSync(`jawa "${helloFile}"`, { cwd: TEMP_DIR, encoding: 'utf8' }).trim();
         const outJawalang = execSync(`jawalang "${helloFile}"`, { cwd: TEMP_DIR, encoding: 'utf8' }).trim();
 
-        if (outJawa === 'Sugeng Rawuh V1.1.0' && outJawalang === 'Sugeng Rawuh V1.1.0') {
+        if (outJawa === `Sugeng Rawuh V${CURRENT_VERSION}` && outJawalang === `Sugeng Rawuh V${CURRENT_VERSION}`) {
             record('Program execution', true);
         } else {
             record('Program execution', false, `Output mismatch: "${outJawa}" vs "${outJawalang}"`);
@@ -260,7 +262,7 @@ try {
 }
 
 // Print exact required validation block
-console.log('=== Jawalang V1.1.0 NPM Package Validation ===\n');
+console.log(`=== Jawalang V${CURRENT_VERSION} NPM Package Validation ===\n`);
 let allPass = true;
 for (const r of results) {
     const status = r.pass ? 'PASS' : 'FAIL';

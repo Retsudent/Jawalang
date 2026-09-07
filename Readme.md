@@ -223,7 +223,7 @@ Jawalang nyedhiyakake fungsi manipulasi teks (String Utility Engine V1) resmi ma
 | Fungsi | Parameter & Validasi | Katrangan | Return Value | Tuladha (Contoh) |
 | :--- | :--- | :--- | :--- | :--- |
 | `dawa(teks)` | 1 argument (string) | Ngetung dawa karakter string | `number` | `dawa("Jawa")` $\to$ `4` |
-| `motong(teks, mulai, akhir)` | 3 argument (string, integer $\ge 0$, integer $\ge 0$) | Njupuk bagean string saka indeks `mulai` nganti sadurunge `akhir` | `string` anyar | `motong("Jawascript", 0, 4)` $\to$ `"Jawa"` |
+| `motong(teks, mulai, akhir)` | 3 argument (string, integer $\ge 0$, integer $\ge 0$) | Njupuk bagean string saka indeks `mulai` nganti sadurunge `akhir` | `string` anyar | `motong("Jawalang", 0, 4)` $\to$ `"Jawa"` |
 | `ngganti(teks, lama, anyar)` | 3 argument (kabeh kudu string) | Ngganti bagean string `lama` dadi `anyar` | `string` anyar | `ngganti("Halo Jawa", "Jawa", "Dunia")` $\to$ `"Halo Dunia"` |
 | `gedhe(teks)` | 1 argument (string) | Ngowahi kabeh aksara dadi huruf gedhe (kapital) | `string` anyar | `gedhe("jawa")` $\to$ `"JAWA"` |
 | `cilik(teks)` | 1 argument (string) | Ngowahi kabeh aksara dadi huruf cilik | `string` anyar | `cilik("JAWA")` $\to$ `"jawa"` |
@@ -232,11 +232,11 @@ Jawalang nyedhiyakake fungsi manipulasi teks (String Utility Engine V1) resmi ma
 ```jawa
 gawe teks = "Aku seneng Jawa"
 
-tulis dawa(teks)                          // 15
-tulis motong(teks, 0, 3)                  // "Aku"
-tulis ngganti(teks, "Jawa", "Jawascript") // "Aku seneng Jawascript"
-tulis gedhe(teks)                         // "AKU SENENG JAWA"
-tulis cilik(teks)                         // "aku seneng jawa"
+tulis dawa(teks)                        // 15
+tulis motong(teks, 0, 3)                // "Aku"
+tulis ngganti(teks, "Jawa", "Jawalang") // "Aku seneng Jawalang"
+tulis gedhe(teks)                       // "AKU SENENG JAWA"
+tulis cilik(teks)                       // "aku seneng jawa"
 
 // String tetep ora owah (immutable):
 tulis teks // "Aku seneng Jawa"
@@ -356,7 +356,7 @@ tulis jinis([1, 2, 3])  // "array"
 
 ## 🗂️ Object / Dictionary
 
-Jawascript ndhukung struktur data **object** sing nyimpen pasangan **key → value**.
+Jawalang ndhukung struktur data **object** sing nyimpen pasangan **key → value**.
 
 ### Literal Object
 
@@ -432,9 +432,9 @@ tulis jinis(wong)      // object
 tulis jinis({})        // object
 ```
 
-### Catatan V1
+### Catatan Sintaks
 
-- Mung sintaks `obj["key"]` sing diijinake. Dot-notation (`obj.key`) **durung dhewe**.
+- Sintaks `obj["key"]` lan dot-notation `obj.key` kalorone didhukung kanggo ngakses lan ngowahi properti.
 - Key kudu bertipe string; index integer **ora kanggo** object.
 - Object **ora** bisa diindeks karo number (error runtime).
 
@@ -442,7 +442,7 @@ tulis jinis({})        // object
 
 ## 🧰 Object Standard Library
 
-Jawascript nyedhiyakake fungsi bawaan (*built-in*) resmi kanggo ngolah struktur data object:
+Jawalang nyedhiyakake fungsi bawaan (*built-in*) resmi kanggo ngolah struktur data object:
 
 | Built-in | Parameter | Return Type | Katrangan |
 | :--- | :--- | :--- | :--- |
@@ -494,7 +494,7 @@ tulis duwe(user, "alamat")  // salah
 
 ## 📦 Array + Object Integration
 
-Jawascript nyengkuyung integrasi jero antarane struktur data **Array** lan **Object**.
+Jawalang nyengkuyung integrasi jero antarane struktur data **Array** lan **Object**.
 
 ### Struktur Bersarang (Nested)
 
@@ -510,7 +510,7 @@ Jawascript nyengkuyung integrasi jero antarane struktur data **Array** lan **Obj
 - **Object ngemot Array**:
   ```jawa
   gawe sekolah = {
-      "nama": "SMK Jawascript",
+      "nama": "SMK Jawalang",
       "siswa": ["Budi", "Siti", "Joko"]
   }
   tulis sekolah["siswa"][0]  // Budi
@@ -562,7 +562,7 @@ Kabeh struktur array lan object nggunakake **reference semantics**:
 
 ## 🔁 Foreach / Iteration
 
-Jawascript nyedhiyakake sintaks **foreach** kanggo ngiterasi elemen array kanthi gampang:
+Jawalang nyedhiyakake sintaks **foreach** kanggo ngiterasi elemen array kanthi gampang:
 
 ```jawa
 kanggo saben <variable> ing <array> {
@@ -613,13 +613,13 @@ kanggo saben val ing nilai(user) {
 - **Empty Array**: Array kosong `[]` bakal langsung nglewati blok loop tanpa error.
 - **Reference Semantics**: Elemen array sing awujud object utawa array njaga referensi asline, mula mutasi marang iterator langsung ngowahi data sumbere.
 - **Loop Control**: `mandheg` (*break*) lan `lanjut` (*continue*) lumaku kanthi bener lan mung mengaruhi loop paling cedhak.
-- **Scope Behavior**: Selaras karo aturan loop Jawascript, perulangan ora nggawe scope anyar. Variabel iterator dianyari ing scope lingkungan loop kasebut.
+- **Scope Behavior**: Selaras karo aturan loop Jawalang, perulangan ora nggawe scope anyar. Variabel iterator dianyari ing scope lingkungan loop kasebut.
 
 ---
 
 ## ⚠️ Pananganan Kasalahan (Error Handling / Exception System)
 
-Jawascript ndhukung sistem penanganan kesalahan (*exception handling*) lengkap mawa tembung kunci basa Jawa: `coba`, `tangkep`, lan `lempar`:
+Jawalang ndhukung sistem penanganan kesalahan (*exception handling*) lengkap mawa tembung kunci basa Jawa: `coba`, `tangkep`, lan `lempar`:
 
 ```jawa
 coba {
@@ -638,7 +638,7 @@ coba {
 2. **`tangkep <identifier> { ... }`**:
    Blok penangkep sing langsung nyambung sawise `coba { ... }`. Parameter `<identifier>` bakal nampa nilai eksepsi sing dilempar.
 3. **`lempar <ekspresi>`**:
-   Mbuwang eksepsi kanthi nilai sembarang tipe data Jawascript (`string`, `number`, `boolean`, `null`, `array`, `object`).
+   Mbuwang eksepsi kanthi nilai sembarang tipe data Jawalang (`string`, `number`, `boolean`, `null`, `array`, `object`).
 
 ### Fitur Utama
 
@@ -651,7 +651,7 @@ coba {
   lempar [1, 2, 3]
   lempar {"pesan": "Server error", "kode": 500}
   ```
-- **Nangkep Error Runtime Bawaan**: `coba ... tangkep` bisa nangkep kesalahan eksekusi runtime internal Jawascript (kayata pembagian nol, indeks array out-of-bounds, operasi tipe null, lsp).
+- **Nangkep Error Runtime Bawaan**: `coba ... tangkep` bisa nangkep kesalahan eksekusi runtime internal Jawalang (kayata pembagian nol, indeks array out-of-bounds, operasi tipe null, lsp).
 - **Rethrow**: Eksepsi bisa dilempar maneh saka njero blok `tangkep` nggunakake `lempar`:
   ```jawa
   coba {
@@ -669,13 +669,13 @@ coba {
 - **Isolasi Control Flow**:
   - `bali` ing njero `coba` tetep mbalekake nilai fungsi kanthi bener tanpa kleru ditangkep dening `tangkep`.
   - `mandheg` (*break*) lan `lanjut` (*continue*) ing njero `coba` tetep ngontrol loop tanpa dicegat dening `tangkep`.
-- **Scope**: Selaras karo aturan Jawascript, blok `coba` lan `tangkep` ora nggawe scope anyar. Variabel sing diowahi ing njero blok bakal tetep owah ing scope aktif. Parameter error mung kasedhiya sajrone eksekusi blok `tangkep`.
+- **Scope**: Selaras karo aturan Jawalang, blok `coba` lan `tangkep` ora nggawe scope anyar. Variabel sing diowahi ing njero blok bakal tetep owah ing scope aktif. Parameter error mung kasedhiya sajrone eksekusi blok `tangkep`.
 
 ---
 
 ## 📦 Sistem Modul (Module / Import System V1)
 
-Jawascript nyedhiyakake sistem pemisahan kode dadi pirang-pirang berkas modul mawa tembung kunci `impor` lan `ekspor`:
+Jawalang nyedhiyakake sistem pemisahan kode dadi pirang-pirang berkas modul mawa tembung kunci `impor` lan `ekspor`:
 
 ### 1. Ngekspor Simbol saka Modul (`ekspor`)
 
@@ -779,7 +779,7 @@ Iki menehi *stack trace* rantai modul sing cetha kanggo debugging.
 
 ### Kasedhiyan Built-in ing Modul
 
-Kabeh built-in Jawascript tansah kasedhiya ing jero modul tanpa konfigurasi tambahan:
+Kabeh built-in Jawalang tansah kasedhiya ing jero modul tanpa konfigurasi tambahan:
 
 ```text
 tulis   dawa    jupuk   nambah  busak   motong
@@ -793,7 +793,7 @@ Built-in iki ora disimpen ing `Environment` chain — diproses langsung ing inte
 
 ## 🧩 Higher-Order Function & Functional Collection V1
 
-Jawascript ndhukung fungsi minangka **first-class runtime value** sarta nyedhiyakake fungsi functional dhasar kanggo Array.
+Jawalang ndhukung fungsi minangka **first-class runtime value** sarta nyedhiyakake fungsi functional dhasar kanggo Array.
 
 ### 1. Fungsi minangka First-Class Value & Referensi
 
@@ -861,13 +861,13 @@ tulis wadah["itung"](7) // 49
 - **Empty Array**: Array kosong `[]` langsung ngasilake `[]` (utawa `0` kanggo `itung()`) tanpa ngundang callback.
 - **Reference Semantics**: Mutasi object utawa array ing jero callback tetep njaga referensi data asline tanpa deep clone.
 - **Error Propagation**: Yen callback ngalami runtime error utawa mbuwang eksepsi nganggo `lempar`, kesalahan kasebut bakal dipropagasikake langsung menyang penangan eksepsi (`coba ... tangkep`).
-- **Module Compatibility**: Fungsi sing diekspor saka modul tetep njaga lexical closure (`fn.env`, `fn.functions`, `fn.filePath`) nalika diceluk liwat referensi utawa callback.
+- **Module Compatibility**: Fungsi sing diekspor dari modul tetep njaga lexical closure (`fn.env`, `fn.functions`, `fn.filePath`) nalika diceluk liwat referensi utawa callback.
 
 ---
 
 ## 🧺 Collection & Functional Standard Library V2
 
-Jawascript nyedhiyakake fungsi bawaan (*built-in*) tambahan kanggo manipulasi lan analisis Array kanthi pendekatan functional lan non-mutating:
+Jawalang nyedhiyakake fungsi bawaan (*built-in*) tambahan kanggo manipulasi lan analisis Array kanthi pendekatan functional lan non-mutating:
 
 | Fungsi | Parameter & Validasi | Katrangan | Return Value | Tuladha (Contoh) |
 | :--- | :--- | :--- | :--- | :--- |
@@ -901,7 +901,7 @@ Jawascript nyedhiyakake fungsi bawaan (*built-in*) tambahan kanggo manipulasi la
 
 ## 🧱 Struct & Method System V1
 
-Jawascript saiki ndhukung pamrograman adhedhasar struktur data lan method (*Struct & Method System*) kanthi nggunakake tembung kunci `bentuk`, `anyar`, `iki`, lan `wiwiti`. Fitur iki dibangun ing ndhuwur dhasar Object lan First-Class Function kang wis ana.
+Jawalang saiki ndhukung pamrograman adhedhasar struktur data lan method (*Struct & Method System*) kanthi nggunakake tembung kunci `bentuk`, `anyar`, `iki`, lan `wiwiti`. Fitur iki dibangun ing ndhuwur dhasar Object lan First-Class Function kang wis ana.
 
 ### Sintaksis Dhasar
 
@@ -1453,21 +1453,43 @@ Jawalang mbutuhake **Node.js (v14+)** kanggo nglakokake runtime JavaScript ing m
 
 ### 2. Installation (Instalasi)
 
-Jawalang nyedhiyakake instalasi per-user ing Windows (`HKCU`) tanpa mbutuhake hak Administrator:
+#### A. Instalasi liwat NPM (Disaranake / Multiplatform)
 
-#### A. Standard Distribution Mode (Disaranake kanggo Pangguna Umum)
+Jawalang kasedhiya sacara resmi ing NPM Registry minangka paket global utawa dependensi proyek:
+
+```bash
+# Instal sacara global
+npm install -g jawalang
+
+# Priksa instalasi
+jawa --version
+jawalang --version
+```
+
+Utawa nggunakake `npx` langsung tanpa kudu nginstal sacara permanen:
+
+```bash
+# Nglakokake berkas program
+npx jawalang program.jawa
+npx jawa program.jawa
+
+# Miwiti REPL interaktif
+npx jawalang repl
+```
+
+#### B. Standard Windows Distribution Mode
 Nginstal Jawalang kanthi mandiri menyang `%LOCALAPPDATA%\Jawalang`:
 ```powershell
 .\scripts\install.ps1
 ```
 
-#### B. Portable / In-Place Mode (Kanggo Pangembang / Git Clone)
+#### C. Portable / In-Place Mode (Kanggo Pangembang / Git Clone)
 Nginstal langsung ing folder papan Jawalang saiki tanpa nyalin berkas:
 ```powershell
 .\scripts\install.ps1 -Portable
 ```
 
-#### C. Custom Installation Directory
+#### D. Custom Installation Directory
 ```powershell
 .\scripts\install.ps1 -TargetDir "C:\Tools\Jawalang"
 ```
@@ -1486,10 +1508,12 @@ Script iki kanthi otomatis:
 
 ### 3. Usage (Panggunaan)
 
-Jalukna program Jawalang liwat terminal (CMD utawa PowerShell):
+Jalukna program Jawalang liwat terminal (CMD, PowerShell, Bash, utawa Zsh):
 
 ```bash
 jawa program.jawa
+# utawa nggunakake alias jawalang:
+jawalang program.jawa
 ```
 
 Utawa nggunakake sub-command `run`:
@@ -1502,6 +1526,13 @@ Kekaron printah kasebut ngasilake tumindak sing padha persis. Jawalang nampa:
 - Path relatif: `jawa ./program.jawa`
 - Path absolut: `jawa C:\Proyek\program.jawa`
 - Path mawa spasi: `jawa "C:\Proyek Kula\tes program.jawa"`
+
+Kanggo miwiti shell interaktif:
+```bash
+jawa repl
+# utawa ing interactive TTY cukup:
+jawa
+```
 
 ---
 
@@ -1516,7 +1547,7 @@ jawa -v
 ```
 Output:
 ```text
-Jawalang v1.0.0
+Jawalang v1.2.0
 ```
 
 #### Pandhuan (Help)
@@ -1530,12 +1561,15 @@ Output:
 Jawalang
 
 Usage:
+  jawa
+  jawa repl
   jawa <file.jawa>
   jawa run <file.jawa>
   jawa --version
   jawa --help
 
 Commands:
+  repl      Start interactive REPL
   run       Run a Jawalang program
   --version Show Jawalang version
   --help    Show this help message
@@ -1708,10 +1742,11 @@ Language Server Protocol kasedhiya ing direktori `language-server/` mawa binary 
 
 ## 🏗️ Struktur Proyèk
 
-- `package.json` — Metadata proyek, konfigurasi `"bin": { "jawa": "./bin/jawa.js" }`, lan scripts build/package.
+- `package.json` — Metadata proyek, konfigurasi `"bin": { "jawa": "bin/jawa.js", "jawalang": "bin/jawa.js" }`, lan scripts build/package.
 - `src/cli.js` — **Core CLI Engine**: Logika verifikasi argumen, format kesalahan, penanganan flag, lan pemanggilan interpreter.
 - `src/launcher/jawa.cs` — Kode sumber C# kanggo executable native Windows `jawa.exe`.
 - `bin/jawa.js` — Entry point executable Node.js mawa shebang standard.
+- `bin/jawalang.js` — Alias entry point executable Node.js.
 - `bin/cli.js` — Forwarder kompatibilitas lawas menyang `src/cli.js`.
 - `bin/jawa.cmd` — Wrapper batch file kanggo lingkungan CMD / PowerShell.
 - `bin/jawa.exe` — Executable binary native Windows launcher (~21 KB).

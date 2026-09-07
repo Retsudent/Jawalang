@@ -1,0 +1,19 @@
+// lexical_deep.jawa
+gawe varA = 10
+gawe varB = 20
+
+guna innerPrivate() {
+    bali varA + varB
+}
+
+ekspor guna hitungTotal() {
+    bali innerPrivate() * 2
+}
+
+ekspor guna setA(anyar) {
+    varA = anyar
+}
+
+ekspor guna getA() {
+    bali varA
+}

@@ -1,0 +1,37 @@
+// Iki conto program Jawalang nganggo fitur anyar
+
+// 1. Tulis string langsung
+tulis "Sugeng rawuh ing Jawalang!"
+
+// 2. Deklarasi variabel string lan angka
+gawe jeneng = "Budi"
+gawe umur = 25
+gawe dhuwur = 175.5
+
+tulis "Jeneng:"
+tulis jeneng
+tulis "Umur:"
+tulis umur
+tulis "Dhuwur badan (cm):"
+tulis dhuwur
+
+// 3. Operasi aritmatika
+gawe x = 50
+gawe y = 15
+
+// Nyimpen asil petungan menyang variabel anyar
+gawe asil_tambah = x + y
+tulis "Asil 50 + 15:"
+tulis asil_tambah
+
+gawe asil_kurang = x - y
+tulis "Asil 50 - 15:"
+tulis asil_kurang
+
+gawe asil_ping = x * y
+tulis "Asil 50 * 15:"
+tulis asil_ping
+
+gawe asil_bagi = x / y
+tulis "Asil 50 / 15:"
+tulis asil_bagi
