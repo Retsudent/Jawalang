@@ -2,11 +2,11 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const PROJECT = 'D:\\Jawascript';
-const SCRATCH = 'C:\\Users\\MyBook SAGA 10\\.gemini\\antigravity\\brain\\23381803-7abc-4d56-ad4a-cf001032c017\\scratch';
+const PROJECT = path.resolve(__dirname, '..');
+const SCRATCH = __dirname;
 
 console.log('====================================================');
-console.log('          JAWASCRIPT FULL REGRESSION SUITE          ');
+console.log('           JAWALANG FULL REGRESSION SUITE           ');
 console.log('====================================================\n');
 
 // 1. POSITIVE TESTS
@@ -43,8 +43,9 @@ const positiveFiles = [
 let posPassed = 0;
 console.log('--- 1. Positive Tests ---');
 for (const file of positiveFiles) {
+    const fullFilePath = path.join(PROJECT, file);
     try {
-        execSync(`node index.js ${file}`, {
+        execSync(`"${process.execPath}" "${path.join(PROJECT, 'index.js')}" "${fullFilePath}"`, {
             cwd: PROJECT,
             stdio: ['pipe', 'pipe', 'pipe'],
             input: 'Budi\n' // In case test_type or test_input asks for input
@@ -84,8 +85,9 @@ const negativeFiles = [
 let negPassed = 0;
 console.log('--- 2. Negative Tests (Must exit 1) ---');
 for (const file of negativeFiles) {
+    const fullFilePath = path.join(PROJECT, file);
     try {
-        execSync(`node index.js ${file}`, {
+        execSync(`"${process.execPath}" "${path.join(PROJECT, 'index.js')}" "${fullFilePath}"`, {
             cwd: PROJECT,
             stdio: ['pipe', 'pipe', 'pipe']
         });
@@ -118,7 +120,8 @@ const scratchRunners = [
     'test_dot_notation_v4_negative.js',
     'test_cli_positive.js',
     'test_cli_negative.js',
-    'test_inheritance_v5_negative.js'
+    'test_inheritance_v5_negative.js',
+    'test_repl.js'
 ];
 
 let runnerPassed = 0;
@@ -130,7 +133,7 @@ for (const runner of scratchRunners) {
         continue;
     }
     try {
-        execSync(`node "${fullPath}"`, {
+        execSync(`"${process.execPath}" "${fullPath}"`, {
             cwd: PROJECT,
             stdio: ['pipe', 'pipe', 'pipe']
         });

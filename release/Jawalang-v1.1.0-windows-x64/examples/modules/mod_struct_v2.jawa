@@ -1,0 +1,72 @@
+﻿// examples/modules/mod_struct_v2.jawa
+// Module fixture untuk Module System V2 test
+
+gawe prefix = "Halo"
+gawe defaultNama = "Module"
+
+// Private struct - tidak diekspor
+bentuk SecretConfig {
+    gawe kunci = "rahasia"
+}
+
+ekspor gawe versi = 2
+
+ekspor guna buatNama(nama) {
+    bali nama + " (dari modul)"
+}
+
+ekspor bentuk Greeter {
+    gawe nama = "Anonim"
+
+    guna wiwiti(n) {
+        iki["nama"] = n
+    }
+
+    guna salam() {
+        bali prefix + ", " + iki["nama"]
+    }
+
+    guna getNama() {
+        bali iki["nama"]
+    }
+}
+
+ekspor bentuk Counter {
+    gawe nilai = 0
+
+    guna tambah() {
+        iki["nilai"] = iki["nilai"] + 1
+        bali iki["nilai"]
+    }
+
+    guna reset() {
+        iki["nilai"] = 0
+    }
+
+    guna getNilai() {
+        bali iki["nilai"]
+    }
+}
+
+ekspor bentuk DataHolder {
+    gawe items = []
+    gawe nama = ""
+
+    guna wiwiti(n) {
+        iki["nama"] = n
+    }
+
+    guna tambahItem(item) {
+        nambah(iki["items"], item)
+    }
+
+    guna getItems() {
+        bali iki["items"]
+    }
+}
+
+ekspor bentuk LexicalTest {
+    guna getDef() {
+        bali defaultNama
+    }
+}

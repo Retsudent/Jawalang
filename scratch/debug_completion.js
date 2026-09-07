@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const analyzer = require('D:/Jawascript/language-server/src/analyzer');
-const { pathToUri } = require('D:/Jawascript/language-server/src/utils');
+const analyzer = require('../src/analyzer');
+const { pathToUri } = require('../src/utils');
 
-const filePath = path.resolve('D:/Jawascript/language-server/test/fixtures/completion.jawa');
+const filePath = path.resolve(__dirname, '../language-server/test/fixtures/completion.jawa');
 const code = fs.readFileSync(filePath, 'utf8');
 const testCode = code + '\nm.';
 const uri = pathToUri(filePath);

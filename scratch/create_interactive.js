@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = 'D:\\Jawascript';
+const ROOT = path.resolve(__dirname, '..');
 const interactiveContent = `// Interactive CLI fixture using takon()
 gawe jeneng = takon("Jeneng: ")
 tulis "Halo " + jeneng + ", sugeng rawuh ing Jawalang!"

@@ -5,6 +5,7 @@ const path = require("path");
 const lexer = require("./lexer");
 const parser = require("./parser");
 const interpreter = require("./interpreter");
+const { startRepl } = require("./repl");
 
 const pkg = require("../package.json");
 const VERSION = `Jawalang v${pkg.version}`;
@@ -12,18 +13,23 @@ const VERSION = `Jawalang v${pkg.version}`;
 const HELP_TEXT = `Jawalang
 
 Usage:
+  jawa
+  jawa repl
   jawa <file.jawa>
   jawa run <file.jawa>
   jawa --version
   jawa --help
 
 Commands:
+  repl      Start interactive REPL
   run       Run a Jawalang program
   --version Show Jawalang version
   --help    Show this help message
   --debug   Run with full error stack trace`;
 
 const USAGE_TEXT = `Usage:
+  jawa
+  jawa repl
   jawa <file.jawa>
   jawa run <file.jawa>
   jawa --version
@@ -70,14 +76,6 @@ function runFile(filePath, isDebug) {
 function main() {
     const rawArgs = process.argv.slice(2);
 
-    if (rawArgs.length === 0) {
-        console.error("Error: No input file specified.");
-        console.error('Use "jawa --help" for usage.');
-        console.error("");
-        console.error(USAGE_TEXT);
-        process.exit(1);
-    }
-
     let isDebug = false;
     const args = [];
     for (const arg of rawArgs) {
@@ -89,12 +87,23 @@ function main() {
     }
 
     if (args.length === 0) {
+        if (process.stdin.isTTY) {
+            startRepl({ isDebug });
+            return;
+        }
         console.error("Error: No input file specified.");
         console.error('Use "jawa --help" for usage.');
+        console.error("");
+        console.error(USAGE_TEXT);
         process.exit(1);
     }
 
     const first = args[0];
+
+    if (first === "repl") {
+        startRepl({ isDebug });
+        return;
+    }
 
     if (first === "--version" || first === "-v") {
         console.log(VERSION);
@@ -148,4 +157,4 @@ if (require.main === module) {
     main();
 }
 
-module.exports = { main, runFile, VERSION, HELP_TEXT };
+module.exports = { main, runFile, startRepl, VERSION, HELP_TEXT, USAGE_TEXT };

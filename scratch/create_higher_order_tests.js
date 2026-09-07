@@ -1,3 +1,4 @@
+const path = require('path');
 const fs = require("fs");
 
 const testHigherOrderContent = `// test_higher_order.jawa — Comprehensive Higher-Order Function & Functional Collection V1 Test
@@ -185,5 +186,5 @@ tulis (kuadrat)(9)
 tulis "=== SELESAI TEST HIGHER-ORDER FUNCTION ==="
 `;
 
-fs.writeFileSync("D:\\Jawascript\\examples\\test_higher_order.jawa", testHigherOrderContent, "utf8");
-console.log("Updated D:\\Jawascript\\examples\\test_higher_order.jawa");
+fs.writeFileSync(path.join(__dirname, '../examples', 'test_higher_order.jawa'), testHigherOrderContent, "utf8");
+console.log("Updated examples/test_higher_order.jawa");

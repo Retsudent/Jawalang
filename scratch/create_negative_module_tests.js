@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const PROJECT = 'D:\\Jawascript';
+const PROJECT = path.resolve(__dirname, '..');
 
 // examples/test_module_error.jawa
 fs.writeFileSync(path.join(PROJECT, 'examples', 'test_module_error.jawa'), `// test_module_error.jawa
@@ -14,7 +14,7 @@ const testNegativeRunnerContent = `const { execSync } = require('child_process')
 const path = require('path');
 const fs = require('fs');
 
-const PROJECT = 'D:\\\\Jawascript';
+const PROJECT = path.resolve(__dirname, '..');
 
 function runCode(code) {
     const tmpFile = path.join(PROJECT, 'examples', '__neg_module_tmp__.jawa');

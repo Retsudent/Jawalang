@@ -56,10 +56,55 @@ class Environment {
     }
 }
 
+// Helper format nilai kanggo cithak (PrintStatement, arrayToString, lan error)
+function formatValue(val, isTopLevel = false, _seen = null) {
+    if (val === null) return "null";
+    if (val === true) return "bener";
+    if (val === false) return "salah";
+    if (typeof val === "string") {
+        return isTopLevel ? val : `"${val}"`;
+    }
+    if (typeof val === "number") return String(val);
+    if (Array.isArray(val)) {
+        return "[" + val.map(el => formatValue(el, false, _seen)).join(", ") + "]";
+    }
+    if (val && typeof val === "object" && val._isNamespace) {
+        return `<namespace ${val.name}>`;
+    }
+    if (val && typeof val === "object" && val._isBoundMethod) {
+        return `<method ${val.name || ""}>`.trim();
+    }
+    if (val && typeof val === "object" && val._isFunction) {
+        return `<fungsi ${val.name || ""}>`.trim();
+    }
+    if (val && typeof val === "object" && val._isStruct) {
+        return `<struct ${val.name}>`;
+    }
+    if (val && typeof val === "object" && val._isInstance) {
+        // Cycle guard
+        if (_seen === null) _seen = new Set();
+        if (_seen.has(val)) return `${val._structName}{...}`;
+        _seen.add(val);
+        const pairs = Object.keys(val._fields).map(k =>
+            `"${k}": ${formatValue(val._fields[k], false, _seen)}`
+        );
+        _seen.delete(val);
+        return `${val._structName}{${pairs.join(", ")}}`;
+    }
+    if (val && typeof val === "object") {
+        const keys = Object.keys(val);
+        if (keys.length === 0) return "{}";
+        const pairs = keys.map(k => `"${k}": ${formatValue(val[k], false, _seen)}`);
+        return "{" + pairs.join(", ") + "}";
+    }
+    return String(val);
+}
+
 function interpreter(ast, filePathOrOptions) {
+    const isOptions = typeof filePathOrOptions === "object" && filePathOrOptions !== null;
     let entryFilePath = typeof filePathOrOptions === "string"
         ? path.resolve(filePathOrOptions)
-        : (filePathOrOptions && filePathOrOptions.filePath
+        : (isOptions && filePathOrOptions.filePath
             ? path.resolve(filePathOrOptions.filePath)
             : path.resolve(process.cwd(), "main.jawa"));
 
@@ -69,11 +114,11 @@ function interpreter(ast, filePathOrOptions) {
         }
     } catch (_) {}
 
-    const loader = new ModuleLoader();
-    const globalEnv = new Environment();
-    const globalFunctions = {};
-    const globalStructs = {};
-    const rootExports = { variables: {}, functions: {}, structs: {} };
+    const loader = (isOptions && filePathOrOptions.loader) || new ModuleLoader();
+    const globalEnv = (isOptions && filePathOrOptions.globalEnv) || new Environment();
+    const globalFunctions = (isOptions && filePathOrOptions.globalFunctions) || {};
+    const globalStructs = (isOptions && filePathOrOptions.globalStructs) || {};
+    const rootExports = (isOptions && filePathOrOptions.rootExports) || { variables: {}, functions: {}, structs: {} };
 
     let activeFunctions = globalFunctions;
     let activeStructs = globalStructs;
@@ -110,15 +155,17 @@ function interpreter(ast, filePathOrOptions) {
         return cloned;
     }
 
-    // Register root entry module in loader cache
-    loader.cache.set(entryFilePath, {
-        status: "LOADING",
-        canonicalPath: entryFilePath,
-        env: globalEnv,
-        functions: globalFunctions,
-        structs: globalStructs,
-        exports: rootExports
-    });
+    // Register root entry module in loader cache if not already present
+    if (!loader.cache.has(entryFilePath)) {
+        loader.cache.set(entryFilePath, {
+            status: "LOADING",
+            canonicalPath: entryFilePath,
+            env: globalEnv,
+            functions: globalFunctions,
+            structs: globalStructs,
+            exports: rootExports
+        });
+    }
 
     const MAX_LOOP_ITERATIONS = 100000;
     const MAX_CALL_STACK = 500;
@@ -1642,7 +1689,10 @@ function interpreter(ast, filePathOrOptions) {
             // EXPRESSION STATEMENT (misal: salam() standalone)
             // =========================
             if (node.type === "ExpressionStatement") {
-                getValue(node.expression, env);
+                const val = getValue(node.expression, env);
+                if (isOptions && filePathOrOptions.isRepl && filePathOrOptions.onReplResult) {
+                    filePathOrOptions.onReplResult(val, formatValue(val, true));
+                }
                 continue;
             }
 
@@ -2113,5 +2163,8 @@ function interpreter(ast, filePathOrOptions) {
         throw e;
     }
 }
+
+interpreter.Environment = Environment;
+interpreter.formatValue = formatValue;
 
 module.exports = interpreter;

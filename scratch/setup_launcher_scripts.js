@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = 'D:\\Jawascript';
+const ROOT = path.resolve(__dirname, '..');
 
 // 1. src/launcher/jawa.cs
 const jawaCsContent = `using System;

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const PROJECT = 'D:\\Jawascript';
+const PROJECT = path.resolve(__dirname, '..');
 
 // 1. Positive test suite: examples/test_dot_notation_v4.jawa
 const positiveCode = `// test_dot_notation_v4.jawa

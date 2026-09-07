@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const PROJECT_DIR = 'D:\\Jawascript';
+const PROJECT_DIR = path.resolve(__dirname, '..');
 
 // 1. Create src/module_loader.js
 const moduleLoaderCode = `const fs = require("fs");

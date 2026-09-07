@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const target = 'D:\\Jawascript\\vscode-extension\\src\\extension.js';
+const target = path.resolve(__dirname, '../vscode-extension\\src\\extension.js');
 let content = fs.readFileSync(target, 'utf8');
 
 content = content.replace(

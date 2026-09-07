@@ -1,6 +1,6 @@
-const lexer = require('d:/Jawascript/src/lexer');
-const parser = require('d:/Jawascript/src/parser');
-const interpreter = require('d:/Jawascript/src/interpreter');
+const lexer = require('../src/lexer');
+const parser = require('../src/parser');
+const interpreter = require('../src/interpreter');
 
 function run(code) {
     return interpreter(parser(lexer(code)));

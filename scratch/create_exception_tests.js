@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const targetDir = 'D:/Jawascript/examples';
+const targetDir = path.resolve(__dirname, '../examples');
 
 const positiveTest = `// ============================================
 // TEST ERROR HANDLING / EXCEPTION SYSTEM V1 - JAWASCRIPT

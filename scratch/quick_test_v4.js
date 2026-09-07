@@ -1,5 +1,5 @@
 const path = require('path');
-const PROJECT = 'D:\\Jawascript';
+const PROJECT = path.resolve(__dirname, '..');
 const lexer = require(path.join(PROJECT, 'src', 'lexer'));
 const parser = require(path.join(PROJECT, 'src', 'parser'));
 const interpreter = require(path.join(PROJECT, 'src', 'interpreter'));

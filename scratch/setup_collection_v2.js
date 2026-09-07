@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 
 // 1. examples/modules/functional_v2.jawa
 const modContent = `// functional_v2.jawa — Module fixture kanggo test Collection & Functional Library V2
@@ -14,8 +15,8 @@ ekspor fungsi luwihSakaLima(x) {
     bali x > 5
 }
 `;
-fs.writeFileSync("D:\\Jawascript\\examples\\modules\\functional_v2.jawa", modContent, "utf8");
-console.log("Created D:\\Jawascript\\examples\\modules\\functional_v2.jawa");
+fs.writeFileSync(path.join(__dirname, "../examples/modules/functional_v2.jawa"), modContent, "utf8");
+console.log("Created examples/modules/functional_v2.jawa");
 
 // 2. examples/test_collection_v2.jawa
 const testPositiveContent = `// test_collection_v2.jawa — Comprehensive Collection & Functional Standard Library V2 Test
@@ -177,13 +178,13 @@ tulis gabung(dibalik, " > ")
 
 tulis "=== SELESAI TEST COLLECTION V2 ==="
 `;
-fs.writeFileSync("D:\\Jawascript\\examples\\test_collection_v2.jawa", testPositiveContent, "utf8");
-console.log("Created D:\\Jawascript\\examples\\test_collection_v2.jawa");
+fs.writeFileSync(path.join(__dirname, "../examples/test_collection_v2.jawa"), testPositiveContent, "utf8");
+console.log("Created examples/test_collection_v2.jawa");
 
 // 3. examples/test_collection_v2_error.jawa
 const testNegativeContent = `// test_collection_v2_error.jawa — Test standalone error for collection v2 (urut mixed type)
 gawe campur = [1, "dua", 3]
 tulis urut(campur)
 `;
-fs.writeFileSync("D:\\Jawascript\\examples\\test_collection_v2_error.jawa", testNegativeContent, "utf8");
-console.log("Created D:\\Jawascript\\examples\\test_collection_v2_error.jawa");
+fs.writeFileSync(path.join(__dirname, "../examples/test_collection_v2_error.jawa"), testNegativeContent, "utf8");
+console.log("Created examples/test_collection_v2_error.jawa");

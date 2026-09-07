@@ -1,0 +1,4 @@
+// helper.jawa
+ekspor guna gabung(a, b) {
+    bali a + " - " + b
+}

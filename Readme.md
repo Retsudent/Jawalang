@@ -1601,6 +1601,79 @@ Uninstaller mung mbusak entri sing bener-bener digawe dening Jawalang, tanpa ngg
 
 ---
 
+## 💻 Jawalang REPL (Interactive Shell)
+
+Jawalang nyedhiyakake REPL interaktif resmi kanggo nyoba kode kanthi langsung tanpa kudu nulis berkas `.jawa`.
+
+### Miwiti REPL
+
+Ketik printah ing ngisor iki ing terminal:
+
+```bash
+jawa
+```
+utawa:
+```bash
+jawa repl
+```
+utawa liwat npx:
+```bash
+npx jawa repl
+```
+
+### Tuladha Panggunaan
+
+```text
+Jawalang REPL v1.2.0
+Ketik .bantu untuk bantuan.
+
+jawa> gawe x = 10
+jawa> x + 5
+15
+jawa> x = x + 10
+jawa> x
+20
+jawa> "Halo " + "Donya"
+Halo Donya
+jawa> [1, 2, 3]
+[1, 2, 3]
+jawa> {"nama": "Budi"}
+{"nama": "Budi"}
+```
+
+### Multiline Input (Input Pirang-pirang Baris)
+REPL kanthi otomatis ndeteksi blok sing durung rampung (`{`, `(`, `[`, utawa tanda petik) lan nampilake prompt sekunder `...> `:
+
+```text
+jawa> guna tambah(a, b) {
+...>     bali a + b
+...> }
+jawa> tambah(2, 3)
+5
+```
+
+```text
+jawa> bentuk Wong {
+...>     gawe nama = "Budi"
+...>     guna salam() {
+...>         bali "Halo " + iki.nama
+...>     }
+...> }
+jawa> gawe w = anyar Wong()
+jawa> w.salam()
+Halo Budi
+```
+
+### Perintah Meta REPL
+
+| Perintah | Alternatif | Katrangan |
+| :--- | :--- | :--- |
+| `.help` | `.bantu` | Nampilake pitulung perintah REPL |
+| `.exit` | `.metu` | Metu saka sesi REPL (kode status 0) |
+| `.clear` | `.resik` | Ngresiki layar terminal konsol |
+
+---
+
 ## 🧩 Tooling & Integrasi Editor
 
 ### 1. Jawalang VS Code Extension
@@ -1651,6 +1724,7 @@ Language Server Protocol kasedhiya ing direktori `language-server/` mawa binary 
 - `src/lexer.js` — **Tokenizer**: Ngowahi kode mentah dadi deretan token mawa pelacakan posisi `loc` (line, character, offset).
 - `src/parser.js` — **Recursive Descent Parser**: Ngolah token dadi Abstract Syntax Tree (AST) mawa posisi semantik.
 - `src/interpreter.js` — **Interpreter**: Eksekusi AST mawa lexical scoping, struct, method, lan inheritance.
+- `src/repl.js` — **REPL Engine**: Sesi interaktif, evaluasi bare expression, multiline buffer detector, lan meta-commands.
 - `language-server/` — **Jawalang Language Server V1**: Implementasi LSP mawa diagnostik, definisi, autokomplit, hover, lan outline.
 - `vscode-extension/` — **Jawalang VS Code Extension V1**: Ekstensi resmi editor kalebu integrasi LSP Client lan VSIX package.
 - `examples/` — Tuladha program Jawalang lengkap mawa tes-tes fitur.

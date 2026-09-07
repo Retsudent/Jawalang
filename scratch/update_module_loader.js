@@ -127,5 +127,5 @@ class ModuleLoader {
 module.exports = ModuleLoader;
 `;
 
-fs.writeFileSync('D:\\Jawascript\\src\\module_loader.js', moduleLoaderCode, 'utf8');
+fs.writeFileSync(path.resolve(__dirname, '../src/module_loader.js'), moduleLoaderCode, 'utf8');
 console.log('src/module_loader.js updated with hardening');

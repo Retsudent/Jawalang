@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E2238"/>
+      <stop offset="100%" stop-color="#101322"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD166"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+  </defs>
+  <!-- Background squircle -->
+  <rect x="16" y="16" width="224" height="224" rx="48" ry="48" fill="url(#bgGrad)" stroke="#F59E0B" stroke-width="6"/>
+  <!-- Code bracket left '<' -->
+  <path d="M 76 96 L 48 128 L 76 160" fill="none" stroke="url(#accentGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Code bracket right '>' -->
+  <path d="M 180 96 L 208 128 L 180 160" fill="none" stroke="url(#accentGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Central Stylized 'J' with cultural curve -->
+  <path d="M 148 76 L 148 144 C 148 172 124 186 98 180 C 82 176 72 162 70 150" fill="none" stroke="url(#goldGrad)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Accent top dot/serif -->
+  <circle cx="148" cy="60" r="10" fill="url(#goldGrad)"/>
+</svg>

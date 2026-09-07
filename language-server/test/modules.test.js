@@ -9,7 +9,8 @@ const { pathToUri } = require('../src/utils');
 function runTests() {
     console.log('--- Modules Tests ---');
 
-    const mathPath = path.resolve(__dirname, 'fixtures', 'modules', 'math.jawa');
+    const rawMathPath = path.resolve(__dirname, 'fixtures', 'modules', 'math.jawa');
+    const mathPath = fs.realpathSync.native ? fs.realpathSync.native(rawMathPath) : fs.realpathSync(rawMathPath);
     const mainPath = path.resolve(__dirname, 'fixtures', 'modules', 'main.jawa');
 
     // 1. Module path resolution

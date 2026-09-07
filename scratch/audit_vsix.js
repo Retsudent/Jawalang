@@ -2,8 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const child_process = require('child_process');
 
-const vsixPath = path.resolve('D:/Jawascript/vscode-extension', 'jawalang-vscode-1.0.0.vsix');
-const inspectDir = path.resolve('D:/Jawascript/scratch', 'vsix_inspect');
+const PROJECT_ROOT = path.resolve(__dirname, '..');
+const vsixPath = path.resolve(PROJECT_ROOT, 'vscode-extension', 'jawalang-vscode-1.0.0.vsix');
+const inspectDir = path.resolve(__dirname, 'vsix_inspect');
 
 if (fs.existsSync(inspectDir)) {
     fs.rmSync(inspectDir, { recursive: true, force: true });

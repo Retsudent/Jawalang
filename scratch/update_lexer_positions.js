@@ -351,5 +351,5 @@ const lexerCode = `function lexer(source) {
 module.exports = lexer;
 `;
 
-fs.writeFileSync(path.resolve('D:/Jawascript/src/lexer.js'), lexerCode, 'utf8');
+fs.writeFileSync(path.resolve(__dirname, '../src/lexer.js'), lexerCode, 'utf8');
 console.log('src/lexer.js updated successfully with position metadata!');

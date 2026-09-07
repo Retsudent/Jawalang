@@ -1,0 +1,7 @@
+// ============================================
+// TEST EXCEPTION ERROR - JAWASCRIPT
+// ============================================
+
+// Harap gagal: lempar tanpa ekspresi
+tulis "Coba lempar tanpa ekspresi:"
+lempar

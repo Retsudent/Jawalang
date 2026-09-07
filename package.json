@@ -1,20 +1,47 @@
 {
   "name": "jawalang",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Basa pamrograman prasaja mawa sintaks basa Jawa",
   "main": "index.js",
   "bin": {
-    "jawa": "./bin/jawa.js"
+    "jawa": "bin/jawa.js",
+    "jawalang": "bin/jawa.js"
+  },
+  "files": [
+    "bin/jawa.js",
+    "src/cli.js",
+    "src/lexer.js",
+    "src/parser.js",
+    "src/interpreter.js",
+    "src/module_loader.js",
+    "src/repl.js",
+    "index.js",
+    "Readme.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
   },
   "scripts": {
     "test": "node scratch/run_full_regression.js",
+    "test:portability": "node scratch/test_portability.js",
     "build": "powershell -ExecutionPolicy Bypass -File scripts/build-windows.ps1",
     "package": "powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Retsudent/Jawalang.git"
+  },
+  "homepage": "https://github.com/Retsudent/Jawalang",
+  "bugs": {
+    "url": "https://github.com/Retsudent/Jawalang/issues"
   },
   "keywords": [
     "jawalang",
     "programming-language",
-    "javanese"
+    "javanese",
+    "interpreter",
+    "cli"
   ],
   "author": "",
   "license": "MIT"

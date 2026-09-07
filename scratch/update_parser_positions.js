@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const parserPath = path.resolve('D:/Jawascript/src/parser.js');
+const parserPath = path.resolve(__dirname, '../src/parser.js');
 let code = fs.readFileSync(parserPath, 'utf8');
 
 // 1. Add helpers after blockDepth = 0;

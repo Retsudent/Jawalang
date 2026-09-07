@@ -1,0 +1,73 @@
+// AND
+
+gawe a = bener
+gawe b = bener
+
+yen a lan b {
+    tulis "AND TRUE"
+}
+
+// AND FALSE
+
+gawe c = salah
+
+yen a lan c {
+    tulis "ERROR"
+} liyane {
+    tulis "AND FALSE"
+}
+
+// OR
+
+yen c utawa a {
+    tulis "OR TRUE"
+}
+
+// OR FALSE
+
+yen c utawa salah {
+    tulis "ERROR"
+} liyane {
+    tulis "OR FALSE"
+}
+
+// NOT
+
+yen ora c {
+    tulis "NOT TRUE"
+}
+
+// Comparison + AND
+
+gawe umur = 20
+gawe punya_ktp = bener
+
+yen umur >= 17 lan punya_ktp {
+    tulis "Boleh"
+} liyane {
+    tulis "Tidak boleh"
+}
+
+// Parentheses
+
+gawe admin = salah
+
+yen umur >= 17 lan (punya_ktp utawa admin) {
+    tulis "Lulus syarat"
+}
+
+// OR precedence
+
+yen salah utawa bener lan bener {
+    tulis "Precedence benar"
+}
+
+// NOT + variable
+
+gawe aktif = bener
+
+yen ora aktif {
+    tulis "ERROR"
+} liyane {
+    tulis "Aktif"
+}

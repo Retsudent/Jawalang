@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const PROJECT = 'D:\\Jawascript';
+const PROJECT = path.resolve(__dirname, '..');
 const modulesDir = path.join(PROJECT, 'examples', 'modules');
 
 // 1. all_builtins.jawa

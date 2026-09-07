@@ -1,0 +1,8 @@
+// =============================================
+// TEST STRING ERROR — JAWALANG
+// =============================================
+// Mencoba memanggil motong() dengan target bukan string
+
+gawe angka = 123
+tulis "Coba panggil motong(angka, 0, 2):"
+tulis motong(angka, 0, 2)

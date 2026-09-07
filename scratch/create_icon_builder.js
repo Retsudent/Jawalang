@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const PROJECT = 'D:\\Jawascript';
+const PROJECT = path.resolve(__dirname, '..');
 
 const csContent = `using System;
 using System.Collections.Generic;

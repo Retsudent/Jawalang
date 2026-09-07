@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = 'D:\\Jawascript';
+const ROOT = path.resolve(__dirname, '..');
 const cliMainContent = `// Main entry point testing relative module import via CLI
 impor "./helper.jawa" minangka helper
 

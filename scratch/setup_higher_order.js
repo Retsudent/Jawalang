@@ -18,5 +18,5 @@ ekspor fungsi transformasiData(fn, arr) {
 }
 `;
 
-fs.writeFileSync("D:\\Jawascript\\examples\\modules\\functional_mod.jawa", functionalModContent, "utf8");
-console.log("Created D:\\Jawascript\\examples\\modules\\functional_mod.jawa");
+fs.writeFileSync(path.join(__dirname, '../examples', 'modules\\functional_mod.jawa'), functionalModContent, "utf8");
+console.log("Created examples/modules/functional_mod.jawa");

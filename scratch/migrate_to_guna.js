@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const projectDir = 'D:/Jawascript';
+const projectDir = path.resolve(__dirname, '..');
 
 function getAllFiles(dir, ext) {
     let results = [];

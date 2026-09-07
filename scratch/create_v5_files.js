@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const PROJECT = 'D:\\Jawascript';
+const PROJECT = path.resolve(__dirname, '..');
 
 // 1. Helper module: examples/modules/mod_v5_parent.jawa
 const modParentCode = `// mod_v5_parent.jawa

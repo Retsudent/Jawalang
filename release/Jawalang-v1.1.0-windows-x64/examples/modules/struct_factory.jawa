@@ -1,0 +1,31 @@
+// examples/modules/struct_factory.jawa
+// Module fixture: Struct dienkapsulasi lewat factory function pattern
+
+bentuk Titik {
+    gawe x = 0
+    gawe y = 0
+
+    guna wiwiti(a, b) {
+        iki["x"] = a
+        iki["y"] = b
+    }
+
+    guna geser(dx, dy) {
+        iki["x"] = iki["x"] + dx
+        iki["y"] = iki["y"] + dy
+    }
+
+    guna info() {
+        bali "(" + iki["x"] + ", " + iki["y"] + ")"
+    }
+}
+
+ekspor guna gaweTitik(a, b) {
+    bali anyar Titik(a, b)
+}
+
+ekspor guna jarakKuadrat(t1, t2) {
+    gawe dx = t1["x"] - t2["x"]
+    gawe dy = t1["y"] - t2["y"]
+    bali (dx * dx) + (dy * dy)
+}

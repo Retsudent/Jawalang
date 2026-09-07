@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const target = 'D:\\Jawascript\\scripts\\GenerateIcon.cs';
+const target = path.resolve(__dirname, '../scripts\\GenerateIcon.cs');
 let content = fs.readFileSync(target, 'utf8');
 
 const insertAfter = 'pngEntries.Add(new KeyValuePair<int, byte[]>(size, ms.ToArray()));';

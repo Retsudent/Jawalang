@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const readmePath = 'D:\\Jawascript\\Readme.md';
+const readmePath = path.resolve(__dirname, '../Readme.md');
 let content = fs.readFileSync(readmePath, 'utf8');
 
 const targetSection = `## 🚀 Jawalang CLI & Windows Integration V1.1 — Distribution Hardening

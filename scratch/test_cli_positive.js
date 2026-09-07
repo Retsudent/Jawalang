@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const PROJECT = 'D:\\Jawascript';
+const PROJECT = path.resolve(__dirname, '..');
 const JAWA_EXE = path.join(PROJECT, 'bin', 'jawa.exe');
 
 let passed = 0;
@@ -81,7 +81,7 @@ test('jawa with relative path .\\examples\\hello_cli.jawa', () => {
 });
 
 // 8. Absolute path execution
-test('jawa with absolute path D:\\Jawascript\\examples\\hello_cli.jawa', () => {
+test('jawa with absolute path to hello_cli.jawa', () => {
     const absPath = path.join(PROJECT, 'examples', 'hello_cli.jawa');
     const out = execSync(`"${JAWA_EXE}" "${absPath}"`, { cwd: 'C:\\', encoding: 'utf8' }).trim();
     if (!out.includes('Halo saka Jawalang versi 1.0.0!')) {

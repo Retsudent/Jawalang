@@ -1,0 +1,70 @@
+// test_module_v11.jawa — Comprehensive V1.1 Hardening & Polish Test
+tulis "=== TEST MODULE V1.1 HARDENING ==="
+
+// 1. Export Variable Semantics (Value Copy Binding in Importer)
+impor "modules/export_var_semantics"
+tulis "1. Export Variable Semantics:"
+tulis angkaAsli
+angkaAsli = 999
+tulis angkaAsli
+tulis bacaAsli()
+
+// 2. Lexical Closure Hardening (Deep Nested Private Helper + State Mutation)
+impor "modules/lexical_deep"
+tulis "2. Lexical Closure Hardening:"
+tulis hitungTotal()
+setA(50)
+tulis hitungTotal()
+tulis getA()
+
+// 3. Lexical Shadowing (Importer variable does not shadow module variable)
+gawe varA = 9999
+gawe varB = 8888
+tulis "3. Lexical Shadowing Isolation:"
+tulis hitungTotal()
+
+// 4. Canonical Path Hardening (Equivalent Import Paths)
+impor "modules/counter"
+tulis "4. Canonical Path Hardening:"
+tulis tambahHitungan()
+impor "./modules/counter"
+tulis tambahHitungan()
+impor "modules/counter.jawa"
+tulis tambahHitungan()
+impor "./modules/counter.jawa"
+tulis getHitungan()
+
+// 5. Diamond / Shared Dependency State Consistency
+impor "modules/importer_a"
+impor "modules/importer_b"
+tulis "5. Shared Dependency:"
+tulis getStatusA()
+tulis getStatusB()
+
+// 6. Built-in Availability in Module
+impor "modules/all_builtins"
+tulis "6. Built-in Functions in Module:"
+gawe asilBuiltin = tesBuiltin()
+tulis asilBuiltin["lenArr"]
+tulis asilBuiltin["item0"]
+tulis asilBuiltin["arrAkhir"]
+tulis asilBuiltin["potong"]
+tulis asilBuiltin["kapital"]
+tulis asilBuiltin["adaK"]
+
+// 7. Recursive Function in Module
+impor "modules/recursion"
+tulis "7. Module Recursion:"
+tulis faktorial(6)
+
+// 8. Dependency Chain (Relative Path: chain_a -> chain_b -> chain_c)
+impor "modules/chain_a"
+tulis "8. Module Dependency Chain:"
+tulis nilaiA()
+
+// 9. Nested Relative Module Path (modules/nested/helper)
+impor "modules/nested/helper"
+tulis "9. Nested Relative Module:"
+tulis salam("V1.1")
+
+tulis "=== SELESAI TEST MODULE V1.1 ==="

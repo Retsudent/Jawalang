@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const targetDir = 'D:/Jawascript/examples';
+const targetDir = path.resolve(__dirname, '../examples');
 
 const positiveTest = `// ============================================
 // TEST FOREACH / ITERATION V1 - JAWASCRIPT

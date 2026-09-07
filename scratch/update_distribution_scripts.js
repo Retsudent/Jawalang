@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = 'D:\\Jawascript';
+const ROOT = path.resolve(__dirname, '..');
 
 // 1. scripts/install.ps1
 const installPs1Content = `# install.ps1

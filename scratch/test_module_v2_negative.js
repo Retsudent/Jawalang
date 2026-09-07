@@ -2,8 +2,8 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const PROJECT = 'D:\\Jawascript';
-const SCRATCH = 'C:\\Users\\MyBook SAGA 10\\.gemini\\antigravity\\brain\\23381803-7abc-4d56-ad4a-cf001032c017\\scratch';
+const PROJECT = path.resolve(__dirname, '..');
+const SCRATCH = __dirname;
 
 function runCode(code, isFile = false) {
     let tmpFile;
@@ -15,7 +15,7 @@ function runCode(code, isFile = false) {
         fs.writeFileSync(tmpFile, code, 'utf8');
     }
     try {
-        const result = execSync('node index.js examples/__neg_mod_v2_tmp__.jawa', {
+        const result = execSync(`"${process.execPath}" "${path.join(PROJECT, 'index.js')}" "${tmpFile}"`, {
             cwd: PROJECT,
             encoding: 'utf8',
             stdio: ['pipe', 'pipe', 'pipe']

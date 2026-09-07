@@ -1,0 +1,7 @@
+// =============================================
+// TEST INPUT ERROR — JAWALANG
+// =============================================
+// Mencoba memanggil takon() dengan argumen prompt bukan string
+
+tulis "Coba panggil takon(123):"
+gawe hasil = takon(123)

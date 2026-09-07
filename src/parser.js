@@ -1,4 +1,4 @@
-function parser(tokens) {
+function parser(tokens, options = {}) {
     let i = 0;
     let loopDepth = 0;
     let inFunction = false;
@@ -1615,6 +1615,20 @@ function parser(tokens) {
         throw syntaxError(`Statement ora dikenal: "${token.value}"`);
     }
 
+
+    if (options && options.expressionOnly) {
+        if (tokens.length === 0) {
+            return [];
+        }
+        const expr = parseExpression();
+        if (i < tokens.length) {
+            throw syntaxError(`Token ora dikarepake sawise ekspresi: "${tokens[i].value}"`);
+        }
+        return [{
+            type: "ExpressionStatement",
+            expression: expr
+        }];
+    }
 
     const ast = [];
 

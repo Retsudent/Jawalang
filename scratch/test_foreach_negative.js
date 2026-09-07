@@ -1,6 +1,6 @@
-const lexer = require('D:/Jawascript/src/lexer');
-const parser = require('D:/Jawascript/src/parser');
-const interpreter = require('D:/Jawascript/src/interpreter');
+const lexer = require('../src/lexer');
+const parser = require('../src/parser');
+const interpreter = require('../src/interpreter');
 
 const negativeCases = [
     // Syntax errors

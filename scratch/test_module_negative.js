@@ -2,18 +2,18 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const PROJECT = 'D:\\Jawascript';
+const PROJECT = path.resolve(__dirname, '..');
 
 function runCode(code) {
     const tmpFile = path.join(PROJECT, 'examples', '__neg_module_tmp__.jawa');
     fs.writeFileSync(tmpFile, code, 'utf8');
     try {
-        const result = execSync('node index.js examples/__neg_module_tmp__.jawa', {
+        const result = execSync(`"${process.execPath}" "${path.join(PROJECT, 'index.js')}" "${tmpFile}"`, {
             cwd: PROJECT,
             encoding: 'utf8',
             stdio: ['pipe', 'pipe', 'pipe']
         });
-        fs.unlinkSync(tmpFile);
+        if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
         return { success: true, output: result.trim() };
     } catch (e) {
         if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);

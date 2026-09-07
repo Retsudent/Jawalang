@@ -1,13 +1,10 @@
-
 tulis "Halo dunia!"
-
 
 gawe jeneng = "Barch"
 gawe umur = 20
 
 tulis jeneng
 tulis umur
-
 
 gawe a = 10
 gawe b = 20

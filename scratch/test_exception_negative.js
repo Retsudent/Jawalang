@@ -2,7 +2,7 @@
 const { execSync } = require('child_process');
 const path = require('path');
 
-const PROJECT = 'D:\\Jawascript';
+const PROJECT = path.resolve(__dirname, '..');
 
 function run(code) {
     try {
@@ -21,13 +21,13 @@ function runFile(filename) {
     const tmpFile = path.join(PROJECT, 'examples', '__neg_tmp__.jawa');
     fs.writeFileSync(tmpFile, filename);
     try {
-        const result = execSync(`node index.js examples/__neg_tmp__.jawa`, {
+        const result = execSync(`"${process.execPath}" "${path.join(PROJECT, 'index.js')}" "${tmpFile}"`, {
             cwd: PROJECT, encoding: 'utf8', stdio: ['pipe','pipe','pipe']
         });
-        fs.unlinkSync(tmpFile);
+        if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
         return { success: true, output: result };
     } catch (e) {
-        fs.unlinkSync(tmpFile);
+        if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
         return { success: false, output: (e.stderr || '') + (e.stdout || '') };
     }
 }

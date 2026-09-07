@@ -1,0 +1,4 @@
+// common.jawa
+tulis "init common"
+
+ekspor gawe status = "AKTIF"

@@ -4,8 +4,9 @@ const path = require('path');
 const child_process = require('child_process');
 const os = require('os');
 
-const EXT_DIR = path.resolve('D:/Jawascript/vscode-extension');
-const SMOKE_DIR = path.resolve('D:/Jawascript/scratch/vscode-smoke');
+const PROJECT_ROOT = path.resolve(__dirname, '..');
+const EXT_DIR = path.join(PROJECT_ROOT, 'vscode-extension');
+const SMOKE_DIR = path.join(__dirname, 'vscode-smoke');
 
 let total = 0;
 let passed = 0;

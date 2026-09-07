@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-const PROJECT = 'D:\\Jawascript';
+const PROJECT = path.resolve(__dirname, '..');
 const JAWA_EXE = path.join(PROJECT, 'bin', 'jawa.exe');
 const PKG_PATH = path.join(PROJECT, 'package.json');
 

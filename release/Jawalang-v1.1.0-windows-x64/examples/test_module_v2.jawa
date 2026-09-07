@@ -1,0 +1,187 @@
+﻿// test_module_v2.jawa
+// Positive test suite untuk Module System V2 - 26 skenario
+
+impor "modules/mod_struct_v2"
+impor "modules/mod_struct_multi"
+impor "modules/mod_struct_err"
+
+gawe lulus = 0
+gawe gagal = 0
+
+guna cek(deskripsi, aktual, ekspektasi) {
+    yen aktual == ekspektasi {
+        tulis "[PASS] " + deskripsi
+        lulus = lulus + 1
+    } liyane {
+        tulis "[FAIL] " + deskripsi + " => dapat: " + aktual + ", ekspektasi: " + ekspektasi
+        gagal = gagal + 1
+    }
+}
+
+// ===== 1. Basic exported struct instantiation =====
+gawe g = anyar Greeter("Budi")
+cek("1. Greeter instantiation", jinis(g), "instance")
+
+// ===== 2. Imported field access =====
+cek("2. Field default via constructor", g["nama"], "Budi")
+
+// ===== 3. Imported field mutation =====
+g["nama"] = "Wati"
+cek("3. Field mutation", g["nama"], "Wati")
+
+// ===== 4. Imported method call =====
+g["nama"] = "Budi"
+cek("4. Method salam()", g["salam"](), "Halo, Budi")
+
+// ===== 5. Imported constructor with args =====
+gawe g2 = anyar Greeter("Sari")
+cek("5. Constructor argument", g2["getNama"](), "Sari")
+
+// ===== 6. Method lexical closure (prefix dari module, bukan importer) =====
+gawe prefix = "INVALID"
+cek("6. Lexical closure prefix", g["salam"](), "Halo, Budi")
+
+// ===== 7. Default lexical closure (defaultNama dari module) =====
+gawe defaultNama = "Importer"
+gawe lt = anyar LexicalTest()
+cek("7. Lexical closure defaultNama", lt["getDef"](), "Module")
+
+// ===== 8. Multiple instances isolation =====
+gawe c1 = anyar Counter()
+gawe c2 = anyar Counter()
+c1["tambah"]()
+c1["tambah"]()
+c2["tambah"]()
+cek("8a. Counter c1 independent", c1["getNilai"](), 2)
+cek("8b. Counter c2 independent", c2["getNilai"](), 1)
+
+// ===== 9. Mutable default isolation =====
+gawe d1 = anyar DataHolder("D1")
+gawe d2 = anyar DataHolder("D2")
+d1["tambahItem"](99)
+d1["tambahItem"](88)
+cek("9a. d1 items length", dawa(d1["getItems"]()), 2)
+cek("9b. d2 items isolated", dawa(d2["getItems"]()), 0)
+
+// ===== 10. Mixed exports - variable =====
+cek("10. versi variable", versi, 2)
+
+// ===== 11. Mixed exports - function =====
+cek("11. buatNama function", buatNama("Andi"), "Andi (dari modul)")
+
+// ===== 12. Multiple exported structs =====
+cek("12a. versiMulti variable", versiMulti, "multi-v1")
+gawe u = anyar User("Tono")
+gawe a = anyar Admin("Boss", 5)
+cek("12b. User instantiation", u["getInfo"](), "Tono (user)")
+cek("12c. Admin instantiation", a["getInfo"](), "Boss (admin level 5)")
+
+// ===== 13. Factory function returning struct instance =====
+gawe u2 = buatUser("Rini")
+cek("13. buatUser factory", u2["getInfo"](), "Rini (user)")
+
+// ===== 14. jinis() checks =====
+cek("14a. jinis(instance)", jinis(g), "instance")
+cek("14b. jinis(struct)", jinis(Greeter), "struct")
+cek("14c. jinis(method)", jinis(g["salam"]), "function")
+
+// ===== 15. Bound method as first-class value =====
+gawe c3 = anyar Counter()
+gawe fn = c3["tambah"]
+fn()
+fn()
+fn()
+cek("15. Bound method first-class", c3["getNilai"](), 3)
+
+// ===== 16. Bound method as HOF saring predicate =====
+bentuk NumberChecker {
+    gawe min = 2
+
+    guna isGedhe(x) {
+        bali x > iki["min"]
+    }
+}
+gawe nc = anyar NumberChecker()
+gawe filtered = saring(nc["isGedhe"], [1, 2, 3, 4, 5])
+cek("16. Bound method in saring HOF", dawa(filtered), 3)
+
+// ===== 17. Private struct inaccessible =====
+gawe terjaga = "ok"
+coba {
+    gawe s = anyar SecretConfig()
+    terjaga = "bocor"
+} tangkep err {
+    terjaga = "private-ok"
+}
+cek("17. Private struct inaccessible", terjaga, "private-ok")
+
+// ===== 18. Exception from imported method - catchable =====
+gawe t = anyar Tester()
+gawe errMsg = ""
+coba {
+    t["error"]()
+} tangkep err {
+    errMsg = err
+}
+cek("18. Exception from imported method", errMsg, "kesalahan dari method")
+
+// ===== 19. Conditional exception from method =====
+gawe errMsg2 = ""
+coba {
+    t["bagi"](10, 0)
+} tangkep err {
+    errMsg2 = err
+}
+cek("19. Conditional exception from method", errMsg2, "pembagi ora kena nol")
+
+// ===== 20. Normal method result after catch =====
+cek("20. Normal method result", t["bagi"](20, 4), 5)
+
+// ===== 21. Struct in array =====
+gawe arr2 = [anyar Counter(), anyar Counter(), anyar Counter()]
+arr2[0]["tambah"]()
+arr2[0]["tambah"]()
+arr2[1]["tambah"]()
+cek("21a. Struct in array arr[0]", arr2[0]["getNilai"](), 2)
+cek("21b. Struct in array arr[1]", arr2[1]["getNilai"](), 1)
+cek("21c. Struct in array arr[2]", arr2[2]["getNilai"](), 0)
+
+// ===== 22. Foreach over struct instances =====
+gawe counters = [anyar Counter(), anyar Counter(), anyar Counter()]
+gawe total = 0
+kanggo saben item ing counters {
+    item["tambah"]()
+    total = total + item["getNilai"]()
+}
+cek("22. Foreach over struct instances", total, 3)
+
+// ===== 23. Struct in object =====
+gawe wadah = {"g": anyar Greeter("KelasB")}
+cek("23. Struct in object", wadah["g"]["getNama"](), "KelasB")
+
+// ===== 24. Counter state reset =====
+gawe cs = anyar Counter()
+cs["tambah"]()
+cs["tambah"]()
+cs["reset"]()
+cs["tambah"]()
+cek("24. Counter state after reset", cs["getNilai"](), 1)
+
+// ===== 25. Duplicate import - same cached module =====
+impor "modules/mod_struct_v2"
+cek("25. Duplicate import same cache", versi, 2)
+
+// ===== 26. Bound method stores correct receiver =====
+gawe g3 = anyar Greeter("FinalTest")
+gawe namaFn = g3["getNama"]
+cek("26. Bound method correct receiver", namaFn(), "FinalTest")
+
+// ===== SUMMARY =====
+tulis ""
+tulis "==========================="
+tulis "Module V2 Test Result: " + lulus + " PASS, " + gagal + " FAIL"
+tulis "==========================="
+
+yen gagal > 0 {
+    lempar "Ada " + gagal + " test yang gagal"
+}
