@@ -1,0 +1,2 @@
+gawe jeneng = takon("Jenengmu: ")
+tulis "Halo " + jeneng

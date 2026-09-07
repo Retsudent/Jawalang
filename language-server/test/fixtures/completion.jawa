@@ -1,0 +1,25 @@
+// Completion Test Fixture
+gawe namaUser = "Budi"
+gawe umurUser = 25
+
+guna haloUser(paramSiji, paramLoro) {
+    // Should complete paramSiji, paramLoro, namaUser, umurUser
+    gawe temp = 10
+}
+
+bentuk Mobil {
+    gawe merk = "Toyota"
+    gawe kacepatan = 100
+
+    wiwiti(m) {
+        iki.merk = m
+    }
+
+    guna mlaku() {
+        // Should complete iki.merk, iki.kacepatan
+        bali iki.merk
+    }
+}
+
+gawe m = anyar Mobil("Honda")
+// m. should complete merk, kacepatan, mlaku

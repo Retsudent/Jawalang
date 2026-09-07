@@ -1,0 +1,14 @@
+// Models module with exported struct
+ekspor bentuk Siswa {
+    gawe jeneng = ""
+    gawe kelas = ""
+
+    wiwiti(j, k) {
+        iki.jeneng = j
+        iki.kelas = k
+    }
+
+    guna deskripsi() {
+        bali iki.jeneng + " - " + iki.kelas
+    }
+}

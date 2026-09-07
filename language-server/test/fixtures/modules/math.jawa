@@ -1,0 +1,15 @@
+// Math module with exports
+ekspor gawe PI = 3.14159
+
+ekspor guna tambah(a, b) {
+    bali a + b
+}
+
+ekspor guna kurang(a, b) {
+    bali a - b
+}
+
+// Private function (not exported)
+guna rahasia() {
+    bali 42
+}

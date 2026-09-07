@@ -1,0 +1,28 @@
+// Inheritance & Super Test Fixture
+bentuk Induk {
+    gawe jenengInduk = "Induk"
+
+    wiwiti(nama) {
+        iki.jenengInduk = nama
+    }
+
+    guna info() {
+        bali "Induk: " + iki.jenengInduk
+    }
+}
+
+bentuk Anak ngembangake Induk {
+    gawe gelar = "Anak"
+
+    wiwiti(nama, g) {
+        super(nama)
+        iki.gelar = g
+    }
+
+    guna info() {
+        bali super.info() + ", Gelar: " + iki.gelar
+    }
+}
+
+gawe a = anyar Anak("Budi", "S.Kom")
+tulis a.info()

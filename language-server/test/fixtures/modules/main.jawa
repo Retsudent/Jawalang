@@ -1,0 +1,10 @@
+// Main module testing imports
+impor { tambah, PI } saka "./math.jawa"
+impor "./math.jawa" minangka math
+impor "./models.jawa"
+
+gawe hasil = tambah(10, 20)
+gawe piVal = PI
+gawe kali = math.kurang(50, 10)
+gawe budi = anyar Siswa("Budi", "12-A")
+tulis budi.deskripsi()

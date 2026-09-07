@@ -1,0 +1,9 @@
+// Basic Jawalang Fixture
+gawe pesen = "Halo Jawalang"
+gawe count = 42
+
+guna salam(nama) {
+    bali "Sugeng rawuh, " + nama
+}
+
+tulis salam(pesen)

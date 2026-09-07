@@ -1,0 +1,15 @@
+// Diagnostics Test Fixture
+gawe angka = 10
+
+// 1. Undefined variable
+gawe hasil = angka + oraAnaVariabel
+
+// 2. Function parameter count mismatch
+guna jumlah(a, b) {
+    bali a + b
+}
+
+gawe x = jumlah(1)
+
+// 3. Invalid iki outside method
+iki.jeneng = "Invalid"

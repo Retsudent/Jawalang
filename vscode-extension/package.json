@@ -1,0 +1,122 @@
+{
+  "name": "jawalang-vscode",
+  "displayName": "Jawalang",
+  "description": "Professional developer tooling for the Jawalang programming language",
+  "version": "1.0.0",
+  "publisher": "jawalang",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Retsudent/Jawalang"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "jawalang",
+    "javanese",
+    "programming language",
+    "basa jawa"
+  ],
+  "icon": "icons/jawalang.png",
+  "activationEvents": [
+    "onLanguage:jawalang"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "jawalang",
+        "aliases": [
+          "Jawalang",
+          "jawalang"
+        ],
+        "extensions": [
+          ".jawa"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/jawalang.svg",
+          "dark": "./icons/jawalang.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "jawalang",
+        "scopeName": "source.jawa",
+        "path": "./syntaxes/jawalang.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "jawalang",
+        "path": "./snippets/jawalang.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "jawalang.runFile",
+        "title": "Jawalang: Run File",
+        "icon": "$(play)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "jawalang.runFile",
+          "when": "editorLangId == jawalang",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "jawalang.runFile",
+          "when": "editorLangId == jawalang"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Jawalang",
+      "properties": {
+        "jawalang.executablePath": {
+          "type": "string",
+          "default": "jawa",
+          "description": "Path to the Jawalang CLI executable (e.g. 'jawa' or full path to 'jawa.exe')"
+        },
+        "jawalang.runInTerminal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to run Jawalang files in the integrated terminal"
+        },
+        "jawalang.languageServer.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Jawalang Language Server (LSP) for diagnostics, definitions, and advanced completions"
+        },
+        "jawalang.languageServer.path": {
+          "type": "string",
+          "default": "",
+          "description": "Custom path to Jawalang Language Server binary or script (defaults to built-in language server)"
+        },
+        "jawalang.languageServer.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug logging for Jawalang Language Server"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "test": "node tests/test_extension.js",
+    "package": "npx @vscode/vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^10.1.1",
+    "vscode-languageserver": "^10.1.1",
+    "vscode-languageserver-textdocument": "^1.0.14"
+  }
+}

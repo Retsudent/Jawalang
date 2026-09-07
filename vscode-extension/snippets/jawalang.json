@@ -1,0 +1,170 @@
+{
+  "Gawe Variabel": {
+    "prefix": "gawe",
+    "body": [
+      "gawe ${1:jeneng} = ${2:nilai}"
+    ],
+    "description": "Deklarasi variabel Jawalang"
+  },
+  "Guna Fungsi": {
+    "prefix": "guna",
+    "body": [
+      "guna ${1:nama}(${2:param}) {",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Deklarasi fungsi Jawalang"
+  },
+  "Wiwiti Konstruktor": {
+    "prefix": "wiwiti",
+    "body": [
+      "wiwiti(${1:param}) {",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Konstruktor struct Jawalang"
+  },
+  "Bentuk Struct": {
+    "prefix": "bentuk",
+    "body": [
+      "bentuk ${1:Nama} {",
+      "\tgawe ${2:field} = ${3:\"\"}",
+      "",
+      "\twiwiti(${4:param}) {",
+      "\t\tiki.${2:field} = ${4:param}",
+      "\t}",
+      "",
+      "\tguna ${5:metode}() {",
+      "\t\t${0}",
+      "\t}",
+      "}"
+    ],
+    "description": "Deklarasi struct Jawalang"
+  },
+  "Bentuk Pewarisan": {
+    "prefix": "bentuk-ngembangake",
+    "body": [
+      "bentuk ${1:Anak} ngembangake ${2:Induk} {",
+      "\twiwiti(${3:param}) {",
+      "\t\tsuper(${3:param})",
+      "\t\t${0}",
+      "\t}",
+      "}"
+    ],
+    "description": "Pewarisan struct Jawalang"
+  },
+  "Anyar Instance": {
+    "prefix": "anyar",
+    "body": [
+      "anyar ${1:Struct}(${2:args})"
+    ],
+    "description": "Instansiasi struct anyar"
+  },
+  "Yen Percabangan": {
+    "prefix": "yen",
+    "body": [
+      "yen ${1:kondisi} {",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Percabangan if"
+  },
+  "Yen Liyane": {
+    "prefix": "yen-liyane",
+    "body": [
+      "yen ${1:kondisi} {",
+      "\t${2}",
+      "} liyane {",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Percabangan if-else"
+  },
+  "Nalika While Loop": {
+    "prefix": "nalika",
+    "body": [
+      "nalika ${1:kondisi} {",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Perulangan while"
+  },
+  "Kanggo Range Loop": {
+    "prefix": "kanggo",
+    "body": [
+      "kanggo ${1:i} = ${2:1} nganti ${3:10} {",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Perulangan range (kanggo ... nganti)"
+  },
+  "Kanggo Saben Foreach Loop": {
+    "prefix": "kanggo-saben",
+    "body": [
+      "kanggo saben ${1:item} ing ${2:koleksi} {",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Perulangan foreach (kanggo saben ... ing)"
+  },
+  "Bali Return": {
+    "prefix": "bali",
+    "body": [
+      "bali ${0}"
+    ],
+    "description": "Mbalekake nilai fungsi"
+  },
+  "Coba Tangkep": {
+    "prefix": "coba",
+    "body": [
+      "coba {",
+      "\t${1}",
+      "} tangkep ${2:err} {",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Pananganan kasalahan try-catch"
+  },
+  "Lempar Eksepsi": {
+    "prefix": "lempar",
+    "body": [
+      "lempar ${1:\"Pesen kesalahan\"}"
+    ],
+    "description": "Mbuwang eksepsi error"
+  },
+  "Impor Modul": {
+    "prefix": "impor",
+    "body": [
+      "impor \"${1:modul.jawa}\""
+    ],
+    "description": "Impor modul kabeh"
+  },
+  "Impor Saka": {
+    "prefix": "impor-saka",
+    "body": [
+      "impor { ${1:simbol} } saka \"${2:modul.jawa}\""
+    ],
+    "description": "Selective import simbol saka modul"
+  },
+  "Impor Namespace": {
+    "prefix": "impor-namespace",
+    "body": [
+      "impor \"${1:modul.jawa}\" minangka ${2:ns}"
+    ],
+    "description": "Impor modul minangka namespace"
+  },
+  "Tulis Cithak": {
+    "prefix": "tulis",
+    "body": [
+      "tulis ${0}"
+    ],
+    "description": "Cithak menyang konsol"
+  },
+  "Takon Input": {
+    "prefix": "takon",
+    "body": [
+      "takon(\"${1:Prompt: }\")"
+    ],
+    "description": "Nampa input pangguna"
+  }
+}

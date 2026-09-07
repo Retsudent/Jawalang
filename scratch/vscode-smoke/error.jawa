@@ -1,0 +1,3 @@
+// Runtime error fixture
+gawe x = 10
+tulis y // Variabel "y" durung digawe

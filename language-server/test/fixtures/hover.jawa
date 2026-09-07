@@ -1,0 +1,27 @@
+// Hover Test Fixture
+gawe teksHover = "Sugeng Enjang"
+gawe angkaHover = 123
+gawe boolHover = bener
+gawe arrayHover = [1, 2, 3]
+gawe obyekHover = { "kunci": "nilai" }
+
+guna petungHover(a, b) {
+    bali a * b
+}
+
+bentuk WongHover {
+    gawe jeneng = "Tejo"
+    gawe umur = 30
+
+    wiwiti(j, u) {
+        iki.jeneng = j
+        iki.umur = u
+    }
+
+    guna salamHover() {
+        bali "Halo, kula " + iki.jeneng
+    }
+}
+
+gawe instanceHover = anyar WongHover("Budi", 20)
+gawe panjang = dawa(teksHover)

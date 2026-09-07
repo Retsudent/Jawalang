@@ -1,0 +1,148 @@
+const fs = require('fs');
+const path = require('path');
+
+const targetDir = 'D:/Jawascript/examples';
+
+const positiveTest = `// ============================================
+// TEST OBJECT STANDARD LIBRARY V1 - JAWASCRIPT
+// ============================================
+
+tulis "=== OBJECT BUILTIN TEST ==="
+
+// 1. Empty Object
+gawe kosong = {}
+
+tulis kunci(kosong)
+tulis nilai(kosong)
+tulis dawa(kunci(kosong))
+tulis dawa(nilai(kosong))
+
+// 2. Standard Object Keys & Values
+gawe user = {
+    "nama": "Budi",
+    "umur": 20,
+    "aktif": bener,
+    "alamat": null
+}
+
+tulis kunci(user)
+tulis nilai(user)
+
+// 3. duwe() checks
+tulis duwe(user, "nama")
+tulis duwe(user, "alamat")
+tulis duwe(user, "umur")
+tulis duwe(user, "kota")
+
+// 4. Dynamic key
+gawe key = "nama"
+
+tulis duwe(user, key)
+tulis user[key]
+
+// 5. Chaining with array built-ins
+tulis dawa(kunci(user))
+tulis jupuk(kunci(user), 0)
+tulis jupuk(nilai(user), 1)
+
+// 6. Nested object & values
+gawe nested = {
+    "profil": {
+        "nama": "Siti",
+        "umur": 21
+    },
+    "nilai": [80, 90, 100]
+}
+
+tulis kunci(nested)
+tulis nilai(nested)
+
+gawe values = nilai(nested)
+
+tulis values[0]["nama"]
+tulis values[1][1]
+
+values[0]["nama"] = "Dewi"
+
+tulis nested["profil"]["nama"]
+
+// 7. Immutability of object when keys array is mutated
+gawe keys = kunci(user)
+
+busak(keys, 0)
+
+tulis keys
+tulis kunci(user)
+
+// 8. Reference semantics with nested object & array
+gawe obj = {
+    "nested": {
+        "nama": "Budi"
+    },
+    "angka": [1, 2]
+}
+
+gawe values2 = nilai(obj)
+
+values2[0]["nama"] = "Siti"
+nambah(values2[1], 3)
+
+tulis obj["nested"]["nama"]
+tulis obj["angka"]
+
+// 9. duwe() with null property value
+gawe dataNull = {
+    "ada": null
+}
+
+tulis duwe(dataNull, "ada")
+tulis duwe(dataNull, "ora_ana")
+
+// 10. Function integration
+fungsi cek(u) {
+    bali duwe(u, "nama")
+}
+tulis cek(user)
+
+// 11. Loop integration
+gawe kList = kunci(user)
+gawe idx = 0
+nalika idx < dawa(kList) {
+    tulis kList[idx]
+    idx = idx + 1
+}
+
+// 12. Conditional integration
+yen duwe(user, "nama") {
+    tulis "Ana nama"
+} liyane {
+    tulis "Ora ana nama"
+}
+
+// 13. Duplicate key (last key wins)
+gawe dataDup = {
+    "nama": "Budi",
+    "nama": "Siti"
+}
+tulis kunci(dataDup)
+tulis nilai(dataDup)
+
+tulis "=== SELESAI ==="
+`;
+
+const negativeTest = `// ============================================
+// TEST OBJECT BUILTIN ERROR - JAWASCRIPT
+// ============================================
+
+gawe data = {
+    "nama": "Budi"
+}
+
+// Harap gagal: kunci() mbutuhake 1 argument
+tulis "Coba panggil kunci() tanpa argument:"
+kunci()
+`;
+
+fs.writeFileSync(path.join(targetDir, 'test_object_builtin.jawa'), positiveTest, 'utf8');
+fs.writeFileSync(path.join(targetDir, 'test_object_builtin_error.jawa'), negativeTest, 'utf8');
+console.log("Successfully created test_object_builtin.jawa and test_object_builtin_error.jawa");

@@ -1601,6 +1601,38 @@ Uninstaller mung mbusak entri sing bener-bener digawe dening Jawalang, tanpa ngg
 
 ---
 
+## 🧩 Tooling & Integrasi Editor
+
+### 1. Jawalang VS Code Extension
+Ekstensi resmi VS Code kasedhiya ing direktori `vscode-extension/` mawa paket VSIX `jawalang-vscode-1.0.0.vsix`.
+- **Fitur**: Syntax highlighting lengkap, snippets, perintah run file, sarta integrasi Language Server.
+- **Instalasi**:
+  ```powershell
+  code --install-extension vscode-extension/jawalang-vscode-1.0.0.vsix
+  ```
+
+### 2. Jawalang Language Server (LSP)
+Language Server Protocol kasedhiya ing direktori `language-server/` mawa binary executable `language-server/bin/jawalang-language-server.js`.
+- **Kapabilitas**:
+  - **Diagnostik Real-time**: Deteksi kesalahan sintaks lan semantik tanpa false positives.
+  - **Go to Definition**: Navigasi leksikal lokal lan cross-file menyang file modul ekspor.
+  - **Semantic Autocomplete**: Saran simbol leksikal, anggota struct (`iki.`, `instance.`), namespace modul (`math.`), lan 24 built-in.
+  - **Semantic Hover**: Inferensi jinis data variabel, tandha tangan fungsi, lan dokumentasi struct/built-in.
+  - **Document Symbols**: Hirarki outline dokumen kanggo struct, field, metode, lan fungsi.
+- **CLI Language Server**:
+  ```bash
+  node language-server/bin/jawalang-language-server.js --version
+  node language-server/bin/jawalang-language-server.js --help
+  node language-server/bin/jawalang-language-server.js --stdio
+  ```
+- **Pengujian Unit & Validasi**:
+  ```bash
+  node language-server/test/run_tests.js
+  node scratch/test_language_server.js
+  ```
+
+---
+
 ## 🏗️ Struktur Proyèk
 
 - `package.json` — Metadata proyek, konfigurasi `"bin": { "jawa": "./bin/jawa.js" }`, lan scripts build/package.
@@ -1616,9 +1648,11 @@ Uninstaller mung mbusak entri sing bener-bener digawe dening Jawalang, tanpa ngg
 - `scripts/package-release.ps1` — Script otomatis pambungkus paket rilis standalone.
 - `assets/jawalang.ico` — Windows multi-resolution icon binary.
 - `assets/jawalang.svg` — Vektor logo asli Jawalang.
-- `src/lexer.js` — **Tokenizer**: Ngowahi kode mentah dadi deretan token.
-- `src/parser.js` — **Recursive Descent Parser**: Ngolah token dadi Abstract Syntax Tree (AST).
+- `src/lexer.js` — **Tokenizer**: Ngowahi kode mentah dadi deretan token mawa pelacakan posisi `loc` (line, character, offset).
+- `src/parser.js` — **Recursive Descent Parser**: Ngolah token dadi Abstract Syntax Tree (AST) mawa posisi semantik.
 - `src/interpreter.js` — **Interpreter**: Eksekusi AST mawa lexical scoping, struct, method, lan inheritance.
+- `language-server/` — **Jawalang Language Server V1**: Implementasi LSP mawa diagnostik, definisi, autokomplit, hover, lan outline.
+- `vscode-extension/` — **Jawalang VS Code Extension V1**: Ekstensi resmi editor kalebu integrasi LSP Client lan VSIX package.
 - `examples/` — Tuladha program Jawalang lengkap mawa tes-tes fitur.
 - `examples/cli/` — Test fixture integrasi CLI, modul relatif, lan program interaktif.
 - `release/` — Direktori paket rilis standalone (`Jawalang-v1.0.0-windows-x64` lan `.zip`).

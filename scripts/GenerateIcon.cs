@@ -26,6 +26,15 @@ namespace JawalangIconBuilder
                 {
                     bmp.Save(ms, ImageFormat.Png);
                     pngEntries.Add(new KeyValuePair<int, byte[]>(size, ms.ToArray()));
+                    if (size == 128)
+                    {
+                        string outPng = Path.Combine(projectRoot, "assets", "jawalang.png");
+                        bmp.Save(outPng, ImageFormat.Png);
+                        string extPng = Path.Combine(projectRoot, "vscode-extension", "icons", "jawalang.png");
+                        string extDir = Path.GetDirectoryName(extPng);
+                        if (!Directory.Exists(extDir)) Directory.CreateDirectory(extDir);
+                        bmp.Save(extPng, ImageFormat.Png);
+                    }
                 }
             }
 

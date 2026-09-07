@@ -1,0 +1,24 @@
+// Definitions Test Fixture
+gawe targetVar = "Nilai Kunci"
+
+guna targetFunc(paramA, paramB) {
+    gawe lokal = paramA + paramB
+    bali lokal
+}
+
+bentuk TargetStruct {
+    gawe fieldA = 100
+
+    wiwiti(val) {
+        iki.fieldA = val
+    }
+
+    guna methodA() {
+        bali iki.fieldA
+    }
+}
+
+gawe testA = targetVar
+gawe testB = targetFunc(1, 2)
+gawe testC = anyar TargetStruct(50)
+gawe testD = testC.methodA()

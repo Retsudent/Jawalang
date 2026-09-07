@@ -1,0 +1,17 @@
+// Structs Test Fixture
+bentuk Kewan {
+    gawe jeneng = "Kewan"
+    gawe sikil = 4
+
+    wiwiti(j, s) {
+        iki.jeneng = j
+        iki.sikil = s
+    }
+
+    guna swara() {
+        bali "Kewan bersuara"
+    }
+}
+
+gawe k = anyar Kewan("Kucing", 4)
+tulis k.swara()
