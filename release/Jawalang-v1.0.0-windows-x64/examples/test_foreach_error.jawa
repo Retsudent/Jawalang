@@ -1,0 +1,11 @@
+// ============================================
+// TEST FOREACH ERROR - JAWASCRIPT
+// ============================================
+
+gawe angka = 10
+
+// Harap gagal: 10 bukan array
+tulis "Coba foreach ing angka 10:"
+kanggo saben x ing angka {
+    tulis x
+}

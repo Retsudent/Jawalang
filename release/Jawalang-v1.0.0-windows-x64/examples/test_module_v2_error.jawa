@@ -1,0 +1,6 @@
+﻿// test_module_v2_error.jawa
+// Negative test fixture - harus exit 1 (private struct access)
+
+impor "modules/mod_struct_v2"
+
+gawe s = anyar SecretConfig()

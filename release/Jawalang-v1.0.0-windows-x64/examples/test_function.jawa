@@ -1,0 +1,115 @@
+// FUNCTION BASIC
+
+guna salam() {
+    tulis "Halo Jawalang"
+}
+
+salam()
+
+
+// PARAMETER
+
+guna salamNama(nama) {
+    tulis nama
+}
+
+salamNama("Barch")
+
+
+// MULTI PARAMETER
+
+guna tambah(a, b) {
+    bali a + b
+}
+
+tulis tambah(10, 20)
+
+
+// FUNCTION AS EXPRESSION
+
+gawe hasil = tambah(5, 7)
+
+tulis hasil
+
+
+// NESTED CALL
+
+guna kali(a, b) {
+    bali a * b
+}
+
+tulis kali(tambah(2, 3), 4)
+
+
+// LOCAL SCOPE
+
+gawe nama = "Global"
+
+guna testScope() {
+    gawe nama = "Local"
+    tulis nama
+}
+
+testScope()
+
+tulis nama
+
+
+// LOOP DALAM FUNCTION
+
+guna hitung(n) {
+
+    gawe i = 1
+
+    nalika i <= n {
+        tulis i
+        i = i + 1
+    }
+}
+
+hitung(3)
+
+
+// EARLY RETURN
+
+guna cek(n) {
+
+    yen n < 0 {
+        bali "negatif"
+    }
+
+    bali "positif"
+}
+
+tulis cek(-5)
+tulis cek(5)
+
+
+// RECURSION
+
+guna hitungMundur(n) {
+
+    yen n <= 0 {
+        bali
+    }
+
+    tulis n
+
+    hitungMundur(n - 1)
+}
+
+hitungMundur(3)
+
+
+// FACTORIAL
+
+guna faktorial(n) {
+
+    yen n <= 1 {
+        bali 1
+    }
+
+    bali n * faktorial(n - 1)
+}
+
+tulis faktorial(5)

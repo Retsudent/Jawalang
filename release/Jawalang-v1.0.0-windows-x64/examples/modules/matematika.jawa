@@ -1,0 +1,10 @@
+// matematika.jawa
+ekspor guna tambah(a, b) {
+    bali a + b
+}
+
+ekspor guna ping(a, b) {
+    bali a * b
+}
+
+ekspor gawe versi = "1.0.0"

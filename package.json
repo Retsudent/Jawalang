@@ -1,0 +1,21 @@
+{
+  "name": "jawalang",
+  "version": "1.0.0",
+  "description": "Basa pamrograman prasaja mawa sintaks basa Jawa",
+  "main": "index.js",
+  "bin": {
+    "jawa": "./bin/jawa.js"
+  },
+  "scripts": {
+    "test": "node scratch/run_full_regression.js",
+    "build": "powershell -ExecutionPolicy Bypass -File scripts/build-windows.ps1",
+    "package": "powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1"
+  },
+  "keywords": [
+    "jawalang",
+    "programming-language",
+    "javanese"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,5 @@
+// test_inheritance_v5_error.jawa
+// Negative test fixture - must fail with exit code 1
+bentuk Anak ngembangake OraAna {
+    gawe x = 1
+}

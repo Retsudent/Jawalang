@@ -1,0 +1,10 @@
+// NEGATIVE TEST: Local variable leakage (ora kena bocor metu)
+
+guna test() {
+    gawe rahasia = 123
+}
+
+test()
+
+// Baris iki kudu ngasilake error amarga 'rahasia' ana ing njero scope fungsi
+tulis rahasia

@@ -1,0 +1,7 @@
+// hello_cli.jawa
+// Contoh program Jawalang kanggo tes CLI & Windows Integration
+
+gawe jeneng = "Jawalang"
+gawe versi = "1.0.0"
+
+tulis "Halo saka " + jeneng + " versi " + versi + "!"

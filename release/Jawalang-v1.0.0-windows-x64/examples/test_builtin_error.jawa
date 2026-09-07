@@ -1,0 +1,8 @@
+// =============================================
+// TEST BUILT-IN ERROR — JAWALANG
+// =============================================
+// Mencoba memanggil jupuk() dengan indeks negatif
+
+gawe data = [10, 20, 30]
+tulis "Coba panggil jupuk(data, -1):"
+tulis jupuk(data, -1)

@@ -1,0 +1,7 @@
+// ===========================================
+// TEST TYPE ERROR - JAWA,ANG
+// ==========================================
+// Operasi aritmatika karo null kudu error
+
+tulis "Coba operasi null + 10:"
+tulis null + 10

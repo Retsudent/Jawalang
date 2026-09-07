@@ -1,0 +1,4 @@
+﻿// test_module_v3_error.jawa
+// Negative test fixture - kudu exit 1 (import simbol privat)
+
+impor { privVar } saka "modules/mod_v3_private"

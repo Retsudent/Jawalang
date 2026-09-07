@@ -1,0 +1,3 @@
+// Interactive CLI fixture using takon()
+gawe jeneng = takon("Jeneng: ")
+tulis "Halo " + jeneng + ", sugeng rawuh ing Jawalang!"

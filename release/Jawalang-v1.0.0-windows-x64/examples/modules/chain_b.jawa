@@ -1,0 +1,6 @@
+// chain_b.jawa
+impor "chain_c"
+
+ekspor guna nilaiB() {
+    bali nilaiC() + 20
+}

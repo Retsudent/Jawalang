@@ -1,0 +1,6 @@
+// test_dot_notation_v4_error.jawa
+// Negative test fixture - kudu exit 1 (mutasi properti namespace nganggo dot)
+
+impor "modules/mod_v3_namespace" minangka math
+
+math.versi = "4.0"

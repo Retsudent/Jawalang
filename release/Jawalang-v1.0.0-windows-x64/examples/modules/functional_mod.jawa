@@ -1,0 +1,14 @@
+// functional_mod.jawa — Module fixture kanggo test higher-order function
+gawe faktor = 10
+
+ekspor guna kaliFaktor(x) {
+    bali x * faktor
+}
+
+ekspor guna kuadrat(x) {
+    bali x * x
+}
+
+ekspor guna transformasiData(fn, arr) {
+    bali terapkan(fn, arr)
+}

@@ -1,0 +1,22 @@
+﻿// mod_v3_closure.jawa
+// Module fixture for lexical closure preservation in V3
+
+gawe baseValue = 100
+gawe counter = 0
+
+ekspor guna getBase() {
+    bali baseValue
+}
+
+ekspor guna inc() {
+    counter = counter + 1
+    bali counter
+}
+
+ekspor guna getCounter() {
+    bali counter
+}
+
+ekspor guna hitung(x) {
+    bali x + baseValue
+}

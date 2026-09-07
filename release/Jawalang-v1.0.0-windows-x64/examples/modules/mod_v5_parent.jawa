@@ -1,0 +1,23 @@
+// mod_v5_parent.jawa
+// Parent struct module kanggo cross-module inheritance
+
+ekspor bentuk Makhluk {
+    gawe bernafas = bener
+    gawe jeneng = "Makhluk"
+
+    wiwiti(j) {
+        iki["jeneng"] = j
+    }
+
+    guna status() {
+        bali iki["jeneng"] + " bisa ambegan"
+    }
+
+    guna info() {
+        bali "Info: " + iki["status"]()
+    }
+}
+
+ekspor bentuk MakhlukPolos {
+    gawe jinis = "Polos"
+}

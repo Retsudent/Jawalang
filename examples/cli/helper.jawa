@@ -1,0 +1,8 @@
+// Helper module for Jawalang CLI tests
+ekspor guna sapa(jeneng) {
+    bali "Halo " + jeneng + ", sugeng rawuh ing Jawalang CLI!"
+}
+
+ekspor guna petung(a, b) {
+    bali a * b
+}

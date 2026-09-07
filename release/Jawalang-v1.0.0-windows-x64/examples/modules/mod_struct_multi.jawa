@@ -1,0 +1,37 @@
+﻿// examples/modules/mod_struct_multi.jawa
+// Module dengan multiple exported structs + fungsi + variabel
+
+ekspor gawe versiMulti = "multi-v1"
+
+ekspor bentuk User {
+    gawe nama = ""
+    gawe role = "user"
+
+    guna wiwiti(n) {
+        iki["nama"] = n
+    }
+
+    guna getInfo() {
+        bali iki["nama"] + " (" + iki["role"] + ")"
+    }
+}
+
+ekspor bentuk Admin {
+    gawe nama = ""
+    gawe role = "admin"
+    gawe level = 1
+
+    guna wiwiti(n, lvl) {
+        iki["nama"] = n
+        iki["level"] = lvl
+    }
+
+    guna getInfo() {
+        bali iki["nama"] + " (" + iki["role"] + " level " + iki["level"] + ")"
+    }
+}
+
+ekspor guna buatUser(n) {
+    gawe u = anyar User(n)
+    bali u
+}

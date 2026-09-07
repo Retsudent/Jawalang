@@ -1,0 +1,37 @@
+﻿// mod_v3_basic.jawa
+// Module fixture for basic V3 imports (selective, alias, mixed)
+
+gawe rahasia = 999
+
+ekspor gawe pi = 3.14
+ekspor gawe salam = "Halo Jawa"
+
+ekspor guna tambah(a, b) {
+    bali a + b
+}
+
+ekspor guna kurang(a, b) {
+    bali a - b
+}
+
+ekspor guna kali(a, b) {
+    bali a * b
+}
+
+ekspor bentuk Titik {
+    gawe x = 0
+    gawe y = 0
+
+    guna wiwiti(px, py) {
+        iki["x"] = px
+        iki["y"] = py
+    }
+
+    guna info() {
+        bali "(" + iki["x"] + ", " + iki["y"] + ")"
+    }
+}
+
+bentuk PrivateStruct {
+    gawe secret = "tersembunyi"
+}

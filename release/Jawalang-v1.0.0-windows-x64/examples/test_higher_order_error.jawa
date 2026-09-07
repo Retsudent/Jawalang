@@ -1,0 +1,6 @@
+// test_higher_order_error.jawa — Test error handling callback saring (non-boolean return)
+guna duduBoolean(x) {
+    bali "ora sah"
+}
+
+tulis saring(duduBoolean, [1, 2, 3])

@@ -1,0 +1,416 @@
+// ==========================================================
+// TEST SUITE: Struct & Method System V1 (35 Skenario)
+// ==========================================================
+
+impor "./modules/struct_factory.jawa"
+
+tulis "=== TEST SUITE STRUCT & METHOD SYSTEM V1 ==="
+
+// ----------------------------------------------------------
+// 1. Basic struct declaration with default fields
+// ----------------------------------------------------------
+tulis "--- 1 & 2. Deklarasi Struct & Instansiasi Default ---"
+bentuk Wong {
+    gawe jeneng = "Anonim"
+    gawe umur = 0
+}
+
+gawe w1 = anyar Wong()
+tulis w1["jeneng"]
+tulis w1["umur"]
+
+// ----------------------------------------------------------
+// 3 & 4. Reading & writing fields via index
+// ----------------------------------------------------------
+tulis "--- 3 & 4. Maca lan Ngowahi Field ---"
+w1["jeneng"] = "Budi"
+w1["umur"] = 25
+tulis w1["jeneng"]
+tulis w1["umur"]
+
+// ----------------------------------------------------------
+// 5. Constructor (wiwiti) dengan parameter
+// ----------------------------------------------------------
+tulis "--- 5. Constructor wiwiti ---"
+bentuk Mahasiswa {
+    gawe nim = ""
+    gawe jeneng = ""
+    gawe ipk = 0.0
+
+    guna wiwiti(n, j, i) {
+        iki["nim"] = n
+        iki["jeneng"] = j
+        iki["ipk"] = i
+    }
+}
+
+gawe mhs1 = anyar Mahasiswa("12345", "Siti", 3.85)
+tulis mhs1["nim"]
+tulis mhs1["jeneng"]
+tulis mhs1["ipk"]
+
+// ----------------------------------------------------------
+// 6. Constructor return value diabaikan (tetap bali instance)
+// ----------------------------------------------------------
+tulis "--- 6. Return Constructor Diabaikan ---"
+bentuk AbaikanReturn {
+    gawe val = 100
+
+    guna wiwiti() {
+        iki["val"] = 200
+        bali 9999
+    }
+}
+
+gawe ar = anyar AbaikanReturn()
+tulis ar["val"]
+tulis jinis(ar)
+
+// ----------------------------------------------------------
+// 7. Method call ing instance
+// ----------------------------------------------------------
+tulis "--- 7. Method Call ---"
+bentuk Kucing {
+    gawe jeneng = "Mimi"
+
+    guna swara() {
+        tulis iki["jeneng"] + " ngomong: Meong!"
+    }
+}
+
+gawe k1 = anyar Kucing()
+k1["swara"]()
+
+// ----------------------------------------------------------
+// 8 & 9. Method dengan argumen lan return value
+// ----------------------------------------------------------
+tulis "--- 8 & 9. Method kanthi Argumen lan Return ---"
+bentuk Kalkulator {
+    gawe total = 0
+
+    guna tambah(a, b) {
+        bali a + b
+    }
+
+    guna simpen(v) {
+        iki["total"] = iki["total"] + v
+        bali iki["total"]
+    }
+}
+
+gawe k = anyar Kalkulator()
+tulis k["tambah"](10, 20)
+tulis k["simpen"](5)
+tulis k["simpen"](15)
+tulis k["total"]
+
+// ----------------------------------------------------------
+// 10. Multiple instances isolasi state
+// ----------------------------------------------------------
+tulis "--- 10. Isolasi Multiple Instances ---"
+gawe w2 = anyar Wong()
+w2["jeneng"] = "Dewi"
+w2["umur"] = 30
+tulis w1["jeneng"]
+tulis w2["jeneng"]
+
+// ----------------------------------------------------------
+// 11. Mutable array default isolation
+// ----------------------------------------------------------
+tulis "--- 11. Mutable Array Default Isolation ---"
+bentuk Kothak {
+    gawe isi = []
+}
+
+gawe b1 = anyar Kothak()
+gawe b2 = anyar Kothak()
+nambah(b1["isi"], "apel")
+nambah(b1["isi"], "jeruk")
+tulis dawa(b1["isi"])
+tulis dawa(b2["isi"])
+
+// ----------------------------------------------------------
+// 12. Mutable object default isolation
+// ----------------------------------------------------------
+tulis "--- 12. Mutable Object Default Isolation ---"
+bentuk Profil {
+    gawe data = { "poin": 0 }
+}
+
+gawe p1 = anyar Profil()
+gawe p2 = anyar Profil()
+p1["data"]["poin"] = 50
+tulis p1["data"]["poin"]
+tulis p2["data"]["poin"]
+
+// ----------------------------------------------------------
+// 13 & 14. Nested struct & mutasi nested instance
+// ----------------------------------------------------------
+tulis "--- 13 & 14. Nested Struct ---"
+bentuk Alamat {
+    gawe kutha = ""
+
+    guna wiwiti(k) {
+        iki["kutha"] = k
+    }
+}
+
+bentuk Karyawan {
+    gawe jeneng = ""
+    gawe alamat = null
+
+    guna wiwiti(j, a) {
+        iki["jeneng"] = j
+        iki["alamat"] = a
+    }
+}
+
+gawe al = anyar Alamat("Surakarta")
+gawe kar = anyar Karyawan("Joko", al)
+tulis kar["jeneng"]
+tulis kar["alamat"]["kutha"]
+kar["alamat"]["kutha"] = "Yogyakarta"
+tulis al["kutha"]
+
+// ----------------------------------------------------------
+// 15 & 16. iki referencing instance lan panggil method liya liwat iki
+// ----------------------------------------------------------
+tulis "--- 15 & 16. iki lan Antar-Method Call ---"
+bentuk Persegi {
+    gawe sisi = 0
+
+    guna wiwiti(s) {
+        iki["sisi"] = s
+    }
+
+    guna jembar() {
+        bali iki["sisi"] * iki["sisi"]
+    }
+
+    guna keliling() {
+        bali 4 * iki["sisi"]
+    }
+
+    guna laporan() {
+        bali "Jembar: " + iki["jembar"]() + ", Keliling: " + iki["keliling"]()
+    }
+}
+
+gawe psg = anyar Persegi(6)
+tulis psg["jembar"]()
+tulis psg["keliling"]()
+tulis psg["laporan"]()
+
+// ----------------------------------------------------------
+// 17. Bound method disimpan di variabel
+// ----------------------------------------------------------
+tulis "--- 17. Bound Method ing Variabel ---"
+gawe fnJembar = psg["jembar"]
+tulis fnJembar()
+
+// ----------------------------------------------------------
+// 18. Bound method dengan terapkan (map)
+// ----------------------------------------------------------
+tulis "--- 18. Bound Method karo terapkan ---"
+bentuk Pengali {
+    gawe faktor = 10
+
+    guna kali(x) {
+        bali x * iki["faktor"]
+    }
+}
+
+gawe pengali = anyar Pengali()
+gawe angkaList = [1, 2, 3, 4]
+gawe asilKali = terapkan(pengali["kali"], angkaList)
+tulis asilKali
+
+// ----------------------------------------------------------
+// 19. Bound method dengan saring (filter)
+// ----------------------------------------------------------
+tulis "--- 19. Bound Method karo saring ---"
+bentuk FilterBatas {
+    gawe minimal = 15
+
+    guna lulus(x) {
+        bali x >= iki["minimal"]
+    }
+}
+
+gawe fb = anyar FilterBatas()
+gawe angkaSaring = [10, 15, 20, 5, 30]
+gawe asilSaring = saring(fb["lulus"], angkaSaring)
+tulis asilSaring
+
+// ----------------------------------------------------------
+// 20. Bound method dengan golek (find)
+// ----------------------------------------------------------
+tulis "--- 20. Bound Method karo golek ---"
+bentuk Pencari {
+    gawe target = 20
+
+    guna cocog(x) {
+        bali x == iki["target"]
+    }
+}
+
+gawe pc = anyar Pencari()
+tulis golek(pc["cocog"], [5, 10, 20, 25])
+
+// ----------------------------------------------------------
+// 21. Bound method dengan ana (some)
+// ----------------------------------------------------------
+tulis "--- 21. Bound Method karo ana ---"
+bentuk CekGenap {
+    guna genap(x) {
+        bali (x / 2) * 2 == x
+    }
+}
+
+gawe cg = anyar CekGenap()
+tulis ana(cg["genap"], [1, 3, 4, 7])
+tulis ana(cg["genap"], [1, 3, 5, 7])
+
+// ----------------------------------------------------------
+// 22. Bound method dengan kabeh (every)
+// ----------------------------------------------------------
+tulis "--- 22. Bound Method karo kabeh ---"
+bentuk CekPositif {
+    guna positif(x) {
+        bali x > 0
+    }
+}
+
+gawe cp = anyar CekPositif()
+tulis kabeh(cp["positif"], [1, 2, 3])
+tulis kabeh(cp["positif"], [1, -2, 3])
+
+// ----------------------------------------------------------
+// 23, 24, 25. jinis() kanggo instance, struct, lan method
+// ----------------------------------------------------------
+tulis "--- 23, 24, 25. jinis() ---"
+tulis jinis(psg)
+tulis jinis(Persegi)
+tulis jinis(psg["jembar"])
+
+// ----------------------------------------------------------
+// 26. Dynamic field overrides method
+// ----------------------------------------------------------
+tulis "--- 26. Dynamic Field Overrides Method ---"
+bentuk Piranti {
+    guna urip() {
+        tulis "Piranti urip"
+    }
+}
+
+gawe prt = anyar Piranti()
+prt["urip"]()
+prt["urip"] = "status: mati"
+tulis prt["urip"]
+
+// ----------------------------------------------------------
+// 27. Menambah field dinamis anyar
+// ----------------------------------------------------------
+tulis "--- 27. Field Dinamis Anyar ---"
+prt["versi"] = "v1.0"
+tulis prt["versi"]
+
+// ----------------------------------------------------------
+// 28. Instance di dalam array & kanggo saben
+// ----------------------------------------------------------
+tulis "--- 28. Instance ing Array & kanggo saben ---"
+bentuk Item {
+    gawe jeneng = ""
+    gawe rega = 0
+
+    guna wiwiti(j, r) {
+        iki["jeneng"] = j
+        iki["rega"] = r
+    }
+}
+
+gawe items = [anyar Item("Buku", 5000), anyar Item("Pen", 2000)]
+gawe totalRega = 0
+kanggo saben itm ing items {
+    totalRega = totalRega + itm["rega"]
+}
+tulis totalRega
+
+// ----------------------------------------------------------
+// 29. Instance di dalam Object
+// ----------------------------------------------------------
+tulis "--- 29. Instance ing Object ---"
+gawe wadah = { "kapisan": anyar Item("Kopi", 3000) }
+tulis wadah["kapisan"]["jeneng"]
+tulis wadah["kapisan"]["rega"]
+
+// ----------------------------------------------------------
+// 30. Akses field sing ora ana bali null
+// ----------------------------------------------------------
+tulis "--- 30. Akses Field Ora Ana ---"
+tulis prt["oraAna"]
+
+// ----------------------------------------------------------
+// 31. String representation formatValue
+// ----------------------------------------------------------
+tulis "--- 31. String Representation ---"
+bentuk Titik2D {
+    gawe x = 10
+    gawe y = 20
+}
+gawe t2d = anyar Titik2D()
+tulis t2d
+
+// ----------------------------------------------------------
+// 32. Circular reference representation
+// ----------------------------------------------------------
+tulis "--- 32. Circular Reference Representation ---"
+bentuk Node {
+    gawe val = 1
+    gawe next = null
+}
+gawe n1 = anyar Node()
+gawe n2 = anyar Node()
+n1["next"] = n2
+n2["next"] = n1
+tulis n1
+
+// ----------------------------------------------------------
+// 33 & 34. Module integration (factory function pattern)
+// ----------------------------------------------------------
+tulis "--- 33 & 34. Module Factory Pattern ---"
+gawe titikA = gaweTitik(0, 0)
+gawe titikB = gaweTitik(3, 4)
+tulis titikA["info"]()
+tulis titikB["info"]()
+titikA["geser"](1, 1)
+tulis titikA["info"]()
+tulis jarakKuadrat(titikA, titikB)
+
+// ----------------------------------------------------------
+// 35. Struct ing Coba / Tangkep (Exception Handling)
+// ----------------------------------------------------------
+tulis "--- 35. Exception ing njero Method ---"
+bentuk Dompet {
+    gawe saldo = 100
+
+    guna tarik(jumlah) {
+        yen (jumlah > iki["saldo"]) {
+            lempar "Saldo ora cukup!"
+        }
+        iki["saldo"] = iki["saldo"] - jumlah
+        bali iki["saldo"]
+    }
+}
+
+gawe dmp = anyar Dompet()
+coba {
+    dmp["tarik"](50)
+    tulis "Sisa saldo: " + dmp["saldo"]
+    dmp["tarik"](100)
+} tangkep err {
+    tulis "Kecekel error: " + err
+}
+tulis "Sisa akhir: " + dmp["saldo"]
+
+tulis "=== STRUCT TESTS COMPLETE ==="
