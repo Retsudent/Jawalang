@@ -14,6 +14,7 @@ Ekstensi resmi **Jawalang** kanggo Visual Studio Code. Nyedhiyakake dhukungan ba
 - **Language Server Protocol (LSP)**: Dilengkapi Jawalang Language Server kanthi kapabilitas cerdas:
   - **Diagnostik Real-time**: Laporan kesalahan sintaks lan semantik kanthi akurat.
   - **Go to Definition**: Navigasi menyang deklarasi variabel, fungsi, struct, lan modul sing diimpor.
+  - **Find All References**: Nemokake kabeh referensi panggunaan variabel, parameter, fungsi, struct, metode (`iki.method`, `super.method`), lan modul.
   - **Autocomplete Semantik**: Rekomendasi simbol leksikal, anggota struct (`iki.`, `instance.`), lan namespace modul (`math.`).
   - **Hover Semantik**: Nuduhake tipe data inferensi, signature, lan dokumentasi built-in.
   - **Outline Dokumen (Document Symbols)**: Peta struktur hirarkis file ing panel Outline VS Code.

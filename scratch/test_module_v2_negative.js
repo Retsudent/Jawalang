@@ -20,10 +20,10 @@ function runCode(code, isFile = false) {
             encoding: 'utf8',
             stdio: ['pipe', 'pipe', 'pipe']
         });
-        if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
+        try { if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile); } catch (_) {}
         return { success: true, output: result.trim() };
     } catch (e) {
-        if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
+        try { if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile); } catch (_) {}
         return { success: false, output: ((e.stdout || '') + (e.stderr || '')).trim() };
     }
 }

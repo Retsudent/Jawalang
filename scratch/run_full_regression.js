@@ -121,7 +121,9 @@ const scratchRunners = [
     'test_cli_positive.js',
     'test_cli_negative.js',
     'test_inheritance_v5_negative.js',
-    'test_repl.js'
+    'test_repl.js',
+    'test_language_server.js',
+    'test_references_v130.js'
 ];
 
 let runnerPassed = 0;

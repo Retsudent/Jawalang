@@ -259,22 +259,40 @@ function findTokenAt(tokens, position) {
     if (!tokens || tokens.length === 0) return null;
     const { line, character } = position;
 
+    const isWordToken = (t) => t && (t.type === 'IDENTIFIER' || t.type === 'STRING' || t.type === 'NUMBER' || (t.value && (KEYWORDS[t.value] || BUILTINS[t.value])));
+
+    let candidate = null;
+
+    // 1. First preference: cursor is strictly within token [start, end)
     for (let idx = 0; idx < tokens.length; idx++) {
         const tok = tokens[idx];
-        if (tok.loc && isPositionInRange(position, tok.loc)) {
-            return tok;
+        if (tok.loc) {
+            const { start, end } = tok.loc;
+            if (line >= start.line && line <= end.line) {
+                const afterStart = line > start.line || character >= start.character;
+                const beforeEnd = line < end.line || character < end.character;
+                if (afterStart && beforeEnd) {
+                    if (isWordToken(tok)) {
+                        return tok;
+                    }
+                    if (!candidate) candidate = tok;
+                }
+            }
         }
     }
 
-    // Secondary check: token ending right at cursor
+    // 2. Secondary check: token ending right at cursor (prefer word tokens over delimiters)
     for (let idx = 0; idx < tokens.length; idx++) {
         const tok = tokens[idx];
         if (tok.loc && tok.loc.end.line === line && tok.loc.end.character === character) {
-            return tok;
+            if (isWordToken(tok)) {
+                return tok;
+            }
+            if (!candidate) candidate = tok;
         }
     }
 
-    return null;
+    return candidate;
 }
 
 /**

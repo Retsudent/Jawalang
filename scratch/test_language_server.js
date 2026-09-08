@@ -12,6 +12,7 @@ const { getDefinition } = require('../language-server/src/definitions');
 const { getCompletions } = require('../language-server/src/completion');
 const { getHover } = require('../language-server/src/hover');
 const { getDocumentSymbols, SymbolKind } = require('../language-server/src/symbols');
+const { getReferences } = require('../language-server/src/references');
 const moduleManager = require('../language-server/src/modules');
 const { DocumentManager } = require('../language-server/src/documentManager');
 const { pathToUri } = require('../language-server/src/utils');
@@ -346,6 +347,38 @@ recordResult('VS Code Integration', 'VSIX artifact is packaged and ready for dis
     assert.ok(fs.existsSync(vsixPath));
     const stat = fs.statSync(vsixPath);
     assert.ok(stat.size > 20000);
+});
+
+// 10. FIND REFERENCES TESTS (V1.3.0 Phase 2)
+recordResult('Find References', 'Global variable references finds declaration and call-site usages', () => {
+    const code = 'gawe x = 10\ntulis x\ngawe y = x + 1';
+    const res = analyzer.analyze(code, 'file:///test_ref_global.jawa');
+    const refs = getReferences(res, { line: 0, character: 5 }, { includeDeclaration: true });
+    assert.strictEqual(refs.length, 3);
+});
+
+recordResult('Find References', 'Local variable references honors scope and shadowing', () => {
+    const code = 'gawe x = 10\nguna tes() {\n    gawe x = 20\n    tulis x\n}\ntulis x';
+    const res = analyzer.analyze(code, 'file:///test_ref_shadow.jawa');
+    const refs = getReferences(res, { line: 2, character: 9 }, { includeDeclaration: true });
+    assert.strictEqual(refs.length, 2);
+    assert.strictEqual(refs[0].range.start.line, 2);
+});
+
+recordResult('Find References', 'Struct and method references resolve accurately', () => {
+    const code = 'bentuk Mobil { guna maju() { tulis 1 } }\ngawe m = anyar Mobil()\nm.maju()';
+    const res = analyzer.analyze(code, 'file:///test_ref_struct.jawa');
+    const refs = getReferences(res, { line: 0, character: 21 }, { includeDeclaration: true });
+    assert.strictEqual(refs.length, 2);
+    assert.strictEqual(refs[0].range.start.line, 0);
+    assert.strictEqual(refs[1].range.start.line, 2);
+});
+
+recordResult('Find References', 'Built-in functions and keywords return empty array', () => {
+    const code = 'tulis "halo"\nyen bener { mandheg }';
+    const res = analyzer.analyze(code, 'file:///test_ref_builtins.jawa');
+    assert.deepStrictEqual(getReferences(res, { line: 0, character: 2 }), []);
+    assert.deepStrictEqual(getReferences(res, { line: 1, character: 2 }), []);
 });
 
 // RENDER SUMMARY TABLE

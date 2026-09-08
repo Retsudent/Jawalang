@@ -24,10 +24,10 @@ function runFile(filename) {
         const result = execSync(`"${process.execPath}" "${path.join(PROJECT, 'index.js')}" "${tmpFile}"`, {
             cwd: PROJECT, encoding: 'utf8', stdio: ['pipe','pipe','pipe']
         });
-        if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
+        try { if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile); } catch (_) {}
         return { success: true, output: result };
     } catch (e) {
-        if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
+        try { if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile); } catch (_) {}
         return { success: false, output: (e.stderr || '') + (e.stdout || '') };
     }
 }

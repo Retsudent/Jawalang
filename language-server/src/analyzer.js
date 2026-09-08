@@ -58,6 +58,52 @@ class Scope {
     }
 }
 
+function findStructMemberTokens(tokens, structLoc, memberName, isMethod, isConstructor) {
+    if (!tokens || !structLoc) return { loc: null, nameLoc: null };
+    const sLine = structLoc.start ? structLoc.start.line : 0;
+    const eLine = structLoc.end ? structLoc.end.line : Infinity;
+
+    for (let i = 0; i < tokens.length; i++) {
+        const tok = tokens[i];
+        if (!tok.loc) continue;
+        if (tok.loc.start.line < sLine) continue;
+        if (tok.loc.start.line > eLine) break;
+
+        if (isConstructor && tok.type === 'WIWITI') {
+            return { loc: tok.loc, nameLoc: tok.loc };
+        }
+        if (isMethod && tok.type === 'GUNA' && tokens[i + 1] && tokens[i + 1].value === memberName) {
+            return {
+                loc: { start: tok.loc.start, end: tokens[i + 1].loc.end },
+                nameLoc: tokens[i + 1].loc
+            };
+        }
+        if (!isMethod && !isConstructor && tok.type === 'GAWE' && tokens[i + 1] && tokens[i + 1].value === memberName) {
+            return {
+                loc: { start: tok.loc.start, end: tokens[i + 1].loc.end },
+                nameLoc: tokens[i + 1].loc
+            };
+        }
+    }
+    return { loc: null, nameLoc: null };
+}
+
+function findPropertyToken(tokens, objectLoc, propName) {
+    if (!tokens || !objectLoc || !objectLoc.end) return null;
+    const startLine = objectLoc.end.line;
+    const startChar = objectLoc.end.character;
+
+    for (let i = 0; i < tokens.length; i++) {
+        const tok = tokens[i];
+        if (tok.loc && (tok.loc.start.line > startLine || (tok.loc.start.line === startLine && tok.loc.start.character >= startChar))) {
+            if (tok.type === 'DOT' && tokens[i + 1] && (tokens[i + 1].type === 'IDENTIFIER' || tokens[i + 1].type === 'TULIS') && tokens[i + 1].value === propName) {
+                return tokens[i + 1];
+            }
+        }
+    }
+    return null;
+}
+
 class Analyzer {
     analyze(text, uri) {
         const filePath = uriToPath(uri);
@@ -141,6 +187,7 @@ class Analyzer {
         }
 
         // 3. Semantic Analysis Phase
+        this.tokens = tokens;
         const globalScope = new Scope(null, 'global');
         const scopes = [globalScope];
         const allSymbols = [];
@@ -165,12 +212,12 @@ class Analyzer {
 
         // Pass 1: Hoist functions, structs, and imports into global scope
         for (const stmt of ast) {
-            this.hoistStatement(stmt, globalScope, filePath, uri, allSymbols, structs, diagnostics);
+            this.hoistStatement(stmt, globalScope, filePath, uri, allSymbols, structs, diagnostics, tokens);
         }
 
         // Pass 2: Analyze all statement bodies and expressions in full scope hierarchy
         for (const stmt of ast) {
-            this.analyzeStatement(stmt, globalScope, filePath, uri, scopes, allSymbols, references, structs, diagnostics);
+            this.analyzeStatement(stmt, globalScope, filePath, uri, scopes, allSymbols, references, structs, diagnostics, tokens);
         }
 
         return {
@@ -188,7 +235,7 @@ class Analyzer {
         };
     }
 
-    hoistStatement(stmt, scope, filePath, uri, allSymbols, structs, diagnostics) {
+    hoistStatement(stmt, scope, filePath, uri, allSymbols, structs, diagnostics, tokens) {
         if (!stmt) return;
 
         // Handle ExportStatement wrapper
@@ -214,19 +261,40 @@ class Analyzer {
         } else if (actual.type === 'StructDeclaration') {
             const structFields = (actual.fields || []).map(f => f.name);
             const structMethods = new Map();
+            const fieldSymbols = new Map();
             let constructor = null;
 
+            for (const f of actual.fields || []) {
+                const fTokens = findStructMemberTokens(tokens, actual.loc, f.name, false, false);
+                const fSym = {
+                    name: f.name,
+                    kind: 'field',
+                    node: f,
+                    loc: fTokens.loc || f.loc || actual.loc,
+                    nameLoc: fTokens.nameLoc || f.nameLoc || fTokens.loc || actual.loc,
+                    uri,
+                    filePath,
+                    enclosingStruct: actual.name
+                };
+                fieldSymbols.set(f.name, fSym);
+            }
+
             for (const m of actual.methods || []) {
+                const isCtor = m.name === 'wiwiti';
+                const mTokens = findStructMemberTokens(tokens, actual.loc, m.name, !isCtor, isCtor);
                 const mSym = {
                     name: m.name,
-                    kind: m.name === 'wiwiti' ? 'constructor' : 'method',
+                    kind: isCtor ? 'constructor' : 'method',
                     node: m,
                     parameters: m.parameters || [],
-                    loc: m.loc,
-                    nameLoc: m.nameLoc || m.loc
+                    loc: mTokens.loc || m.loc || actual.loc,
+                    nameLoc: mTokens.nameLoc || m.nameLoc || mTokens.loc || actual.loc,
+                    uri,
+                    filePath,
+                    enclosingStruct: actual.name
                 };
                 structMethods.set(m.name, mSym);
-                if (m.name === 'wiwiti') constructor = mSym;
+                if (isCtor) constructor = mSym;
             }
 
             const sym = {
@@ -239,6 +307,7 @@ class Analyzer {
                 filePath,
                 parent: actual.parent,
                 fields: structFields,
+                fieldSymbols,
                 methods: structMethods,
                 constructor
             };
@@ -266,12 +335,23 @@ class Analyzer {
                 // Namespace import: impor "..." minangka ns
                 const nsName = actual.namespace || actual.alias?.value || (typeof actual.alias === 'string' ? actual.alias : null);
                 if (actual.mode === 'namespace' || nsName) {
+                    let nsLoc = actual.loc;
+                    let nsNameLoc = actual.loc;
+                    if (tokens) {
+                        for (let ti = 0; ti < tokens.length; ti++) {
+                            if (tokens[ti].type === 'MINANGKA' && tokens[ti + 1] && tokens[ti + 1].value === nsName) {
+                                nsNameLoc = tokens[ti + 1].loc;
+                                nsLoc = { start: tokens[ti].loc.start, end: tokens[ti + 1].loc.end };
+                                break;
+                            }
+                        }
+                    }
                     const nsSym = {
                         name: nsName,
                         kind: 'namespace',
                         moduleRecord: mod,
-                        loc: actual.loc,
-                        nameLoc: actual.loc,
+                        loc: nsLoc,
+                        nameLoc: nsNameLoc || nsLoc,
                         uri,
                         filePath
                     };
@@ -332,8 +412,39 @@ class Analyzer {
         }
     }
 
-    analyzeStatement(stmt, scope, filePath, uri, scopes, allSymbols, references, structs, diagnostics) {
+    lookupStructMember(structSym, memberName, structsMap) {
+        let curr = structSym;
+        while (curr && curr.kind === 'struct') {
+            if (curr.methods) {
+                if (curr.methods instanceof Map && curr.methods.has(memberName)) {
+                    return curr.methods.get(memberName);
+                } else if (Array.isArray(curr.methods)) {
+                    const m = curr.methods.find(x => x.name === memberName);
+                    if (m) return m;
+                }
+            }
+            if (curr.fieldSymbols && curr.fieldSymbols instanceof Map && curr.fieldSymbols.has(memberName)) {
+                return curr.fieldSymbols.get(memberName);
+            }
+            if (curr.fields) {
+                if (Array.isArray(curr.fields)) {
+                    const f = curr.fields.find(x => (typeof x === 'string' ? x : x.name) === memberName);
+                    if (f) return typeof f === 'string' ? { name: f, kind: 'field' } : f;
+                }
+            }
+            if (curr.parent) {
+                const pName = typeof curr.parent === 'string' ? curr.parent : curr.parent.value;
+                curr = structsMap ? structsMap.get(pName) : null;
+            } else {
+                curr = null;
+            }
+        }
+        return null;
+    }
+
+    analyzeStatement(stmt, scope, filePath, uri, scopes, allSymbols, references, structs, diagnostics, tokens) {
         if (!stmt) return;
+        tokens = tokens || this.tokens;
 
         let actual = stmt;
         if (stmt.type === 'ExportStatement' && stmt.declaration) {
@@ -342,6 +453,9 @@ class Analyzer {
 
         switch (actual.type) {
             case 'VariableDeclaration': {
+                if (actual.value && !actual.value.loc && actual.loc) {
+                    actual.value.loc = { start: (actual.nameLoc ? actual.nameLoc.end : actual.loc.start), end: actual.loc.end };
+                }
                 const inferredType = inferExpressionType(actual.value, scope);
                 const sym = {
                     name: actual.name,
@@ -355,11 +469,14 @@ class Analyzer {
                 };
                 scope.define(actual.name, sym);
                 allSymbols.push(sym);
-                this.analyzeExpression(actual.value, scope, filePath, uri, references, structs, diagnostics);
+                this.analyzeExpression(actual.value, scope, filePath, uri, references, structs, diagnostics, tokens);
                 break;
             }
 
             case 'AssignmentStatement': {
+                if (actual.value && !actual.value.loc && actual.loc) {
+                    actual.value.loc = { start: (actual.nameLoc ? actual.nameLoc.end : actual.loc.start), end: actual.loc.end };
+                }
                 // Check if variable being assigned is declared
                 const sym = scope.lookup(actual.name);
                 if (!sym) {
@@ -376,14 +493,57 @@ class Analyzer {
                         symbol: sym
                     });
                 }
-                this.analyzeExpression(actual.value, scope, filePath, uri, references, structs, diagnostics);
+                this.analyzeExpression(actual.value, scope, filePath, uri, references, structs, diagnostics, tokens);
                 break;
             }
 
             case 'IndexAssignmentStatement': {
-                this.analyzeExpression(actual.object, scope, filePath, uri, references, structs, diagnostics);
-                this.analyzeExpression(actual.index, scope, filePath, uri, references, structs, diagnostics);
-                this.analyzeExpression(actual.value, scope, filePath, uri, references, structs, diagnostics);
+                if (actual.object && actual.index && actual.index.type === 'STRING') {
+                    const propName = actual.index.value;
+                    const propToken = findPropertyToken(tokens, actual.object.loc, propName);
+                    const propLoc = propToken ? propToken.loc : (actual.index.loc || actual.loc);
+
+                    if (actual.object.type === 'IkiExpression') {
+                        const encStruct = scope.enclosingStruct;
+                        if (encStruct) {
+                            const memberSym = this.lookupStructMember(encStruct, propName, structs);
+                            if (memberSym) {
+                                references.push({
+                                    name: propName,
+                                    loc: propLoc,
+                                    symbol: memberSym
+                                });
+                            }
+                        }
+                    } else if (actual.object.type === 'IDENTIFIER') {
+                        const objName = actual.object.value;
+                        const objSym = scope.lookup(objName);
+                        if (objSym) {
+                            references.push({
+                                name: objName,
+                                loc: actual.object.loc,
+                                symbol: objSym
+                            });
+                            if (objSym.inferredType && objSym.inferredType.startsWith('instance of ')) {
+                                const targetStructName = objSym.inferredType.replace('instance of ', '').trim();
+                                const targetStruct = structs.get(targetStructName) || scope.lookup(targetStructName);
+                                if (targetStruct && targetStruct.kind === 'struct') {
+                                    const memberSym = this.lookupStructMember(targetStruct, propName, structs);
+                                    if (memberSym) {
+                                        references.push({
+                                            name: propName,
+                                            loc: propLoc,
+                                            symbol: memberSym
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                this.analyzeExpression(actual.object, scope, filePath, uri, references, structs, diagnostics, tokens);
+                this.analyzeExpression(actual.index, scope, filePath, uri, references, structs, diagnostics, tokens);
+                this.analyzeExpression(actual.value, scope, filePath, uri, references, structs, diagnostics, tokens);
                 break;
             }
 
@@ -425,7 +585,8 @@ class Analyzer {
             case 'StructDeclaration': {
                 const structScope = new Scope(scope, 'struct');
                 structScope.range = actual.loc;
-                structScope.enclosingStruct = structs.get(actual.name);
+                const structSym = structs.get(actual.name);
+                structScope.enclosingStruct = structSym;
                 scopes.push(structScope);
 
                 // Validate parent struct if inheriting
@@ -440,9 +601,18 @@ class Analyzer {
                             source: 'Jawalang'
                         });
                     } else {
+                        let pLoc = actual.parentLoc;
+                        if (!pLoc && tokens) {
+                            for (let ti = 0; ti < tokens.length; ti++) {
+                                if (tokens[ti].type === 'NGEMBANGAKE' && tokens[ti + 1] && tokens[ti + 1].value === parentName) {
+                                    pLoc = tokens[ti + 1].loc;
+                                    break;
+                                }
+                            }
+                        }
                         references.push({
                             name: parentName,
-                            loc: actual.parentLoc || actual.loc,
+                            loc: pLoc || actual.loc,
                             symbol: parentSym
                         });
                     }
@@ -451,7 +621,7 @@ class Analyzer {
                 // Register fields
                 if (actual.fields) {
                     for (const f of actual.fields) {
-                        const fSym = {
+                        const fSym = structSym?.fieldSymbols?.get(f.name) || {
                             name: f.name,
                             kind: 'field',
                             loc: f.loc,
@@ -463,7 +633,7 @@ class Analyzer {
                         structScope.define(f.name, fSym);
                         allSymbols.push(fSym);
                         if (f.defaultValue) {
-                            this.analyzeExpression(f.defaultValue, structScope, filePath, uri, references, structs, diagnostics);
+                            this.analyzeExpression(f.defaultValue, structScope, filePath, uri, references, structs, diagnostics, tokens);
                         }
                     }
                 }
@@ -472,8 +642,9 @@ class Analyzer {
                 if (actual.methods) {
                     for (const m of actual.methods) {
                         const isCtor = m.name === 'wiwiti';
+                        const mSym = structSym?.methods?.get(m.name);
                         const mScope = new Scope(structScope, 'method');
-                        mScope.range = m.loc;
+                        mScope.range = mSym?.loc || m.loc;
                         mScope.enclosingStruct = structs.get(actual.name);
                         mScope.enclosingMethod = m;
                         scopes.push(mScope);
@@ -502,7 +673,17 @@ class Analyzer {
                         if (m.parameters) {
                             for (const param of m.parameters) {
                                 const pName = typeof param === 'string' ? param : param.value;
-                                const pLoc = (typeof param === 'object' && param.loc) ? param.loc : m.loc;
+                                let pLoc = (typeof param === 'object' && param.loc) ? param.loc : null;
+                                if (!pLoc && tokens && mSym?.loc) {
+                                    const sLine = mSym.loc.start ? mSym.loc.start.line : 0;
+                                    for (let ti = 0; ti < tokens.length; ti++) {
+                                        const tok = tokens[ti];
+                                        if (tok.loc && tok.loc.start.line >= sLine && tok.value === pName) {
+                                            pLoc = tok.loc;
+                                            break;
+                                        }
+                                    }
+                                }
                                 const pSym = {
                                     name: pName,
                                     kind: 'parameter',
@@ -687,7 +868,7 @@ class Analyzer {
         }
     }
 
-    analyzeExpression(expr, scope, filePath, uri, references, structs, diagnostics) {
+    analyzeExpression(expr, scope, filePath, uri, references, structs, diagnostics, tokens = this.tokens) {
         if (!expr) return;
 
         switch (expr.type) {
@@ -780,69 +961,146 @@ class Analyzer {
             }
 
             case 'NewExpression': {
-                const structName = expr.callee?.value;
+                const structName = expr.target?.name || expr.target?.value || (typeof expr.target === 'string' ? expr.target : null) || expr.callee?.value || expr.callee?.name;
                 if (structName) {
                     const sym = scope.lookup(structName);
                     if (!sym || sym.kind !== 'struct') {
                         diagnostics.push({
                             severity: 1,
-                            range: expr.callee.loc || expr.loc,
+                            range: expr.targetLoc || expr.callee?.loc || expr.loc,
                             message: `Struct "${structName}" ora ditemokake.`,
                             source: 'Jawalang'
                         });
                     } else {
+                        let targetLoc = expr.targetLoc || expr.callee?.loc;
+                        if (!targetLoc && tokens) {
+                            const eLine = expr.loc ? expr.loc.start.line : 0;
+                            const eChar = expr.loc ? expr.loc.start.character : 0;
+                            for (let ti = 0; ti < tokens.length; ti++) {
+                                const tok = tokens[ti];
+                                if (tok.loc && (tok.loc.start.line > eLine || (tok.loc.start.line === eLine && tok.loc.start.character >= eChar))) {
+                                    if (tok.type === 'ANYAR' && tokens[ti + 1] && tokens[ti + 1].value === structName) {
+                                        targetLoc = tokens[ti + 1].loc;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                         references.push({
                             name: structName,
-                            loc: expr.callee.loc || expr.loc,
+                            loc: targetLoc || expr.loc,
                             symbol: sym
                         });
                     }
                 }
                 if (expr.arguments) {
                     for (const arg of expr.arguments) {
-                        this.analyzeExpression(arg, scope, filePath, uri, references, structs, diagnostics);
+                        this.analyzeExpression(arg, scope, filePath, uri, references, structs, diagnostics, tokens);
                     }
                 }
                 break;
             }
 
             case 'IndexExpression': {
-                // If object is an identifier and is a namespace (e.g. math.kurang)
-                if (expr.object && expr.object.type === 'IDENTIFIER' && expr.index && expr.index.type === 'STRING') {
-                    const objName = expr.object.value;
+                if (expr.object && expr.index && expr.index.type === 'STRING') {
                     const propName = expr.index.value;
-                    const sym = scope.lookup(objName);
-                    if (sym && sym.kind === 'namespace' && sym.moduleRecord) {
-                        references.push({
-                            name: objName,
-                            loc: expr.object.loc,
-                            symbol: sym
-                        });
+                    const propToken = findPropertyToken(tokens, expr.object.loc, propName);
+                    const propLoc = propToken ? propToken.loc : (expr.index.loc || expr.loc);
 
-                        const expVar = sym.moduleRecord.exports.variables[propName];
-                        const expFn = sym.moduleRecord.exports.functions[propName];
-                        const expStruct = sym.moduleRecord.exports.structs[propName];
-                        const foundExp = expVar || expFn || expStruct;
-
-                        if (!foundExp) {
-                            diagnostics.push({
-                                severity: 1,
-                                range: expr.index.loc || expr.loc,
-                                message: `Symbol "${propName}" ora diekspor saka modul.`,
-                                source: 'Jawalang'
-                            });
-                        } else {
+                    // Case A: Namespace access (e.g. math.tambah)
+                    if (expr.object.type === 'IDENTIFIER') {
+                        const objName = expr.object.value;
+                        const sym = scope.lookup(objName);
+                        if (sym && sym.kind === 'namespace' && sym.moduleRecord) {
                             references.push({
-                                name: propName,
-                                loc: expr.index.loc,
-                                symbol: foundExp
+                                name: objName,
+                                loc: expr.object.loc,
+                                symbol: sym
                             });
+
+                            const expVar = sym.moduleRecord.exports.variables[propName];
+                            const expFn = sym.moduleRecord.exports.functions[propName];
+                            const expStruct = sym.moduleRecord.exports.structs[propName];
+                            const foundExp = expVar || expFn || expStruct;
+
+                            if (!foundExp) {
+                                diagnostics.push({
+                                    severity: 1,
+                                    range: propLoc,
+                                    message: `Symbol "${propName}" ora diekspor saka modul.`,
+                                    source: 'Jawalang'
+                                });
+                            } else {
+                                references.push({
+                                    name: propName,
+                                    loc: propLoc,
+                                    symbol: foundExp
+                                });
+                            }
+                            break;
+                        }
+
+                        // Case B: Struct instance member access (e.g. w.salam() or w.jeneng)
+                        if (sym && sym.inferredType && sym.inferredType.startsWith('instance of ')) {
+                            references.push({
+                                name: objName,
+                                loc: expr.object.loc,
+                                symbol: sym
+                            });
+                            const targetStructName = sym.inferredType.replace('instance of ', '').trim();
+                            const targetStruct = structs.get(targetStructName) || scope.lookup(targetStructName);
+                            if (targetStruct && targetStruct.kind === 'struct') {
+                                const memberSym = this.lookupStructMember(targetStruct, propName, structs);
+                                if (memberSym) {
+                                    references.push({
+                                        name: propName,
+                                        loc: propLoc,
+                                        symbol: memberSym
+                                    });
+                                }
+                            }
+                            break;
+                        }
+                    }
+
+                    // Case C: iki.member inside method
+                    if (expr.object.type === 'IkiExpression') {
+                        const encStruct = scope.enclosingStruct;
+                        if (encStruct) {
+                            const memberSym = this.lookupStructMember(encStruct, propName, structs);
+                            if (memberSym) {
+                                references.push({
+                                    name: propName,
+                                    loc: propLoc,
+                                    symbol: memberSym
+                                });
+                            }
                         }
                         break;
                     }
+
+                    // Case D: super.member in subclass method
+                    if (expr.object.type === 'SuperExpression') {
+                        const encStruct = scope.enclosingStruct;
+                        if (encStruct && encStruct.parent) {
+                            const parentName = typeof encStruct.parent === 'string' ? encStruct.parent : encStruct.parent.value;
+                            const parentStruct = structs.get(parentName);
+                            if (parentStruct) {
+                                const memberSym = this.lookupStructMember(parentStruct, propName, structs);
+                                if (memberSym) {
+                                    references.push({
+                                        name: propName,
+                                        loc: propLoc,
+                                        symbol: memberSym
+                                    });
+                                }
+                            }
+                            break;
+                        }
+                    }
                 }
-                this.analyzeExpression(expr.object, scope, filePath, uri, references, structs, diagnostics);
-                this.analyzeExpression(expr.index, scope, filePath, uri, references, structs, diagnostics);
+                this.analyzeExpression(expr.object, scope, filePath, uri, references, structs, diagnostics, tokens);
+                this.analyzeExpression(expr.index, scope, filePath, uri, references, structs, diagnostics, tokens);
                 break;
             }
 

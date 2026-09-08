@@ -11,6 +11,7 @@ const { getCompletions } = require('./completion');
 const { getHover } = require('./hover');
 const { getDefinition } = require('./definitions');
 const { getDocumentSymbols } = require('./symbols');
+const { getReferences } = require('./references');
 
 const pkg = require('../package.json');
 
@@ -58,7 +59,8 @@ connection.onInitialize((params) => {
             },
             hoverProvider: true,
             definitionProvider: true,
-            documentSymbolProvider: true
+            documentSymbolProvider: true,
+            referencesProvider: true
         }
     };
 });
@@ -104,6 +106,16 @@ connection.onDocumentSymbol((params) => {
         return getDocumentSymbols(analysis);
     } catch (err) {
         debugLog('Error in onDocumentSymbol:', err.message);
+        return [];
+    }
+});
+
+connection.onReferences((params) => {
+    try {
+        const analysis = documentManager.getAnalysis(params.textDocument.uri);
+        return getReferences(analysis, params.position, params.context);
+    } catch (err) {
+        debugLog('Error in onReferences:', err.message);
         return [];
     }
 });

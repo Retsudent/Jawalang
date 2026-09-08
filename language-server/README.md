@@ -18,6 +18,11 @@ Jawalang Language Server nyedhiyakake kapabilitas IDE profesional liwat protokol
   * Navigasi langsung menyang deklarasi variabel lokal, parameter fungsi, deklarasi fungsi, lan deklarasi struct (`bentuk`).
   * Cross-file navigation kanggo simbol sing diimpor saka modul liya.
 
+* **Find All References (`textDocument/references`)**:
+  * Nemokake kabeh lokasi referensi lan panggunaan simbol kanthi presisi dhuwur (cakupan lokal, global, lan shadowing).
+  * Nyakup variabel, parameter fungsi, metode struct, panggilan fungsi, instansiasi struct (`anyar`), properti instance (`iki.prop`), referensi warisan (`super.method()`), sarta simbol impor selektif lan namespace modul.
+  * Dilengkapi opsi `context.includeDeclaration` lan proteksi otomatis marang tembung kunci utawa fungsi built-in.
+
 * **Semantic Autocomplete (`textDocument/completion`)**:
   * Rekomendasi simbol kontekstual adhedhasar cakupan leksikal aktif.
   * Anggota instance struct: nampilake field lan metode nalika ngetik `instance.`
@@ -58,6 +63,7 @@ src/analyzer.js ─── AST, Scopes, Symbol Table, Type Inference
     ├── src/modules.js (Static module resolver & export analyzer)
     ├── src/diagnostics.js (Error & warning publisher)
     ├── src/definitions.js (Go to definition provider)
+    ├── src/references.js (Find all references provider)
     ├── src/completion.js (Scope & member completion provider)
     ├── src/hover.js (Type & doc hover provider)
     └── src/symbols.js (Hierarchical outline symbols)
@@ -108,6 +114,7 @@ Tes sing kalebu:
 4. `test/hover.test.js`: Validasi hover jinis data, fungsi, struct, lan built-in.
 5. `test/symbols.test.js`: Validasi outline hierarkis dokumen.
 6. `test/modules.test.js`: Validasi analisis modul lan siklus impor.
+7. `test/references.test.js`: Validasi Find All References (variabel lokal/global/shadowed, parameter, fungsi, struct, metode, inheritance super, selective import, namespace).
 
 ---
 

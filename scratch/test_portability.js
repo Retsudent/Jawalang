@@ -162,10 +162,10 @@ try {
         cwd: os.tmpdir(),
         encoding: 'utf8'
     });
-    if (out.includes('6/6 SUITES')) {
+    if (out.includes('ALL LANGUAGE SERVER UNIT TESTS PASSED')) {
         recordResult('LSP Test Portability', true);
     } else {
-        recordResult('LSP Test Portability', false, 'LSP runner did not report 6/6 suites passed');
+        recordResult('LSP Test Portability', false, 'LSP runner did not report all suites passed');
     }
 } catch (err) {
     recordResult('LSP Test Portability', false, err.message);

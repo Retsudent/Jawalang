@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] - V1.3.0
+
+### Language Server Protocol — Find References (Phase 2)
+
+#### Added
+- **Find References Provider (`language-server/src/references.js`)**:
+  - Implemented `getReferences(analysisResult, position, context)` resolving references across variables, parameters, functions, structs, instance methods, inherited methods, and modules.
+  - Implemented `isSameSymbol(a, b)` ensuring strict separation of identically named symbols across different scopes and structs.
+  - Added support for `context.includeDeclaration` flag with location deduplication.
+  - Built-in functions and keywords protected from returning false references.
+- **Server Capability Advertisement (`language-server/src/server.js`)**:
+  - Registered `referencesProvider: true` in `connection.onInitialize` response.
+  - Added `connection.onReferences` handler with isolated try/catch returning `[]` on invalid cursor positions or undefined symbols without server crash.
+- **Semantic Analyzer Member & Cross-Module Enhancements (`language-server/src/analyzer.js`)**:
+  - Token-level location tracking for struct fields, methods, constructors (`wiwiti`), instance property reads/assignments, and `anyar` instantiations.
+  - Inheritance reference resolution via `super.method()` mapping accurately to base struct method declarations.
+  - Selective import specifier tracking and namespace member resolution.
+- **Test Suites**:
+  - `language-server/test/references.test.js`: 22 unit test scenarios validating scope resolution, shadowing, calls, structs, methods, inheritance, modules, bounds, builtins, and malformed files.
+  - `scratch/test_references_v130.js`: 12 protocol-level integration tests communicating via JSON-RPC stdio directly to the server binary.
+
+---
+
 ## [1.2.0] - 2026-09-07
 
 ### Interactive REPL & CLI Enhancement
