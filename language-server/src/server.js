@@ -15,6 +15,8 @@ const { getReferences } = require('./references');
 const { renameSymbol } = require('./rename');
 const { getSignatureHelp } = require('./signatureHelp');
 const { formatDocument } = require('./formatter');
+const { getCodeActions, CodeActionKind } = require('./codeActions');
+const { getSemanticTokens, semanticTokensLegend } = require('./semanticTokens');
 
 const pkg = require('../package.json');
 
@@ -69,7 +71,17 @@ connection.onInitialize((params) => {
                 triggerCharacters: ['(', ','],
                 retriggerCharacters: [',']
             },
-            formattingProvider: true
+            formattingProvider: true,
+            codeActionProvider: {
+                codeActionKinds: [
+                    CodeActionKind.QuickFix,
+                    CodeActionKind.SourceOrganizeImports
+                ]
+            },
+            semanticTokensProvider: {
+                legend: semanticTokensLegend,
+                full: true
+            }
         }
     };
 });
@@ -169,6 +181,26 @@ connection.onDocumentFormatting((params) => {
     } catch (err) {
         debugLog('Error in onDocumentFormatting:', err.message);
         return [];
+    }
+});
+
+connection.onCodeAction((params) => {
+    try {
+        const analysis = documentManager.getAnalysis(params.textDocument.uri);
+        return getCodeActions(analysis, params.range, params.context);
+    } catch (err) {
+        debugLog('Error in onCodeAction:', err.message);
+        return [];
+    }
+});
+
+connection.languages.semanticTokens.on((params) => {
+    try {
+        const analysis = documentManager.getAnalysis(params.textDocument.uri);
+        return getSemanticTokens(analysis);
+    } catch (err) {
+        debugLog('Error in onSemanticTokens:', err.message);
+        return { data: [] };
     }
 });
 

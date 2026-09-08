@@ -71,6 +71,34 @@ Jawalang Language Server nyedhiyakake kapabilitas IDE profesional liwat protokol
   * Jaminan idempotensi: `format(format(kode)) === format(kode)`.
   * Malformed-code safety: ngasilake `[]` kanthi aman tanpa ngrusak berkas utawa njalari server crash.
 
+* **Code Actions & Quick Fix (`textDocument/codeAction`)**:
+  * **Organize Imports (`source.organizeImports`)**:
+    * Pengurutan alfabetis pranyatan `impor` adhedhasar path modul.
+    * Penggabungan otomatis pranyatan impor selektif saka path modul sing padha.
+    * Pengurutan simbol impor selektif kanthi njaga alias `minangka` (`impor { tambah minangka jumlah, kali } saka "./math.jawa"`).
+    * Format multiline kanggo impor kanthi 4+ specifiers.
+    * Idempotensi lan no-op: ngasilake `[]` yen impor wis resik lan teratur.
+  * **Remove Duplicate Imports (`quickfix`)**:
+    * Deteksi lan pambusukan pranyatan impor duplikat.
+    * Deteksi lan pambusukan specifier duplikat ing njero siji pranyatan impor selektif (`impor { tambah, tambah }`).
+  * **Remove Unused Imports (`quickfix`)**:
+    * Analisis grafik referensi lan token kanggo mbusak impor selektif utawa namespace sing ora tau digunakake.
+  * **QuickFix Diagnostik**:
+    * Koreksi tipo (Levenshtein distance $\le 2$) kanggo fungsi, variabel, lan struct sing ora ditemokake, kalebu saran fungsi bawaan (`dawe` $\to$ `dawa`).
+    * Saran impor simbol ekspor saka modul proyek sing wis kerekam ing cache analyzer.
+  * **Keamanan Mutlak**: Murni analisis statis tanpa eksekusi runtime, tanpa manipulasi string/komentar, lan netepi saringan `context.only`.
+
+* **Semantic Tokens Highlighting (`textDocument/semanticTokens/full`)**:
+  * Pewarnaan sintaks semantik akurat adhedhasar analisis ruang lingkup (lexical scope), simbol, struct, pewarisan, modul namespace, lan built-in library.
+  * Standar LSP Legend: 13 jinis token (`namespace`, `type`, `class`, `function`, `method`, `property`, `variable`, `parameter`, `keyword`, `number`, `string`, `comment`, `operator`) lan 2 modifier (`declaration`, `defaultLibrary`).
+  * Delta-encoding 5-tuple relatif standar LSP kanthi sortir kaku (line ASC, character ASC), pencegahan duplikat, lan bebas overlapping.
+  * Resolusi shadowing leksikal: parameter fungsi tetep diklasifikasikake minangka `parameter` ing njero fungsi sanajan padha jeneng karo variabel global.
+  * Pembeda cetha antarane fungsi pangguna (`function`), metode struct (`method`), konstruktor `wiwiti` (`method` + `declaration`), field/properti (`property`), lan tembung kunci `iki`/`super`.
+  * Dhukungan namespace modul (`impor ... minangka math` $\to$ `namespace`) sarta simbol impor selektif mawa alias.
+  * Fungsi bawaan (built-ins) otomatis entuk modifier `defaultLibrary`.
+  * Proteksi lengkap marang string literal lan komentar: ora ana token simbol utawa tembung kunci sing katut ing njero teks string utawa komentar.
+  * Presisi karakter UTF-16 lan toleransi dhuwur marang dokumen malformed (ora tau crash).
+
 * **Capability Matrix**:
   | Kapabilitas LSP | Status |
   | :--- | :---: |
@@ -83,9 +111,9 @@ Jawalang Language Server nyedhiyakake kapabilitas IDE profesional liwat protokol
   | `textDocument/documentSymbol` | ✅ |
   | `textDocument/signatureHelp` | ✅ |
   | `textDocument/formatting` | ✅ |
-  | `textDocument/semanticTokens` | ⏳ |
+  | `textDocument/codeAction` | ✅ |
+  | `textDocument/semanticTokens` | ✅ |
   | `workspace/symbol` | ⏳ |
-  | `codeAction` | ⏳ |
   | `foldingRange` | ⏳ |
 
 * **Module Awareness & Static Import Resolution**:
@@ -116,7 +144,9 @@ src/analyzer.js ─── AST, Scopes, Symbol Table, Type Inference
     ├── src/rename.js (Rename symbol provider)
     ├── src/completion.js (Scope & member completion provider)
     ├── src/hover.js (Type & doc hover provider)
-    └── src/symbols.js (Hierarchical outline symbols)
+    ├── src/symbols.js (Hierarchical outline symbols)
+    ├── src/formatter.js (Deterministic code formatter)
+    └── src/codeActions.js (Code Actions & Quick Fix provider)
 ```
 
 ---

@@ -21,6 +21,8 @@ Status: **Active & Production-Ready**
 - [x] **Signature Help (LSP V1.3.0 Phase 4)**: Full `textDocument/signatureHelp` support with structured token-based call parsing, active parameter tracking (`activeParameter`), nested call isolation, constructors (`anyar Struct(...)`), super constructors (`super(...)`), super methods (`super.method(...)`), instance methods, selective import aliases, namespace functions, and built-in metadata.
 - [x] **Context-Aware Completion V2 (LSP V1.3.0 Phase 5)**: Full `textDocument/completion` Context-Aware Semantic Completion V2. Features lexical scope resolution (global, local, nested, function parameters, shadowing), struct instance member completion (`instance.`), active instance completion (`iki.`), parent struct completion (`super.`) resolving parent implementation directly without child override, module namespace exports completion (`namespace.`), selective imports & aliases, constructor struct completion after `anyar`, string and comment suppression, robust textEdit replacement ranges, resilient parse recovery, and zero duplicates.
 - [x] **LSP Formatting (LSP V1.3.0 Phase 6)**: Full `textDocument/formatting` support. Deterministic, purely static token-aware formatting engine with 4-space default indentation, binary and unary operator spacing, block & cuddled keyword formatting (`} liyane {`, `} tangkep err {`), struct and constructor formatting, multiline object literals, inline array protection, comment and string preservation verbatim, automatic CRLF/LF detection and preservation, malformed code safety, idempotency guarantee (`format(format(x)) === format(x)`), and single document replacement TextEdit.
+- [x] **LSP Code Actions (LSP V1.3.0 Phase 7)**: Full `textDocument/codeAction` support. Dedicated engine (`language-server/src/codeActions.js`) supporting `source.organizeImports` (alphabetical sort, merging duplicate modules, alias preservation, multiline formatting, idempotency), duplicate import removal (`quickfix`), duplicate specifier deduplication (`quickfix`), unused import cleanup (`quickfix`), Levenshtein typo corrections for undefined identifiers and built-in names (`quickfix`), missing import suggestions from project modules (`quickfix`), strict `context.only` filtering, deterministic ordering, and no runtime execution.
+- [x] **LSP Semantic Tokens (LSP V1.3.0 Phase 8)**: Full `textDocument/semanticTokens/full` support. Dedicated engine (`language-server/src/semanticTokens.js`) with 13 standard token types and 2 modifiers (`declaration`, `defaultLibrary`), relative delta encoding, scope-aware shadowing resolution, struct, constructor (`wiwiti`), method, property, inheritance (`ngembangake`, `super`), namespace, selective import aliases, built-in library highlighting, string and comment isolation, UTF-16 code unit precision, and deterministic ordering.
 - [x] **REPL (Read-Eval-Print Loop)**: Interactive REPL session (`jawa`, `jawa repl`, `jawalang`), persistent environment, bare expression evaluation, multiline input detection, meta commands (`.bantu`, `.metu`, `.resik`), error recovery.
 - [x] **Post-Publish Verification V1.2.0**: Live npm registry verification, clean temporary install, npx execution, global binaries, REPL with `takon()` non-blocking input, session isolation, and zero package payload leaks.
 
@@ -30,10 +32,14 @@ Status: **Active & Production-Ready**
 - CLI Positive: **13/13 PASS**
 - CLI Negative: **11/11 PASS**
 - Distribution Hardening: **10/10 PASS**
-- VS Code Smoke Tests: **19/19 PASS**
+- VS Code Smoke Tests: **21/21 PASS**
 - VS Code Extension Integrity: **8/8 PASS**
-- LSP Unit Test Suite: **10/10 Suites PASS (191 Unit Tests)**
-- LSP Master Validation: **65/65 PASS**
+- LSP Unit Test Suite: **12/12 Suites PASS (281 Unit Tests)**
+- LSP Master Validation: **81/81 PASS**
+- Semantic Tokens Protocol Integration: **70/70 PASS** (46 Unit + 24 Protocol JSON-RPC)
+- Semantic Tokens Deep Audit: **20/20 PASS**
+- Code Actions Protocol Integration: **62/62 PASS** (44 Unit + 18 Protocol JSON-RPC)
+- Code Actions Deep Audit: **13/13 PASS**
 - Formatting Protocol Integration: **60/60 PASS** (44 Unit + 16 Protocol JSON-RPC)
 - Formatting Deep Audit: **18/18 PASS**
 - Completion V2 Protocol Integration: **55/55 PASS** (40 Unit + 15 Protocol JSON-RPC)
@@ -44,5 +50,5 @@ Status: **Active & Production-Ready**
 - NPM Package Validation: **15/15 PASS**
 - Portability Validation Suite: **11/11 PASS**
 - Post-Publish Verification Suite: **18/18 PASS**
-- **Total Validated Tests: 500+ / 500+ PASS (100%)**
+- **Total Validated Tests: 670+ / 670+ PASS (100%)**
 

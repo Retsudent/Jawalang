@@ -1723,7 +1723,13 @@ Language Server Protocol kasedhiya ing direktori `language-server/` mawa binary 
 - **Kapabilitas**:
   - **Diagnostik Real-time**: Deteksi kesalahan sintaks lan semantik tanpa false positives.
   - **Go to Definition**: Navigasi leksikal lokal lan cross-file menyang file modul ekspor.
+  - **Find All References**: Nemokake kabeh referensi panggunaan simbol kanthi presisi leksikal.
+  - **Rename Symbol**: Ngganti jeneng simbol kanthi aman lan semantik liwat WorkspaceEdit standar.
+  - **Signature Help**: Nampilake parameter aktif lan tandha tangan fungsi, struct, lan metode kanthi cerdas.
   - **Semantic Autocomplete**: Saran simbol leksikal, anggota struct (`iki.`, `instance.`), namespace modul (`math.`), lan 24 built-in.
+  - **Format Document**: Format otomatis deterministik kanthi indentasi 4 spasi standar lan idempotensi.
+  - **Code Actions & Quick Fix**: Tindakan kode otomatis (Organize Imports, Remove Duplicate/Unused Imports, Typo QuickFix, Missing Import).
+  - **Semantic Highlighting (Semantic Tokens)**: Pewarnaan sintaks tingkat lanjut adhedhasar analisis semantik (fungsi, variabel, parameter, properti, metode, struct, namespace, lan built-in).
   - **Semantic Hover**: Inferensi jinis data variabel, tandha tangan fungsi, lan dokumentasi struct/built-in.
   - **Document Symbols**: Hirarki outline dokumen kanggo struct, field, metode, lan fungsi.
 - **CLI Language Server**:

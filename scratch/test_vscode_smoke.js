@@ -262,6 +262,91 @@ runTest('Language Server formats unformatted Jawalang document cleanly', () => {
     assert.strictEqual(edits[0].newText, 'guna tambah(a, b) {\n    bali a + b\n}');
 });
 
+// 20. Language Server Code Action Provider Smoke
+runTest('Language Server provides Organize Imports and QuickFix code actions', () => {
+    const analyzer = require(path.join(PROJECT_ROOT, 'language-server', 'src', 'analyzer'));
+    const { getCodeActions, CodeActionKind } = require(path.join(PROJECT_ROOT, 'language-server', 'src', 'codeActions'));
+    const code = 'impor "./b.jawa"\nimpor "./a.jawa"\n';
+    const analysis = analyzer.analyze(code, 'file:///smoke_ca.jawa');
+    const actions = getCodeActions(analysis, { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } });
+    assert.ok(actions && actions.length > 0);
+    const org = actions.find(a => a.kind === CodeActionKind.SourceOrganizeImports);
+    assert.ok(org, 'Expected organize imports action in smoke test');
+});
+
+// 21. Language Server Semantic Tokens Provider Smoke
+runTest('Language Server provides accurate semantic tokens classification and isolation', () => {
+    const analyzer = require(path.join(PROJECT_ROOT, 'language-server', 'src', 'analyzer'));
+    const { getSemanticTokens, decodeSemanticTokens, semanticTokensLegend } = require(path.join(PROJECT_ROOT, 'language-server', 'src', 'semanticTokens'));
+
+    const code = [
+        'impor "./math.jawa" minangka math',
+        'bentuk Wong {',
+        '    gawe jeneng',
+        '    guna salam() { bali iki.jeneng }',
+        '}',
+        'guna hitung(a, b) {',
+        '    gawe hasil = a + b',
+        '    bali hasil',
+        '}',
+        'gawe pesan = "guna palsu(x) {}"',
+        '// komentar bentuk Tipuan {}',
+        'gawe w = anyar Wong()',
+        'w.salam()',
+        'math.tambah()'
+    ].join('\n');
+
+    const analysis = analyzer.analyze(code, 'file:///smoke_tokens.jawa');
+    const res = getSemanticTokens(analysis);
+    assert.ok(res && Array.isArray(res.data), 'Expected semantic tokens data array');
+    const decoded = decodeSemanticTokens(res.data, semanticTokensLegend);
+    assert.ok(decoded.length > 0, 'Expected decoded semantic tokens');
+
+    // Namespace classification
+    const nsTok = decoded.find(t => t.line === 0 && t.character === 29);
+    assert.ok(nsTok && nsTok.tokenType === 'namespace', 'math on line 0 must be namespace');
+
+    // Struct classification (class)
+    const structTok = decoded.find(t => t.line === 1 && t.character === 7);
+    assert.ok(structTok && structTok.tokenType === 'class', 'Wong must be class');
+
+    // Property declaration
+    const fieldTok = decoded.find(t => t.line === 2 && t.character === 9);
+    assert.ok(fieldTok && fieldTok.tokenType === 'property', 'jeneng must be property');
+
+    // Method declaration
+    const methodTok = decoded.find(t => t.line === 3 && t.character === 9);
+    assert.ok(methodTok && methodTok.tokenType === 'method', 'salam must be method');
+
+    // Function declaration & parameters
+    const fnTok = decoded.find(t => t.line === 5 && t.character === 5);
+    const paramA = decoded.find(t => t.line === 5 && t.character === 12);
+    assert.ok(fnTok && fnTok.tokenType === 'function', 'hitung must be function');
+    assert.ok(paramA && paramA.tokenType === 'parameter', 'a must be parameter');
+
+    // Variable declaration
+    const varHasil = decoded.find(t => t.line === 6 && t.character === 9);
+    assert.ok(varHasil && varHasil.tokenType === 'variable', 'hasil must be variable');
+
+    // String isolation: no function token inside "guna palsu(x) {}"
+    const strTok = decoded.find(t => t.line === 9 && t.character === 13);
+    assert.ok(strTok && strTok.tokenType === 'string');
+    const innerStrTokens = decoded.filter(t => t.line === 9 && t.character > 13);
+    assert.strictEqual(innerStrTokens.length, 0, 'No tokens inside string literal');
+
+    // Comment isolation: no class token inside comment
+    const commentTok = decoded.find(t => t.line === 10 && t.character === 0);
+    assert.ok(commentTok && commentTok.tokenType === 'comment');
+    const line10Tokens = decoded.filter(t => t.line === 10);
+    assert.strictEqual(line10Tokens.length, 1, 'Only comment token on line 10');
+
+    // Method call and namespace call
+    const mCall = decoded.find(t => t.line === 12 && t.character === 2);
+    assert.ok(mCall && mCall.tokenType === 'method', 'w.salam() must be method');
+    const nsCall = decoded.find(t => t.line === 13 && t.character === 5);
+    assert.ok(nsCall && nsCall.tokenType === 'function', 'math.tambah() must be function');
+});
+
 console.log(`\n========================================`);
 console.log(`Smoke Tests Finished: ${passed}/${total} PASSED`);
 console.log(`========================================\n`);

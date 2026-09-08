@@ -8,6 +8,8 @@ const testReferences = require('./references.test');
 const testRename = require('./rename.test');
 const testSignatureHelp = require('./signatureHelp.test');
 const testFormatter = require('./formatter.test');
+const testCodeActions = require('./codeActions.test');
+const testSemanticTokens = require('./semanticTokens.test');
 
 console.log('====================================================');
 console.log('       JAWALANG LANGUAGE SERVER UNIT TESTS          ');
@@ -33,12 +35,17 @@ try {
     testSignatureHelp();
     console.log('');
     testFormatter();
+    console.log('');
+    testCodeActions();
+    console.log('');
+    testSemanticTokens();
 
     console.log('\n====================================================');
-    console.log('  ALL LANGUAGE SERVER UNIT TESTS PASSED (10/10 SUITES)');
+    console.log('  ALL LANGUAGE SERVER UNIT TESTS PASSED (12/12 SUITES)');
     console.log('====================================================');
 } catch (err) {
     console.error('\nTEST SUITE FAILED:');
     console.error(err);
     process.exit(1);
 }
+

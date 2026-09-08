@@ -19,6 +19,13 @@ Ekstensi resmi **Jawalang** kanggo Visual Studio Code. Nyedhiyakake dhukungan ba
   - **Signature Help**: Nampilake pratandha parameter lan parameter aktif (`activeParameter`) kanthi akurat nalika ngetik panggilan fungsi, konstruktor (`anyar Struct(...)`), metode struct, `super(...)`, `super.method(...)`, namespace modul, lan fungsi bawaan.
   - **Autocomplete Semantik V2**: Rekomendasi simbol leksikal kontekstual, anggota struct (`instance.`, `iki.`, `super.`), namespace modul (`math.`), filter khusus `anyar`, sarta proteksi ing njero string lan komentar.
   - **Format Document**: Format otomatis kode Jawalang liwat `Shift + Alt + F`, klik tengen -> *Format Document*, utawa Format on Save. Nyedhiyakake indentasi 4 spasi standar, perapian spasi operator biner lan unary, format block kurawal (`{` lan `}`), penataan struct/metode/konstruktor, lan njamin keamanan string/komentar sarta idempotensi.
+  - **Code Actions & Quick Fix**: Tindakan kode otomatis liwat lampu kuning (Quick Fix / `Ctrl+.`) utawa Command Palette:
+    - **Organize Imports (`Shift+Alt+O`)**: Ngurutake impor kanthi alfabetis, nggabungake impor modul sing padha, njaga alias `minangka`, lan format multiline.
+    - **Remove Duplicate Imports**: Mbusak baris impor duplikat utawa specifier duplikat ing selective import.
+    - **Remove Unused Imports**: Mbusak impor selektif utawa namespace sing ora digunakake adhedhasar grafik referensi.
+    - **Typo QuickFix**: Nyaranake koreksi tipo kanggo jeneng fungsi, variabel, lan struct sing salah ketik, kalebu fungsi bawaan (`dawe` -> `dawa`).
+    - **Import QuickFix**: Nyaranake ngimpor simbol ekspor sing kasedhiya saka modul-modul proyek.
+  - **Semantic Highlighting (Semantic Tokens)**: Pewarnaan sintaks semantik akurat adhedhasar analisis Language Server (fungsi, variabel, parameter, properti, metode, struct, namespace, lan fungsi built-in) kanthi fallback TextMate grammar.
   - **Hover Semantik**: Nuduhake tipe data inferensi, signature, lan dokumentasi built-in.
   - **Outline Dokumen (Document Symbols)**: Peta struktur hirarkis file ing panel Outline VS Code.
 - **Dukungan Terminal Interaktif**: Program mawa fungsi input `takon()` lumaku kanthi interaktif lan lancar.

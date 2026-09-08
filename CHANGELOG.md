@@ -9,6 +9,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - V1.3.0
 
+### Language Server Protocol — LSP Semantic Tokens (Phase 8)
+
+#### Added
+- **Dedicated Semantic Tokens Engine (`language-server/src/semanticTokens.js`)**:
+  - Implemented deterministic, scope-aware, and semantic-safe highlighting engine responding to LSP `textDocument/semanticTokens/full`.
+  - **Standard LSP Semantic Tokens Legend**:
+    - **Token Types (13)**: `namespace`, `type`, `class`, `function`, `method`, `property`, `variable`, `parameter`, `keyword`, `number`, `string`, `comment`, `operator`.
+    - **Token Modifiers (2)**: `declaration` (`1`), `defaultLibrary` (`2`).
+  - **Semantic Token Delta Encoding**:
+    - Fully compliant relative LSP 5-tuple delta encoding `[deltaLine, deltaStart, length, tokenTypeIndex, tokenModifierBitmask]`.
+    - Strict sorting by line ascending and character ascending.
+    - Robust deduplication and collision prevention; zero duplicate start positions and zero overlapping ranges.
+  - **Semantic Scope & Symbol Classification**:
+    - **Keywords & Operators**: Full canonical keyword inventory (`tulis`, `gawe`, `yen`, `liyane`, `bener`, `salah`, `lan`, `utawa`, `ora`, `nalika`, `kanggo`, `saben`, `ing`, `nganti`, `langkah`, `mandheg`, `lanjut`, `guna`, `bali`, `coba`, `tangkep`, `lempar`, `impor`, `ekspor`, `bentuk`, `anyar`, `iki`, `null`, `saka`, `minangka`, `ngembangake`, `super`). Operators (`+`, `-`, `*`, `/`, `=`, `==`, `!=`, `<`, `<=`, `>`, `>=`).
+    - **Variables & Parameters**: Distinct classification of parameters (`parameter`) vs variables (`variable`), with strict lexical scope shadowing resolution (parameter references inside functions retain `parameter` type).
+    - **Structs, Constructors & Methods**: Struct definitions classified as `class` (`declaration`). Constructor `wiwiti` classified as `method` (`declaration`). Methods classified as `method`, instance method invocations (`w.salam()`) classified as `method`.
+    - **Fields & Properties**: Struct fields and dot property access (`w.nama`, `iki.nama`, object literal keys `{ key: val }`) classified as `property`.
+    - **Inheritance & Super**: `ngembangake` parent class and `super.method()` invocations correctly classified as `keyword` + `method`.
+    - **Namespaces & Imports**: Namespace imports (`impor "..." minangka math`) classified as `namespace`. Namespace member invocations (`math.tambah()`) classified as `function`. Selective import specifiers (`impor { tambah, kali minangka perbanyakan }`) correctly mapped with alias declaration modifiers.
+    - **Built-in Functions**: All 23+ built-in functions classified as `function` with `defaultLibrary` modifier (`jinis`, `dawa`, `jupuk`, `nambah`, etc.).
+    - **First-Class Functions**: First-class assignments (`gawe f = tambah`) strictly preserve variable identity for assignee without unsafe runtime inference.
+  - **String & Comment Protection**:
+    - Complete isolation: string literals and comment bodies are never tokenized with inner symbol, keyword, or identifier tokens.
+    - Dynamic bracket string indexing (`obj["prop"]`, `super["method"]`) preserves string literal classification.
+  - **Safety & Resilience**:
+    - Purely static analysis: zero interpreter execution, zero infinite loops, zero arbitrary filesystem scans, zero network access.
+    - Resilient parse error handling: incomplete or malformed documents gracefully return safe token data without throwing exceptions.
+    - UTF-16 code unit precision for accurate multiline, multibyte, and Unicode character offsets.
+- **Server Capability (`language-server/src/server.js`)**:
+  - Advertises `semanticTokensProvider: { legend: semanticTokensLegend, full: true }`.
+  - Registered `connection.languages.semanticTokens.on` with fail-safe error boundary.
+- **Test Suites**:
+  - `language-server/test/semanticTokens.test.js`: 46 unit test scenarios.
+  - `scratch/test_semantic_tokens_v130.js`: 24 protocol-level JSON-RPC stdio integration scenarios.
+  - `scratch/audit_semantic_tokens_v130.js`: 20 deep audit scenarios.
+  - `language-server/test/run_tests.js`: Expanded LSP unit test suite to 12/12 suites.
+  - `scratch/test_language_server.js`: Added 8 master semantic tokens tests, expanding master suite to 81/81 passed.
+  - `scratch/test_vscode_smoke.js`: Added semantic tokens provider smoke test (21/21 passed).
+
+### Language Server Protocol — LSP Code Actions (Phase 7)
+
+#### Added
+- **Dedicated Code Actions Engine (`language-server/src/codeActions.js`)**:
+  - Implemented deterministic, semantic-safe static Code Action engine responding to LSP `textDocument/codeAction`.
+  - **Organize Imports (`source.organizeImports`)**:
+    - Automatically sorts import statements alphabetically by module path.
+    - Merges multiple selective imports from the exact same module path into a single consolidated import statement.
+    - Alphabetically sorts selective specifiers within imports while preserving `minangka` aliases (`impor { tambah minangka jumlah, kali } saka "./math.jawa"`).
+    - Preserves namespace imports (`impor "..." minangka ns`) and legacy imports (`impor "..."`).
+    - Multiline formatting for selective imports with 4+ specifiers.
+    - Idempotency & no-op: returns empty array (`[]`) when imports are already clean and sorted.
+  - **Remove Duplicate Imports (`quickfix`)**:
+    - Detects identical duplicate import statements across legacy, namespace, and selective modes.
+    - Provides single-click QuickFix to delete duplicate import statements.
+    - Detects duplicate imported specifiers inside single selective import statements (e.g. `impor { tambah, tambah }`) and offers clean specifier deduplication.
+  - **Remove Unused Imports (`quickfix`)**:
+    - Verifies reference graph and token positions outside import declarations.
+    - Safely offers to remove unused selective specifiers or unused namespace imports.
+    - Never flags actively used functions, structs, instance methods, or inherited struct symbols.
+  - **Diagnostic-Driven QuickFixes (`quickfix`)**:
+    - **Typo Correction**: Suggests closest matching in-scope symbols for undefined functions, variables, and structs using Levenshtein distance (distance $\le 2$). Suggests built-in functions (`dawa`, `jupuk`, etc.) when misspelling occurs (`dawe` $\to$ `dawa`).
+    - **Missing Import QuickFix**: Suggests `Import "<symbol>" from "<relative_path>"` when an undefined identifier matches exported symbols from known project modules cached in the analyzer.
+  - **Safety Guarantees & Filters**:
+    - Strictly respects `context.only` filter (e.g. `['quickfix']`, `['source.organizeImports']`).
+    - Purely static analysis: zero runtime execution, zero arbitrary filesystem scans, zero network access, and zero regex-based semantic replacements.
+    - Strict preservation of string literals (`"..."`) and comments (`//`).
+    - Preserves keyword, built-in, struct, constructor (`wiwiti`), `iki`, and inheritance (`ngembangake`, `super`) semantics.
+    - Returns valid standard LSP `WorkspaceEdit` with UTF-16 precision and no overlapping edits.
+- **Server Capability (`language-server/src/server.js`)**:
+  - Advertises `codeActionProvider: { codeActionKinds: ['quickfix', 'source.organizeImports'] }`.
+  - Registered `connection.onCodeAction` with comprehensive error boundary returning `[]` on malformed inputs or invalid documents.
+- **Test Suites**:
+  - `language-server/test/codeActions.test.js`: 44 comprehensive unit test scenarios covering all required code action behaviors.
+  - `scratch/test_code_actions_v130.js`: 18 protocol-level JSON-RPC stdio integration scenarios.
+  - `scratch/audit_code_actions_v130.js`: 13 deep audit scenarios.
+  - `language-server/test/run_tests.js`: Expanded LSP unit suites to 11/11 suites (235 Unit Tests).
+  - `scratch/test_language_server.js`: Added 8 master code action tests, expanding master suite to 73/73 passed.
+  - `scratch/test_vscode_smoke.js`: Added code action smoke test (20/20 passed).
+
 ### Language Server Protocol — Document Formatting (Phase 6)
 
 #### Added

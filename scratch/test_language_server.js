@@ -16,6 +16,8 @@ const { getReferences } = require('../language-server/src/references');
 const { renameSymbol } = require('../language-server/src/rename');
 const { getSignatureHelp } = require('../language-server/src/signatureHelp');
 const { formatDocument } = require('../language-server/src/formatter');
+const { getCodeActions, CodeActionKind } = require('../language-server/src/codeActions');
+const { getSemanticTokens, decodeSemanticTokens, semanticTokensLegend, MODIFIER_DEFAULT_LIBRARY } = require('../language-server/src/semanticTokens');
 const moduleManager = require('../language-server/src/modules');
 const { DocumentManager } = require('../language-server/src/documentManager');
 const { pathToUri } = require('../language-server/src/utils');
@@ -641,6 +643,177 @@ recordResult('Formatting', 'Idempotency guarantee', () => {
     const edits1 = formatDocument(code);
     const edits2 = formatDocument(edits1[0].newText);
     assert.deepStrictEqual(edits2, []);
+});
+
+// 10. CODE ACTIONS TESTS
+recordResult('Code Actions', 'Organize Imports sorts alphabetically', () => {
+    const code = 'impor "./b.jawa"\nimpor "./a.jawa"\n';
+    const analysis = analyzer.analyze(code, 'file:///test_ca.jawa');
+    const actions = getCodeActions(analysis, { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } });
+    const org = actions.find(a => a.kind === CodeActionKind.SourceOrganizeImports);
+    assert.ok(org, 'Expected organize imports action');
+    assert.ok(org.edit.changes['file:///test_ca.jawa'][0].newText.includes('impor "./a.jawa"\nimpor "./b.jawa"'));
+});
+
+recordResult('Code Actions', 'Duplicate import statement removed', () => {
+    const code = 'impor "./math.jawa"\nimpor "./math.jawa"\n';
+    const analysis = analyzer.analyze(code, 'file:///test_dup.jawa');
+    const actions = getCodeActions(analysis, { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } });
+    const dup = actions.find(a => a.title.includes('Remove duplicate import'));
+    assert.ok(dup, 'Expected Remove duplicate import action');
+});
+
+recordResult('Code Actions', 'Duplicate specifier in selective import removed', () => {
+    const code = 'impor { tambah, tambah } saka "./math.jawa"\ngawe x = tambah(1, 2)';
+    const analysis = analyzer.analyze(code, 'file:///test_dupspec.jawa');
+    const actions = getCodeActions(analysis, { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } });
+    const dup = actions.find(a => a.title === 'Remove duplicate import "tambah"');
+    assert.ok(dup, 'Expected Remove duplicate import "tambah" action');
+});
+
+recordResult('Code Actions', 'Unused namespace import flagged for removal', () => {
+    const code = 'impor "./unused.jawa" minangka unused\ngawe x = 10\n';
+    const analysis = analyzer.analyze(code, 'file:///test_unused.jawa');
+    const actions = getCodeActions(analysis, { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } });
+    const unused = actions.find(a => a.title.includes('Remove unused namespace import "unused"'));
+    assert.ok(unused, 'Expected Remove unused namespace import action');
+});
+
+recordResult('Code Actions', 'Undefined function typo correction', () => {
+    const code = 'guna tambah(a, b) {\nbali a + b\n}\ngawe x = tambha(1, 2)\n';
+    const analysis = analyzer.analyze(code, 'file:///test_typo.jawa');
+    const actions = getCodeActions(analysis, { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }, {
+        diagnostics: [
+            {
+                message: 'Fungsi "tambha" ora ditemokake.',
+                range: { start: { line: 3, character: 9 }, end: { line: 3, character: 15 } }
+            }
+        ]
+    });
+    const fix = actions.find(a => a.title === 'Change to "tambah"');
+    assert.ok(fix, 'Expected Change to "tambah" quickfix');
+});
+
+recordResult('Code Actions', 'context.only filtering respects request', () => {
+    const code = 'impor "./b.jawa"\nimpor "./a.jawa"\n';
+    const analysis = analyzer.analyze(code, 'file:///test_only.jawa');
+    const actions = getCodeActions(analysis, { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }, {
+        only: [CodeActionKind.QuickFix]
+    });
+    const org = actions.find(a => a.kind === CodeActionKind.SourceOrganizeImports);
+    assert.strictEqual(org, undefined, 'Organize imports should be filtered out by quickfix filter');
+});
+
+recordResult('Code Actions', 'Clean document returns no actions', () => {
+    const code = 'gawe x = 10\ntulis x\n';
+    const analysis = analyzer.analyze(code, 'file:///test_clean.jawa');
+    const actions = getCodeActions(analysis, { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } });
+    assert.deepStrictEqual(actions, []);
+});
+
+recordResult('Code Actions', 'Malformed document safely returns array', () => {
+    const code = 'guna ((( broken';
+    const analysis = analyzer.analyze(code, 'file:///test_broken.jawa');
+    const actions = getCodeActions(analysis, { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } });
+    assert.ok(Array.isArray(actions));
+});
+
+// 12. SEMANTIC TOKENS TESTS
+recordResult('Semantic Tokens', 'Basic keywords and operators classified correctly', () => {
+    const code = 'gawe x = 10 + 20\nbali x';
+    const analysis = analyzer.analyze(code, 'file:///st1.jawa');
+    const res = getSemanticTokens(analysis);
+    const decoded = decodeSemanticTokens(res.data, semanticTokensLegend);
+    const gaweTok = decoded.find(t => t.line === 0 && t.character === 0);
+    const plusTok = decoded.find(t => t.line === 0 && t.character === 12);
+    const baliTok = decoded.find(t => t.line === 1 && t.character === 0);
+    assert.ok(gaweTok && gaweTok.tokenType === 'keyword');
+    assert.ok(plusTok && plusTok.tokenType === 'operator');
+    assert.ok(baliTok && baliTok.tokenType === 'keyword');
+});
+
+recordResult('Semantic Tokens', 'Variable declaration and reference', () => {
+    const code = 'gawe total = 100\ntulis total';
+    const analysis = analyzer.analyze(code, 'file:///st2.jawa');
+    const res = getSemanticTokens(analysis);
+    const decoded = decodeSemanticTokens(res.data, semanticTokensLegend);
+    const declTok = decoded.find(t => t.line === 0 && t.character === 5);
+    const refTok = decoded.find(t => t.line === 1 && t.character === 6);
+    assert.ok(declTok && declTok.tokenType === 'variable');
+    assert.ok(refTok && refTok.tokenType === 'variable');
+});
+
+recordResult('Semantic Tokens', 'Function declaration, call, and parameters', () => {
+    const code = 'guna tambah(a, b) {\n    bali a + b\n}\ntambah(1, 2)';
+    const analysis = analyzer.analyze(code, 'file:///st3.jawa');
+    const res = getSemanticTokens(analysis);
+    const decoded = decodeSemanticTokens(res.data, semanticTokensLegend);
+    const fnDecl = decoded.find(t => t.line === 0 && t.character === 5);
+    const p1 = decoded.find(t => t.line === 0 && t.character === 12);
+    const p2 = decoded.find(t => t.line === 0 && t.character === 15);
+    const fnCall = decoded.find(t => t.line === 3 && t.character === 0);
+    assert.ok(fnDecl && fnDecl.tokenType === 'function');
+    assert.ok(p1 && p1.tokenType === 'parameter');
+    assert.ok(p2 && p2.tokenType === 'parameter');
+    assert.ok(fnCall && fnCall.tokenType === 'function');
+});
+
+recordResult('Semantic Tokens', 'Struct, constructor, and method classification', () => {
+    const code = 'bentuk Kotak {\n    gawe lebar\n    wiwiti(l) { iki.lebar = l }\n    guna luas() {}\n}\ngawe k = anyar Kotak()\nk.luas()';
+    const analysis = analyzer.analyze(code, 'file:///st4.jawa');
+    const res = getSemanticTokens(analysis);
+    const decoded = decodeSemanticTokens(res.data, semanticTokensLegend);
+    const structTok = decoded.find(t => t.line === 0 && t.character === 7);
+    const ctorTok = decoded.find(t => t.line === 2 && t.character === 4);
+    const methodDecl = decoded.find(t => t.line === 3 && t.character === 9);
+    const methodCall = decoded.find(t => t.line === 6 && t.character === 2);
+    assert.ok(structTok && structTok.tokenType === 'class');
+    assert.ok(ctorTok && ctorTok.tokenType === 'method');
+    assert.ok(methodDecl && methodDecl.tokenType === 'method');
+    assert.ok(methodCall && methodCall.tokenType === 'method');
+});
+
+recordResult('Semantic Tokens', 'Namespace import and member access', () => {
+    const code = 'impor "./math.jawa" minangka math\nmath.hitung()';
+    const analysis = analyzer.analyze(code, 'file:///st5.jawa');
+    const res = getSemanticTokens(analysis);
+    const decoded = decodeSemanticTokens(res.data, semanticTokensLegend);
+    const nsTok = decoded.find(t => t.line === 1 && t.character === 0);
+    const fnTok = decoded.find(t => t.line === 1 && t.character === 5);
+    assert.ok(nsTok && nsTok.tokenType === 'namespace');
+    assert.ok(fnTok && fnTok.tokenType === 'function');
+});
+
+recordResult('Semantic Tokens', 'Strings and comments protected from inner symbols', () => {
+    const code = 'gawe s = "guna fake() {}"\n// bentuk Fake {}\ngawe y = 1';
+    const analysis = analyzer.analyze(code, 'file:///st6.jawa');
+    const res = getSemanticTokens(analysis);
+    const decoded = decodeSemanticTokens(res.data, semanticTokensLegend);
+    const strTok = decoded.find(t => t.line === 0 && t.character === 9);
+    const cmTok = decoded.find(t => t.line === 1 && t.character === 0);
+    assert.ok(strTok && strTok.tokenType === 'string');
+    assert.ok(cmTok && cmTok.tokenType === 'comment');
+    const line0Inner = decoded.filter(t => t.line === 0 && t.character > 9);
+    const line1Tokens = decoded.filter(t => t.line === 1);
+    assert.strictEqual(line0Inner.length, 0);
+    assert.strictEqual(line1Tokens.length, 1);
+});
+
+recordResult('Semantic Tokens', 'Built-in functions have defaultLibrary modifier', () => {
+    const code = 'gawe n = dawa([1, 2, 3])';
+    const analysis = analyzer.analyze(code, 'file:///st7.jawa');
+    const res = getSemanticTokens(analysis);
+    const decoded = decodeSemanticTokens(res.data, semanticTokensLegend);
+    const fnTok = decoded.find(t => t.line === 0 && t.character === 9);
+    assert.ok(fnTok && fnTok.tokenType === 'function');
+    assert.ok(Boolean(fnTok.modifiers & MODIFIER_DEFAULT_LIBRARY));
+});
+
+recordResult('Semantic Tokens', 'Malformed source safely returns array', () => {
+    const code = 'guna ((( broken\n gawe =';
+    const analysis = analyzer.analyze(code, 'file:///st8.jawa');
+    const res = getSemanticTokens(analysis);
+    assert.ok(res && Array.isArray(res.data));
 });
 
 // RENDER SUMMARY TABLE
