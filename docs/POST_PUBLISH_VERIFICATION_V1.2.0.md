@@ -265,7 +265,7 @@ Laporan resmi verifikasi pasca-publish paket `jawalang@1.2.0` ing NPM Registry s
      - `jawa --version` dianyari dadi `Jawalang v1.2.0`.
      - `jawa --help` dianyari kanthi nglebokake perintah `jawa`, `jawa repl`, lan deskripsi `repl Start interactive REPL`.
   5. **Struktur Proyek**: Dikonfirmasi nggunakake `"bin": { "jawa": "bin/jawa.js", "jawalang": "bin/jawa.js" }` lan nyathet `bin/jawalang.js`.
-  6. **Status Proyek**: [docs/PROJECT_STATUS.md](file:///d:/Jawascript/docs/PROJECT_STATUS.md) dianyari kanthi nyakup milestone Post-Publish Verification V1.2.0 lan total 242+ test passing.
+  6. **Status Proyek**: [docs/PROJECT_STATUS.md](./PROJECT_STATUS.md) dianyari kanthi nyakup milestone Post-Publish Verification V1.2.0 lan total 242+ test passing.
 
 ---
 
