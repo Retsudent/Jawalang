@@ -23,11 +23,30 @@ Jawalang Language Server nyedhiyakake kapabilitas IDE profesional liwat protokol
   * Nyakup variabel, parameter fungsi, metode struct, panggilan fungsi, instansiasi struct (`anyar`), properti instance (`iki.prop`), referensi warisan (`super.method()`), sarta simbol impor selektif lan namespace modul.
   * Dilengkapi opsi `context.includeDeclaration` lan proteksi otomatis marang tembung kunci utawa fungsi built-in.
 
-* **Semantic Autocomplete (`textDocument/completion`)**:
-  * Rekomendasi simbol kontekstual adhedhasar cakupan leksikal aktif.
-  * Anggota instance struct: nampilake field lan metode nalika ngetik `instance.`
-  * Anggota `iki.` ing njero metode struct lan `super.` ing struct turunan.
-  * Namespace modul: nampilake simbol sing diekspor dening modul nalika ngetik `namespace.`
+* **Rename Symbol (`textDocument/rename`)**:
+  * Ngganti jeneng simbol kanthi aman liwat `WorkspaceEdit` LSP standar tanpa text replacement global / regex.
+  * Nggunakake identitas simbol semantik (`SymbolObject` & Reference Graph) saengga mung ngowahi deklarasi lan referensi sing bener.
+  * Proteksi lengkap marang tembung kunci, fungsi built-in, konstruktor `wiwiti`, string literal, komentar, lan jeneng simbol ora sah.
+  * Deteksi tabrakan jeneng leksikal (collision detection) ing cakupan target.
+  * Urutan edit `WorkspaceEdit` disusun kanthi urutan mudhun (descending line & character) kanggo nyegah karusakan offset.
+
+* **Signature Help (`textDocument/signatureHelp`)**:
+  * Bantuan tandha tangan lan parameter aktif (`activeParameter`) kanthi presisi dhuwur adhedhasar aliran token leksikal (ora nggunakake regex global).
+  * Nyengkuyung panggilan fungsi pangguna, konstruktor struct (`anyar StructName(...)`), konstruktor warisan (`super(...)`), metode instance struct (`w.salam(...)`, `iki.salam(...)`), metode warisan (`super.method(...)`), fungsi ekspor modul namespace (`math.tambah(...)`), sarta fungsi impor selektif lan alias.
+  * Ngisolasi panggilan bersarang (nested calls), koma ing njero array literal `[...]`, object literal `{...}`, string literal `""`, lan komentar baris `//`.
+  * Dhukungan kanggo fungsi bawaan Jawalang (`dawa`, `terapkan`, `takon`, lsp) kanthi label tandha tangan lan dokumentasi.
+
+* **Semantic Context-Aware Completion V2 (`textDocument/completion`)**:
+  * Rekomendasi simbol kontekstual adhedhasar cakupan leksikal aktif (global, lokal blok, nested, lan parameter fungsi) kanthi resolusi shadowing sing akurat.
+  * Anggota instance struct: nampilake field (`Field`) lan metode (`Method`) nalika ngetik `instance.` adhedhasar inferensi tipe instansiasi `anyar Struct()`.
+  * Anggota `iki.` ing njero metode utawa konstruktor struct nampilake field lan metode struct kasebut.
+  * Anggota `super.` ing struct turunan nampilake field lan metode saka struct induk langsung tanpa katut override turunan.
+  * Resolusi pewarisan (`ngembangake`) otomatis njupuk kabeh anggota leluhur kanthi deduplikasi lan prioritas override anak.
+  * Namespace modul: nampilake simbol sing diekspor dening modul nalika ngetik `namespace.` (simbol internal ora katut).
+  * Dhukungan impor selektif lan alias impor (`impor { tambah minangka jumlah }`).
+  * Filter cerdas sawise tembung kunci `anyar `: mung nampilake simbol struct/kelas sing sah.
+  * Proteksi lengkap: ora nampilake autokomplit ing njero string (`"..."`) utawa komentar baris (`//`).
+  * Panggunaan `textEdit` standar kanthi range panggantian tembung lan prefix sing presisi.
   * Dokumen lengkap lan tuladha kanggo 24 fungsi built-in Jawalang lan kabeh tembung kunci (keywords).
 
 * **Semantic Hover (`textDocument/hover`)**:
@@ -38,6 +57,36 @@ Jawalang Language Server nyedhiyakake kapabilitas IDE profesional liwat protokol
 
 * **Document Symbols (`textDocument/documentSymbol`)**:
   * Peta outline hierarkis dokumen: Struct minangka kelas, metode, konstruktor (`wiwiti`), field, fungsi, lan variabel global.
+
+* **Document Formatting (`textDocument/formatting`)**:
+  * Format dokumen otomatis kanthi engine token-aware deterministik lan murni statis (tanpa eksekusi runtime).
+  * Indentasi standar 4 spasi (tanpa tab) adhedhasar level sarang (nesting level).
+  * Perapian spasi operator biner (`+`, `-`, `*`, `/`, `%`, `==`, `!=`, `<`, `<=`, `>`, `>=`, `=`, `lan`, `utawa`) lan operator unary (`-`, `+`, `ora`) sing nempel ing operand.
+  * Format kurawal blok (`{` lan `}`) sarta cuddling tembung kunci (`} liyane {`, `} liyane yen ... {`, `} tangkep err {`, `} saka ...`).
+  * Format deklarasi struct, konstruktor `wiwiti`, pewarisan `ngembangake`, lan pemanggilan `super`.
+  * Object literal diformat multiline ing assignment; inline object tetep dijaga ing njero ekspresi.
+  * Array inline lan array bersarang (`[[1, 2], [3, 4]]`) tetep rapi tanpa pemotongan baris paksa.
+  * Njaga komentar (`//`) lan string literal mawa karakter escape 100% aman lan verbatim.
+  * Dhukungan otomatis baris pungkasan CRLF (`\r\n`) lan LF (`\n`).
+  * Jaminan idempotensi: `format(format(kode)) === format(kode)`.
+  * Malformed-code safety: ngasilake `[]` kanthi aman tanpa ngrusak berkas utawa njalari server crash.
+
+* **Capability Matrix**:
+  | Kapabilitas LSP | Status |
+  | :--- | :---: |
+  | `textDocument/publishDiagnostics` | ✅ |
+  | `textDocument/completion` | ✅ |
+  | `textDocument/hover` | ✅ |
+  | `textDocument/definition` | ✅ |
+  | `textDocument/references` | ✅ |
+  | `textDocument/rename` | ✅ |
+  | `textDocument/documentSymbol` | ✅ |
+  | `textDocument/signatureHelp` | ✅ |
+  | `textDocument/formatting` | ✅ |
+  | `textDocument/semanticTokens` | ⏳ |
+  | `workspace/symbol` | ⏳ |
+  | `codeAction` | ⏳ |
+  | `foldingRange` | ⏳ |
 
 * **Module Awareness & Static Import Resolution**:
   * Resolusi path impor relatif kanthi ekstensi `.jawa` otomatis utawa eksplisit.
@@ -64,6 +113,7 @@ src/analyzer.js ─── AST, Scopes, Symbol Table, Type Inference
     ├── src/diagnostics.js (Error & warning publisher)
     ├── src/definitions.js (Go to definition provider)
     ├── src/references.js (Find all references provider)
+    ├── src/rename.js (Rename symbol provider)
     ├── src/completion.js (Scope & member completion provider)
     ├── src/hover.js (Type & doc hover provider)
     └── src/symbols.js (Hierarchical outline symbols)
@@ -115,6 +165,8 @@ Tes sing kalebu:
 5. `test/symbols.test.js`: Validasi outline hierarkis dokumen.
 6. `test/modules.test.js`: Validasi analisis modul lan siklus impor.
 7. `test/references.test.js`: Validasi Find All References (variabel lokal/global/shadowed, parameter, fungsi, struct, metode, inheritance super, selective import, namespace).
+8. `test/rename.test.js`: Validasi Rename Symbol (deklarasi, referensi, cakupan lokal, shadowing, fungsi, struct, field, metode, inheritance super, proteksi built-in/keyword/wiwiti/string/komentar, validasi identifier, deteksi tabrakan leksikal, sarta WorkspaceEdit).
+9. `test/signatureHelp.test.js`: Validasi Signature Help & Active Parameter (fungsi pangguna, parameter bersarang, ekspresi, impor selektif/alias, namespace modul, metode struct, metode warisan, override, super, konstruktor, super constructor, built-in metadata, string/komentar/array/objek safety, sarta isolasi malformed input).
 
 ---
 

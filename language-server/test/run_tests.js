@@ -5,6 +5,9 @@ const testHover = require('./hover.test');
 const testSymbols = require('./symbols.test');
 const testModules = require('./modules.test');
 const testReferences = require('./references.test');
+const testRename = require('./rename.test');
+const testSignatureHelp = require('./signatureHelp.test');
+const testFormatter = require('./formatter.test');
 
 console.log('====================================================');
 console.log('       JAWALANG LANGUAGE SERVER UNIT TESTS          ');
@@ -24,9 +27,15 @@ try {
     testModules();
     console.log('');
     testReferences();
+    console.log('');
+    testRename();
+    console.log('');
+    testSignatureHelp();
+    console.log('');
+    testFormatter();
 
     console.log('\n====================================================');
-    console.log('  ALL LANGUAGE SERVER UNIT TESTS PASSED (7/7 SUITES)');
+    console.log('  ALL LANGUAGE SERVER UNIT TESTS PASSED (10/10 SUITES)');
     console.log('====================================================');
 } catch (err) {
     console.error('\nTEST SUITE FAILED:');

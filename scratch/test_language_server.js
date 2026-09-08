@@ -13,6 +13,9 @@ const { getCompletions } = require('../language-server/src/completion');
 const { getHover } = require('../language-server/src/hover');
 const { getDocumentSymbols, SymbolKind } = require('../language-server/src/symbols');
 const { getReferences } = require('../language-server/src/references');
+const { renameSymbol } = require('../language-server/src/rename');
+const { getSignatureHelp } = require('../language-server/src/signatureHelp');
+const { formatDocument } = require('../language-server/src/formatter');
 const moduleManager = require('../language-server/src/modules');
 const { DocumentManager } = require('../language-server/src/documentManager');
 const { pathToUri } = require('../language-server/src/utils');
@@ -176,6 +179,109 @@ recordResult('Completion', 'Namespace completion provides exported symbols', () 
     const labels = items.map(it => it.label);
     assert.ok(labels.includes('PI') && labels.includes('tambah') && labels.includes('kurang'));
     assert.ok(!labels.includes('rahasia'));
+});
+
+recordResult('Completion', 'Inherited members and override resolution on child instance', () => {
+    const code = [
+        'bentuk Induk {',
+        '    gawe jeneng',
+        '    guna salam() {}',
+        '}',
+        'bentuk Anak ngembangake Induk {',
+        '    gawe umur',
+        '    guna salam(pesan) {}',
+        '}',
+        'gawe a = anyar Anak()',
+        'a.'
+    ].join('\n');
+    const analysis = analyzer.analyze(code, 'file:///test_comp_inherit.jawa');
+    const items = getCompletions(analysis, { line: 9, character: 2 });
+    const labels = items.map(it => it.label);
+    assert.ok(labels.includes('jeneng'));
+    assert.ok(labels.includes('umur'));
+    assert.ok(labels.includes('salam'));
+    // Ensure salam is deduplicated
+    const salamItems = items.filter(it => it.label === 'salam');
+    assert.strictEqual(salamItems.length, 1);
+});
+
+recordResult('Completion', '"super." member completion inside child method', () => {
+    const code = [
+        'bentuk Induk {',
+        '    gawe jeneng',
+        '    guna salam() {}',
+        '}',
+        'bentuk Anak ngembangake Induk {',
+        '    guna salam(pesan) {}',
+        '    guna test() {',
+        '        super.',
+        '    }',
+        '}'
+    ].join('\n');
+    const analysis = analyzer.analyze(code, 'file:///test_comp_super.jawa');
+    const items = getCompletions(analysis, { line: 7, character: 14 });
+    const labels = items.map(it => it.label);
+    assert.ok(labels.includes('salam'));
+    assert.ok(labels.includes('jeneng'));
+});
+
+recordResult('Completion', 'Constructor context after "anyar" offers structs only', () => {
+    const code = [
+        'gawe x = 10',
+        'guna fn() {}',
+        'bentuk Mobil {}',
+        'bentuk Motor {}',
+        'gawe m = anyar '
+    ].join('\n');
+    const analysis = analyzer.analyze(code, 'file:///test_comp_anyar.jawa');
+    const items = getCompletions(analysis, { line: 4, character: 15 });
+    const labels = items.map(it => it.label);
+    assert.ok(labels.includes('Mobil') && labels.includes('Motor'));
+    assert.ok(!labels.includes('x') && !labels.includes('fn') && !labels.includes('tulis'));
+});
+
+recordResult('Completion', 'Safety: zero completions inside strings and comments', () => {
+    const code = [
+        'gawe nama = "test"',
+        'tulis "nam',
+        '// nam'
+    ].join('\n');
+    const analysis = analyzer.analyze(code, 'file:///test_comp_safety.jawa');
+    const stringItems = getCompletions(analysis, { line: 1, character: 10 });
+    assert.strictEqual(stringItems.length, 0);
+    const commentItems = getCompletions(analysis, { line: 2, character: 5 });
+    assert.strictEqual(commentItems.length, 0);
+});
+
+recordResult('Completion', 'Accurate textEdit replacement range for prefix and member access', () => {
+    const code = [
+        'bentuk Wong {',
+        '    gawe jeneng',
+        '    guna salam() {}',
+        '}',
+        'gawe w = anyar Wong()',
+        'w.sa'
+    ].join('\n');
+    const analysis = analyzer.analyze(code, 'file:///test_comp_range.jawa');
+    const items = getCompletions(analysis, { line: 5, character: 4 });
+    const salamItem = items.find(it => it.label === 'salam');
+    assert.ok(salamItem);
+    assert.ok(salamItem.textEdit);
+    assert.strictEqual(salamItem.textEdit.range.start.character, 2);
+    assert.strictEqual(salamItem.textEdit.range.end.character, 4);
+    assert.strictEqual(salamItem.textEdit.newText, 'salam');
+});
+
+recordResult('Completion', 'Malformed document recovery provides valid scope completions', () => {
+    const code = [
+        'gawe nama = "Barch"',
+        'gawe umur = 20',
+        'nam'
+    ].join('\n');
+    const analysis = analyzer.analyze(code, 'file:///test_comp_malformed.jawa');
+    const items = getCompletions(analysis, { line: 2, character: 3 });
+    const labels = items.map(it => it.label);
+    assert.ok(labels.includes('nama'));
 });
 
 // 4. HOVER TESTS
@@ -379,6 +485,162 @@ recordResult('Find References', 'Built-in functions and keywords return empty ar
     const res = analyzer.analyze(code, 'file:///test_ref_builtins.jawa');
     assert.deepStrictEqual(getReferences(res, { line: 0, character: 2 }), []);
     assert.deepStrictEqual(getReferences(res, { line: 1, character: 2 }), []);
+});
+
+// 11. RENAME SYMBOL TESTS (V1.3.0 Phase 3)
+recordResult('Rename Symbol', 'Global variable rename produces WorkspaceEdit across declaration and usages', () => {
+    const code = 'gawe nama = "Budi"\ntulis nama\ngawe salinan = nama';
+    const uri = 'file:///test_rename_global.jawa';
+    const res = analyzer.analyze(code, uri);
+    const edit = renameSymbol(res, { line: 0, character: 5 }, 'jeneng');
+    assert.ok(edit && edit.changes && edit.changes[uri]);
+    assert.strictEqual(edit.changes[uri].length, 3);
+    assert.strictEqual(edit.changes[uri][0].range.start.line, 2);
+    assert.strictEqual(edit.changes[uri][2].range.start.line, 0);
+    assert.ok(edit.changes[uri].every(c => c.newText === 'jeneng'));
+});
+
+recordResult('Rename Symbol', 'Local variable rename respects scope and shadowing', () => {
+    const code = 'gawe x = 100\nguna test() {\n    gawe x = 20\n    tulis x\n}\ntulis x';
+    const uri = 'file:///test_rename_shadow.jawa';
+    const res = analyzer.analyze(code, uri);
+    const edit = renameSymbol(res, { line: 2, character: 9 }, 'lokal');
+    assert.ok(edit && edit.changes && edit.changes[uri]);
+    assert.strictEqual(edit.changes[uri].length, 2);
+    assert.strictEqual(edit.changes[uri][0].range.start.line, 3);
+    assert.strictEqual(edit.changes[uri][1].range.start.line, 2);
+});
+
+recordResult('Rename Symbol', 'Struct and method rename produce valid WorkspaceEdit', () => {
+    const code = 'bentuk Mobil {\n    guna maju() { tulis 1 }\n}\ngawe m = anyar Mobil()\nm.maju()';
+    const uri = 'file:///test_rename_struct.jawa';
+    const res = analyzer.analyze(code, uri);
+    const editStruct = renameSymbol(res, { line: 0, character: 8 }, 'Kendaraan');
+    assert.ok(editStruct && editStruct.changes && editStruct.changes[uri]);
+    assert.strictEqual(editStruct.changes[uri].length, 2);
+
+    const editMethod = renameSymbol(res, { line: 1, character: 10 }, 'mlaku');
+    assert.ok(editMethod && editMethod.changes && editMethod.changes[uri]);
+    assert.strictEqual(editMethod.changes[uri].length, 2);
+});
+
+recordResult('Rename Symbol', 'Built-in functions, keywords, and constructor "wiwiti" return null safely', () => {
+    const code = 'tulis "halo"\nyen bener { mandheg }\nbentuk O { wiwiti() {} }';
+    const uri = 'file:///test_rename_builtins.jawa';
+    const res = analyzer.analyze(code, uri);
+    assert.strictEqual(renameSymbol(res, { line: 0, character: 2 }, 'cetak'), null);
+    assert.strictEqual(renameSymbol(res, { line: 1, character: 1 }, 'ifKeyword'), null);
+    assert.strictEqual(renameSymbol(res, { line: 2, character: 12 }, 'init'), null);
+});
+
+recordResult('Rename Symbol', 'Invalid identifier names and scope collisions return null safely', () => {
+    const code = 'gawe x = 10\ngawe y = 20';
+    const uri = 'file:///test_rename_invalid.jawa';
+    const res = analyzer.analyze(code, uri);
+    assert.strictEqual(renameSymbol(res, { line: 0, character: 5 }, '123bad'), null);
+    assert.strictEqual(renameSymbol(res, { line: 0, character: 5 }, 'y'), null);
+});
+
+// ==========================================
+// 12. SIGNATURE HELP VALIDATION
+// ==========================================
+
+recordResult('Signature Help', 'Basic function signature returns label, parameters, and activeParameter 0', () => {
+    const code = 'guna tambah(a, b) { bali a + b }\ntambah(';
+    const uri = 'file:///test_sig_basic.jawa';
+    const res = analyzer.analyze(code, uri);
+    const sig = getSignatureHelp(res, { line: 1, character: 7 });
+    assert.ok(sig);
+    assert.strictEqual(sig.signatures[0].label, 'tambah(a, b)');
+    assert.strictEqual(sig.signatures[0].parameters.length, 2);
+    assert.strictEqual(sig.activeParameter, 0);
+});
+
+recordResult('Signature Help', 'Active parameter updates accurately across multiple arguments', () => {
+    const code = 'guna daftar(x, y, z) {}\ndaftar(10, 20, ';
+    const uri = 'file:///test_sig_params.jawa';
+    const res = analyzer.analyze(code, uri);
+    const sig = getSignatureHelp(res, { line: 1, character: 15 });
+    assert.ok(sig);
+    assert.strictEqual(sig.signatures[0].label, 'daftar(x, y, z)');
+    assert.strictEqual(sig.activeParameter, 2);
+});
+
+recordResult('Signature Help', 'Nested call resolution distinguishes inner from outer call', () => {
+    const code = 'guna f(a, b) {}\nguna g(x, y) {}\nf(g(1, 2), ';
+    const uri = 'file:///test_sig_nested.jawa';
+    const res = analyzer.analyze(code, uri);
+    const sig = getSignatureHelp(res, { line: 2, character: 11 });
+    assert.ok(sig);
+    assert.strictEqual(sig.signatures[0].label, 'f(a, b)');
+    assert.strictEqual(sig.activeParameter, 1);
+});
+
+recordResult('Signature Help', 'Struct methods and constructor calls provide signatures', () => {
+    const code = [
+        'bentuk Wong {',
+        '    guna wiwiti(nama, umur) {}',
+        '    guna sapa(pesan) {}',
+        '}',
+        'gawe w = anyar Wong(',
+        'w.sapa('
+    ].join('\n');
+    const uri = 'file:///test_sig_struct.jawa';
+    const res = analyzer.analyze(code, uri);
+    const sigCtor = getSignatureHelp(res, { line: 4, character: 20 });
+    assert.ok(sigCtor);
+    assert.strictEqual(sigCtor.signatures[0].label, 'Wong(nama, umur)');
+    const sigMethod = getSignatureHelp(res, { line: 5, character: 7 });
+    assert.ok(sigMethod);
+    assert.strictEqual(sigMethod.signatures[0].label, 'sapa(pesan)');
+});
+
+recordResult('Signature Help', 'Built-in functions provide signatures and documentation', () => {
+    const code = 'dawa(';
+    const uri = 'file:///test_sig_builtin.jawa';
+    const res = analyzer.analyze(code, uri);
+    const sig = getSignatureHelp(res, { line: 0, character: 5 });
+    assert.ok(sig);
+    assert.strictEqual(sig.signatures[0].label, 'dawa(koleksi)');
+    assert.ok(sig.signatures[0].documentation);
+});
+
+// 9. FORMATTING TESTS
+recordResult('Formatting', 'Basic function and operator spacing', () => {
+    const code = 'guna tambah(a,b){\nbali a+b\n}';
+    const edits = formatDocument(code);
+    assert.strictEqual(edits[0].newText, 'guna tambah(a, b) {\n    bali a + b\n}');
+});
+
+recordResult('Formatting', 'If / else cuddling and block indent', () => {
+    const code = 'yen x>10{\ntulis x\n}liyane{\ntulis 0\n}';
+    const edits = formatDocument(code);
+    assert.strictEqual(edits[0].newText, 'yen x > 10 {\n    tulis x\n} liyane {\n    tulis 0\n}');
+});
+
+recordResult('Formatting', 'Struct and method formatting', () => {
+    const code = 'bentuk Wong{\ngawe jeneng\n\nguna salam(){\ntulis iki.jeneng\n}\n}';
+    const edits = formatDocument(code);
+    assert.strictEqual(edits[0].newText, 'bentuk Wong {\n    gawe jeneng\n\n    guna salam() {\n        tulis iki.jeneng\n    }\n}');
+});
+
+recordResult('Formatting', 'Comments and strings safety', () => {
+    const code = 'gawe x=10 // comment\ntulis "a+b=c"';
+    const edits = formatDocument(code);
+    assert.strictEqual(edits[0].newText, 'gawe x = 10 // comment\ntulis "a+b=c"');
+});
+
+recordResult('Formatting', 'Malformed code returns [] cleanly', () => {
+    const code = 'gawe x = "unclosed';
+    const edits = formatDocument(code);
+    assert.deepStrictEqual(edits, []);
+});
+
+recordResult('Formatting', 'Idempotency guarantee', () => {
+    const code = 'guna tambah(a,b){\nbali a+b\n}';
+    const edits1 = formatDocument(code);
+    const edits2 = formatDocument(edits1[0].newText);
+    assert.deepStrictEqual(edits2, []);
 });
 
 // RENDER SUMMARY TABLE

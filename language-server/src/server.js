@@ -12,6 +12,9 @@ const { getHover } = require('./hover');
 const { getDefinition } = require('./definitions');
 const { getDocumentSymbols } = require('./symbols');
 const { getReferences } = require('./references');
+const { renameSymbol } = require('./rename');
+const { getSignatureHelp } = require('./signatureHelp');
+const { formatDocument } = require('./formatter');
 
 const pkg = require('../package.json');
 
@@ -60,7 +63,13 @@ connection.onInitialize((params) => {
             hoverProvider: true,
             definitionProvider: true,
             documentSymbolProvider: true,
-            referencesProvider: true
+            referencesProvider: true,
+            renameProvider: true,
+            signatureHelpProvider: {
+                triggerCharacters: ['(', ','],
+                retriggerCharacters: [',']
+            },
+            formattingProvider: true
         }
     };
 });
@@ -120,8 +129,52 @@ connection.onReferences((params) => {
     }
 });
 
+connection.onRenameRequest((params) => {
+    try {
+        const analysis = documentManager.getAnalysis(params.textDocument.uri);
+        return renameSymbol(analysis, params.position, params.newName);
+    } catch (err) {
+        debugLog('Error in onRenameRequest:', err.message);
+        return null;
+    }
+});
+
+connection.onSignatureHelp((params) => {
+    try {
+        const analysis = documentManager.getAnalysis(params.textDocument.uri);
+        return getSignatureHelp(analysis, params.position);
+    } catch (err) {
+        debugLog('Error in onSignatureHelp:', err.message);
+        return null;
+    }
+});
+
+connection.onDocumentFormatting((params) => {
+    try {
+        const uri = params.textDocument.uri;
+        let text = '';
+        const doc = documentManager.documents.get(uri);
+        if (doc) {
+            text = doc.getText();
+        } else {
+            const cached = documentManager.cache.get(uri);
+            if (cached && cached.analysis && cached.analysis.text) {
+                text = cached.analysis.text;
+            }
+        }
+        if (!text) {
+            return [];
+        }
+        return formatDocument(text, params.options);
+    } catch (err) {
+        debugLog('Error in onDocumentFormatting:', err.message);
+        return [];
+    }
+});
+
 // Bind document manager to connection
 documentManager.listen(connection);
 
 // Listen on connection
 connection.listen();
+

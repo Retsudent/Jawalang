@@ -221,8 +221,50 @@ runTest('scratch/vscode-smoke/highlight.jawa runs cleanly through jawalang runti
     assert.ok(out.includes('Tejo obah mlaku nganggo sikil'), 'Inheritance/super failed');
 });
 
+// 17. Language Server CLI Startup
+runTest('Language Server CLI starts cleanly with --version and --help', () => {
+    const serverScript = path.join(PROJECT_ROOT, 'language-server', 'src', 'server.js');
+    const verRes = child_process.spawnSync('node', [serverScript, '--version'], { encoding: 'utf8' });
+    assert.strictEqual(verRes.status, 0);
+    assert.ok((verRes.stdout + verRes.stderr).includes('Jawalang Language Server'));
+
+    const helpRes = child_process.spawnSync('node', [serverScript, '--help'], { encoding: 'utf8' });
+    assert.strictEqual(helpRes.status, 0);
+    assert.ok((helpRes.stdout + helpRes.stderr).includes('Options:'));
+});
+
+// 18. Language Server Completion Provider & Dot Completion Smoke
+runTest('Language Server provides context-aware dot completion on struct instances', () => {
+    const analyzer = require(path.join(PROJECT_ROOT, 'language-server', 'src', 'analyzer'));
+    const { getCompletions } = require(path.join(PROJECT_ROOT, 'language-server', 'src', 'completion'));
+    const code = [
+        'bentuk Mobil {',
+        '    gawe merk',
+        '    guna klakson() {}',
+        '}',
+        'gawe m = anyar Mobil()',
+        'm.'
+    ].join('\n');
+    const analysis = analyzer.analyze(code, 'file:///smoke_test.jawa');
+    const items = getCompletions(analysis, { line: 5, character: 2 });
+    assert.ok(items && items.length >= 2, 'Expected at least 2 completions for m.');
+    const labels = items.map(it => it.label);
+    assert.ok(labels.includes('merk'), 'Expected merk in completion');
+    assert.ok(labels.includes('klakson'), 'Expected klakson in completion');
+});
+
+// 19. Language Server Formatting Provider Smoke
+runTest('Language Server formats unformatted Jawalang document cleanly', () => {
+    const { formatDocument } = require(path.join(PROJECT_ROOT, 'language-server', 'src', 'formatter'));
+    const unformatted = 'guna tambah(a,b){\nbali a+b\n}';
+    const edits = formatDocument(unformatted);
+    assert.ok(edits && edits.length === 1);
+    assert.strictEqual(edits[0].newText, 'guna tambah(a, b) {\n    bali a + b\n}');
+});
+
 console.log(`\n========================================`);
 console.log(`Smoke Tests Finished: ${passed}/${total} PASSED`);
 console.log(`========================================\n`);
 
 if (passed !== total) process.exit(1);
+

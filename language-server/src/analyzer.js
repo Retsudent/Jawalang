@@ -158,16 +158,53 @@ class Analyzer {
                 source: 'Jawalang'
             });
 
-            // Parse recovery: if trailing dot prevented complete AST construction, attempt recovery for IDE features
+            // Parse recovery: if trailing dot, unclosed paren, trailing comma, incomplete struct property, or incomplete assignment prevented AST construction
             let recovered = false;
-            if (text.includes('.')) {
-                try {
-                    const recoveredText = text.replace(/\.([ \t]*)([\r\n}]|$)/g, '.__lsp_prop__$1$2');
-                    const recTokens = lexer(recoveredText);
-                    ast = parser(recTokens);
-                    recovered = true;
-                } catch (_) {}
-            }
+            try {
+                let recoveredText = text;
+                // Incomplete struct property without initial value: gawe prop
+                recoveredText = recoveredText.replace(/(\bgawe\s+[a-zA-Z_][a-zA-Z0-9_]*)(?=\s*(?:gawe|guna|wiwiti|\r?\n|}))/g, '$1 = null');
+                // Incomplete variable assignment: gawe prop =
+                recoveredText = recoveredText.replace(/(\bgawe\s+[a-zA-Z_][a-zA-Z0-9_]*\s*=)(\s*[\r\n}]|$)/g, '$1 null$2');
+                // Incomplete dot member access: obj.
+                if (recoveredText.includes('.')) {
+                    recoveredText = recoveredText.replace(/\.([ \t]*)([\r\n}]|$)/g, '.__lsp_prop__$1$2');
+                }
+                // Incomplete anyar instantiation: anyar Struct or anyar
+                recoveredText = recoveredText.replace(/\banyar\s+([a-zA-Z_][a-zA-Z0-9_]*)\b(?!\s*\()/g, 'anyar $1()');
+                recoveredText = recoveredText.replace(/\banyar(?=\s*(?:[\r\n}]|$))/g, 'anyar __lsp_struct__()');
+                // Incomplete standalone identifier being typed on a line (e.g. nam, lok)
+                const stmtKeywords = new Set(['gawe', 'guna', 'tulis', 'yen', 'liyane', 'nalika', 'kanggo', 'coba', 'tangkep', 'lempar', 'impor', 'ekspor', 'bentuk', 'bali', 'mandheg', 'lanjut']);
+                recoveredText = recoveredText.replace(/(^|\n)([ \t]*)([a-zA-Z_][a-zA-Z0-9_]*)([ \t]*(?:\r?\n|$))/g, (m, p1, p2, word, p3) => {
+                    if (stmtKeywords.has(word)) return m;
+                    return p1 + p2 + 'tulis ' + word + p3;
+                });
+                // Incomplete function call parentheses / trailing commas / brackets
+                if (recoveredText.includes('(') || recoveredText.includes(',') || recoveredText.includes('[')) {
+                    recoveredText = recoveredText.replace(/,\s*([\r\n\t ]*})/g, ', null)$1');
+                    recoveredText = recoveredText.replace(/\((\s*[\r\n\t ]*})/g, '()$1');
+                    recoveredText = recoveredText.replace(/,\s*([\r\n\t ]*$)/g, ', null$1');
+                    recoveredText = recoveredText.replace(/\[\s*([\r\n}]|$)/g, '[0]$1');
+                    const recToks = lexer(recoveredText);
+                    let openCount = 0;
+                    let openBrackets = 0;
+                    for (const tok of recToks) {
+                        if (tok.type === 'LEFT_PAREN') openCount++;
+                        else if (tok.type === 'RIGHT_PAREN' && openCount > 0) openCount--;
+                        else if (tok.type === 'LEFT_BRACKET') openBrackets++;
+                        else if (tok.type === 'RIGHT_BRACKET' && openBrackets > 0) openBrackets--;
+                    }
+                    if (openBrackets > 0) {
+                        recoveredText += ']'.repeat(openBrackets);
+                    }
+                    if (openCount > 0) {
+                        recoveredText += ')'.repeat(openCount);
+                    }
+                }
+                const recTokens = lexer(recoveredText);
+                ast = parser(recTokens);
+                recovered = true;
+            } catch (_) {}
 
             if (!recovered) {
                 return {
@@ -360,28 +397,42 @@ class Analyzer {
                 } else if ((actual.mode === 'selective' || actual.specifiers) && Array.isArray(actual.specifiers) && actual.specifiers.length > 0) {
                     // Selective import: impor { a, b } saka "..."
                     for (const spec of actual.specifiers) {
-                        const sName = spec.local || spec.imported || (typeof spec === 'string' ? spec : spec.value);
-                        const sLoc = (typeof spec === 'object' && spec.loc) ? spec.loc : actual.loc;
+                        const importedName = spec.imported || (typeof spec === 'string' ? spec : spec.value);
+                        const localName = spec.local || importedName;
+                        let sLoc = (typeof spec === 'object' && spec.loc) ? spec.loc : null;
+                        if (!sLoc && tokens && actual.loc) {
+                            const sLine = actual.loc.start ? actual.loc.start.line : 0;
+                            const eLine = actual.loc.end ? actual.loc.end.line : Infinity;
+                            for (let ti = 0; ti < tokens.length; ti++) {
+                                const tok = tokens[ti];
+                                if (tok.loc && tok.loc.start.line >= sLine && tok.loc.start.line <= eLine && (tok.value === localName || tok.value === importedName)) {
+                                    sLoc = tok.loc;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!sLoc) sLoc = actual.loc;
 
-                        const expVar = mod.exports.variables[sName];
-                        const expFn = mod.exports.functions[sName];
-                        const expStruct = mod.exports.structs[sName];
+                        const expVar = mod.exports.variables[importedName];
+                        const expFn = mod.exports.functions[importedName];
+                        const expStruct = mod.exports.structs[importedName];
 
                         if (!expVar && !expFn && !expStruct) {
                             diagnostics.push({
                                 severity: 1,
                                 range: sLoc || actual.loc || { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-                                message: `Export "${sName}" ora ditemokake ing modul "${importSource}".`,
+                                message: `Export "${importedName}" ora ditemokake ing modul "${importSource}".`,
                                 source: 'Jawalang'
                             });
                         } else {
                             const found = expVar || expFn || expStruct;
                             const sym = {
                                 ...found,
+                                name: localName,
                                 nameLoc: sLoc || found.nameLoc || found.loc,
                                 importedFrom: canonicalTarget
                             };
-                            scope.define(sName, sym);
+                            scope.define(localName, sym);
                             allSymbols.push(sym);
                         }
                     }
@@ -556,7 +607,19 @@ class Analyzer {
                 if (actual.parameters) {
                     for (const param of actual.parameters) {
                         const paramName = typeof param === 'string' ? param : param.value;
-                        const paramLoc = (typeof param === 'object' && param.loc) ? param.loc : actual.loc;
+                        let pLoc = (typeof param === 'object' && param.loc) ? param.loc : null;
+                        if (!pLoc && tokens && actual.loc) {
+                            const sLine = actual.loc.start ? actual.loc.start.line : 0;
+                            const eLine = actual.loc.end ? actual.loc.end.line : Infinity;
+                            for (let ti = 0; ti < tokens.length; ti++) {
+                                const tok = tokens[ti];
+                                if (tok.loc && tok.loc.start.line >= sLine && tok.loc.start.line <= eLine && tok.value === paramName) {
+                                    pLoc = tok.loc;
+                                    break;
+                                }
+                            }
+                        }
+                        const paramLoc = pLoc || actual.loc;
                         const pSym = {
                             name: paramName,
                             kind: 'parameter',
@@ -746,7 +809,19 @@ class Analyzer {
                 scopes.push(forScope);
                 if (actual.variable) {
                     const vName = typeof actual.variable === 'string' ? actual.variable : actual.variable.value;
-                    const vLoc = (typeof actual.variable === 'object' && actual.variable.loc) ? actual.variable.loc : actual.loc;
+                    let vLoc = (typeof actual.variable === 'object' && actual.variable.loc) ? actual.variable.loc : null;
+                    if (!vLoc && tokens && actual.loc) {
+                        const sLine = actual.loc.start ? actual.loc.start.line : 0;
+                        const eLine = actual.loc.end ? actual.loc.end.line : Infinity;
+                        for (let ti = 0; ti < tokens.length; ti++) {
+                            const tok = tokens[ti];
+                            if (tok.loc && tok.loc.start.line >= sLine && tok.loc.start.line <= eLine && tok.value === vName) {
+                                vLoc = tok.loc;
+                                break;
+                            }
+                        }
+                    }
+                    if (!vLoc) vLoc = actual.loc;
                     const vSym = {
                         name: vName,
                         kind: 'variable',
@@ -774,7 +849,19 @@ class Analyzer {
                 scopes.push(forEachScope);
                 if (actual.iterator) {
                     const itName = typeof actual.iterator === 'string' ? actual.iterator : actual.iterator.value;
-                    const itLoc = (typeof actual.iterator === 'object' && actual.iterator.loc) ? actual.iterator.loc : actual.loc;
+                    let itLoc = (typeof actual.iterator === 'object' && actual.iterator.loc) ? actual.iterator.loc : null;
+                    if (!itLoc && tokens && actual.loc) {
+                        const sLine = actual.loc.start ? actual.loc.start.line : 0;
+                        const eLine = actual.loc.end ? actual.loc.end.line : Infinity;
+                        for (let ti = 0; ti < tokens.length; ti++) {
+                            const tok = tokens[ti];
+                            if (tok.loc && tok.loc.start.line >= sLine && tok.loc.start.line <= eLine && tok.value === itName) {
+                                itLoc = tok.loc;
+                                break;
+                            }
+                        }
+                    }
+                    if (!itLoc) itLoc = actual.loc;
                     const itSym = {
                         name: itName,
                         kind: 'variable',
@@ -809,7 +896,19 @@ class Analyzer {
                 scopes.push(catchScope);
                 if (actual.catchParam) {
                     const cName = typeof actual.catchParam === 'string' ? actual.catchParam : actual.catchParam.value;
-                    const cLoc = (typeof actual.catchParam === 'object' && actual.catchParam.loc) ? actual.catchParam.loc : actual.loc;
+                    let cLoc = (typeof actual.catchParam === 'object' && actual.catchParam.loc) ? actual.catchParam.loc : null;
+                    if (!cLoc && tokens && actual.loc) {
+                        const sLine = actual.loc.start ? actual.loc.start.line : 0;
+                        const eLine = actual.loc.end ? actual.loc.end.line : Infinity;
+                        for (let ti = 0; ti < tokens.length; ti++) {
+                            const tok = tokens[ti];
+                            if (tok.loc && tok.loc.start.line >= sLine && tok.loc.start.line <= eLine && tok.value === cName) {
+                                cLoc = tok.loc;
+                                break;
+                            }
+                        }
+                    }
+                    if (!cLoc) cLoc = actual.loc;
                     const cSym = {
                         name: cName,
                         kind: 'variable',

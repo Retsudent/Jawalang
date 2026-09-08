@@ -15,7 +15,10 @@ Ekstensi resmi **Jawalang** kanggo Visual Studio Code. Nyedhiyakake dhukungan ba
   - **Diagnostik Real-time**: Laporan kesalahan sintaks lan semantik kanthi akurat.
   - **Go to Definition**: Navigasi menyang deklarasi variabel, fungsi, struct, lan modul sing diimpor.
   - **Find All References**: Nemokake kabeh referensi panggunaan variabel, parameter, fungsi, struct, metode (`iki.method`, `super.method`), lan modul.
-  - **Autocomplete Semantik**: Rekomendasi simbol leksikal, anggota struct (`iki.`, `instance.`), lan namespace modul (`math.`).
+  - **Rename Symbol**: Ngganti jeneng simbol kanthi aman lan semantik liwat WorkspaceEdit (F2 ing VS Code) kanthi proteksi leksikal lan collision checking.
+  - **Signature Help**: Nampilake pratandha parameter lan parameter aktif (`activeParameter`) kanthi akurat nalika ngetik panggilan fungsi, konstruktor (`anyar Struct(...)`), metode struct, `super(...)`, `super.method(...)`, namespace modul, lan fungsi bawaan.
+  - **Autocomplete Semantik V2**: Rekomendasi simbol leksikal kontekstual, anggota struct (`instance.`, `iki.`, `super.`), namespace modul (`math.`), filter khusus `anyar`, sarta proteksi ing njero string lan komentar.
+  - **Format Document**: Format otomatis kode Jawalang liwat `Shift + Alt + F`, klik tengen -> *Format Document*, utawa Format on Save. Nyedhiyakake indentasi 4 spasi standar, perapian spasi operator biner lan unary, format block kurawal (`{` lan `}`), penataan struct/metode/konstruktor, lan njamin keamanan string/komentar sarta idempotensi.
   - **Hover Semantik**: Nuduhake tipe data inferensi, signature, lan dokumentasi built-in.
   - **Outline Dokumen (Document Symbols)**: Peta struktur hirarkis file ing panel Outline VS Code.
 - **Dukungan Terminal Interaktif**: Program mawa fungsi input `takon()` lumaku kanthi interaktif lan lancar.

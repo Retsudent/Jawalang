@@ -9,6 +9,129 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - V1.3.0
 
+### Language Server Protocol — Document Formatting (Phase 6)
+
+#### Added
+- **Document Formatting Engine (`language-server/src/formatter.js`)**:
+  - Implemented deterministic, purely static code formatter for Jawalang (`.jawa`) files responding to LSP `textDocument/formatting`.
+  - **4-Space Default Indentation**: Strictly uses 4 spaces per nesting level (no tabs).
+  - **Binary & Unary Operator Spacing**: Binary operators (`+`, `-`, `*`, `/`, `%`, `==`, `!=`, `<`, `<=`, `>`, `>=`, `=`, `lan`, `utawa`) formatted with surrounding single spaces; unary operators (`-`, `+`, `ora`) cleanly attached to operand without trailing space (`-10`, `-(a + b)`).
+  - **Block & Cuddled Keyword Formatting**:
+    - Opening brace `{` opens block with preceding space.
+    - Closing brace `}` drops indentation before emission.
+    - Cuddled block continuations formatted cleanly: `} liyane {`, `} liyane yen ... {`, `} tangkep err {`, and `} saka ...`.
+  - **Struct & Object Literal Formatting**:
+    - Top-level and nested struct definitions (`bentuk`) with property and method indentation.
+    - Constructors (`wiwiti`) and inheritance (`ngembangake`) formatted with standard spacing.
+    - Object literals formatted multiline on assignment; inline object literals preserved in expressions (`tulis { "nama": "Barch" }`).
+    - Inline arrays (`[1, 2, 3]`) and nested arrays (`[[1, 2], [3, 4]]`) preserved inline without forced wrapping.
+  - **Comment & String Safety**:
+    - Preserves single-line comments (`// ...`) verbatim without treating comment content as code.
+    - Standalone comments aligned to current indentation level; trailing comments spaced after code.
+    - Strings and escape sequences preserved 100% verbatim.
+  - **Line Endings & Idempotency**:
+    - Preserves CRLF (`\r\n`) vs LF (`\n`) automatically based on document content.
+    - Guarantees strict idempotency: `format(format(code)) === format(code)`.
+    - Returns `[]` (no-op) when source is already formatted.
+    - Malformed code safety: returns `[]` on fatal syntax errors (e.g. unclosed string) without crashing language server.
+- **Server Capability (`language-server/src/server.js`)**:
+  - Advertises `formattingProvider: true` in server capabilities.
+  - Registered `connection.onDocumentFormatting` returning `TextEdit[]` with safe try-catch error boundary.
+- **Test Suites**:
+  - `language-server/test/formatter.test.js`: 44 comprehensive unit test scenarios covering all required formatting rules.
+  - `scratch/test_formatter_v130.js`: 16 protocol-level JSON-RPC stdio integration scenarios.
+  - `scratch/audit_formatter_v130.js`: 18 deep audit scenarios.
+  - `language-server/test/run_tests.js`: Expanded LSP unit suites to 10/10 suites.
+  - `scratch/test_language_server.js`: Added 6 master formatting tests, expanding master suite to 65/65 passed.
+  - `scratch/test_vscode_smoke.js`: Added formatting smoke test (19/19 passed).
+
+### Language Server Protocol — Context-Aware Completion V2 (Phase 5)
+
+#### Added
+- **Context-Aware Semantic Completion Engine (`language-server/src/completion.js`)**:
+  - Upgraded completion from static listings to full context-aware semantic completion (`textDocument/completion`).
+  - **Scope-Aware Completion**: Resolves symbols according to cursor position with strict lexical hierarchy (global, local block, nested scopes, function parameters) and local variable shadowing.
+  - **Member Completion (`object.`)**:
+    - Instance struct member access (`w.`): Completes fields (`CompletionItemKind.Field`) and methods (`CompletionItemKind.Method`) based on static type inference (`anyar StructName()`).
+    - Active instance member access (`iki.`): Resolves fields and methods of the enclosing struct when typing inside methods or constructors.
+    - Base struct member access (`super.`): Directly resolves parent struct fields and methods, bypassing child overrides to access parent implementations.
+    - Inheritance resolution: Traverses inheritance hierarchy (`ngembangake`) to include all ancestor members with child overrides taking precedence and deduplicated.
+  - **Module Namespace Completion (`namespace.`)**:
+    - Resolves exported variables, functions, and structs for namespace imports (`impor ... minangka math`), strictly filtering out unexported private symbols.
+  - **Selective Imports and Aliases**:
+    - Exposes imported symbols in local scope (`impor { tambah } saka ...`).
+    - Respects import aliases (`impor { tambah minangka jumlah }`), ensuring only `jumlah` is visible and completed.
+  - **Constructor Context (`anyar `)**:
+    - Dedicated filter (`getStructOnlyCompletions`) after `anyar ` keyword offering exclusively valid struct symbols (`CompletionItemKind.Class`).
+  - **Syntax & Safety Protections**:
+    - Zero completions (`[]`) returned when cursor is inside strings (`"..."`) or single-line comments (`// ...`).
+    - Suppressed member completion inside array indexing (`data[...]`).
+    - Standard `textEdit` replacement ranges for precise word and member prefix replacements (`range.start` and `range.end`).
+    - Complete deduplication across inherited members, shadowing, and module exports.
+  - **Rich Symbol Metadata**:
+    - Function and method completions include parameter signatures in `detail` (e.g. `guna salam(pesan)`).
+    - Structs include constructor parameter signatures or property counts in `detail`.
+    - 24 built-in functions and all 34 Jawalang keywords with accurate kind classification and documentation.
+- **Resilient Parse Recovery (`language-server/src/analyzer.js`)**:
+  - Enhanced error recovery during typing: recovers incomplete struct properties (`gawe prop`), incomplete variable assignments (`gawe x =`), trailing dots (`obj.`), incomplete `anyar` instantiations, unclosed brackets (`[...]`), unclosed parentheses, and standalone identifiers being typed on a line (`nam` -> `tulis nam`).
+- **Server Capability (`language-server/src/server.js`)**:
+  - Configured `completionProvider` with `triggerCharacters: ['.', ' ', '"', '{']`.
+- **Test Suites**:
+  - `language-server/test/completion.test.js`: 40 comprehensive unit test scenarios covering all required behaviors.
+  - `scratch/test_completion_v130.js`: 15 protocol-level JSON-RPC stdio integration tests verifying live server interactions.
+  - `scratch/test_language_server.js`: Expanded Completion component to 11 master tests, bringing master suite to 59/59 tests.
+  - `scratch/test_vscode_smoke.js`: Added LSP CLI startup and dot completion smoke tests (18/18 tests).
+
+### Language Server Protocol — Signature Help (Phase 4)
+
+#### Added
+- **Signature Help Provider (`language-server/src/signatureHelp.js`)**:
+  - Implemented `getSignatureHelp(analysisResult, position)` returning standard LSP `SignatureHelp` objects with `signatures`, `activeSignature`, and `activeParameter`.
+  - Structured Token Call Parser (`parseCalls`): Traverses source tokens using a bracket stack (`()`, `[]`, `{}`) to determine call sites and calculate active parameter indices without fragile global regex.
+  - Active Parameter Precision: Nested call parentheses, array literals `[...]`, object literals `{...}`, strings, and comments are fully isolated so inner commas never corrupt outer call argument counts.
+  - Comprehensive Callable Resolution:
+    - User functions (`guna fn(a, b)` -> `fn(a, b)`)
+    - Struct constructors (`anyar StructName(...)` -> `StructName(...)`)
+    - Base struct constructors via `super(...)` inside subclass `wiwiti`
+    - Instance methods (`instance.method(...)`, `iki.method(...)`)
+    - Base methods via `super.method(...)` inside subclasses
+    - Inherited and overridden methods (respecting inheritance hierarchy)
+    - Exported module functions via namespace (`math.tambah(...)`)
+    - Selective module imports with and without local aliases (`impor { f minangka g }`)
+    - Built-in functions (`dawa`, `terapkan`, `takon`, `nambah`, etc.) with documentation and parameter signatures
+  - Robust Error Recovery: Incomplete calls (`tambah(`, `tambah(10,`) and malformed states return clean signatures or `null` without crashing the language server.
+  - Variable Shadowing Protection: Resolves to `null` when a non-callable local variable shadows an outer function name.
+- **Server Capability Advertisement (`language-server/src/server.js`)**:
+  - Advertised `signatureHelpProvider: { triggerCharacters: ['(', ','], retriggerCharacters: [','] }` in server initialize capabilities.
+  - Registered `connection.onSignatureHelp` handler returning null safely on exceptions.
+- **Analyzer Incomplete Call Recovery (`language-server/src/analyzer.js`)**:
+  - Added trailing comma and unclosed opening parenthesis recovery to `analyze()` to preserve full symbol and AST definitions when typing unfinished calls.
+  - Fixed selective import alias lookup to correctly map `spec.imported` from module exports to `spec.local` in importer scopes.
+- **Test Suites**:
+  - `language-server/test/signatureHelp.test.js`: 30 unit test scenarios covering all callable variants, nesting, activeParameter tracking, string/comment/bracket safety, shadowing, and error isolation.
+  - `scratch/test_signature_help_v130.js`: 13 protocol-level JSON-RPC stdio integration tests directly querying the running language server binary.
+  - `scratch/test_language_server.js`: Added Section 12 (5 Signature Help tests), bringing master LSP suite to 53/53 tests.
+
+### Language Server Protocol — Rename Symbol (Phase 3)
+
+#### Added
+- **Rename Symbol Provider (`language-server/src/rename.js`)**:
+  - Implemented `renameSymbol(analysisResult, position, newName)` returning compliant LSP `WorkspaceEdit`.
+  - Semantic Symbol Resolution: Identifies target symbols and collects declaration location together with all valid reference occurrences.
+  - Identifier Validation (`isValidIdentifier`): Enforces Jawalang lexer identifier rules (`^[a-zA-Z_][a-zA-Z0-9_]*$`), rejecting whitespace, hyphens, numbers as initial characters, empty strings, and reserved keywords/built-ins.
+  - Semantic Collision Detection (`checkCollision`): Guards against naming collisions across local scopes, parameters, global declarations, struct methods, and struct fields, returning safe null responses.
+  - Safety Rejections: Explicit rejection of constructor `wiwiti`, language keywords (`gawe`, `guna`, `bali`, etc.), built-in functions (`tulis`, `dawa`, etc.), string literals, and comment text.
+  - Range Ordering: Sorted all edits within `WorkspaceEdit.changes` in descending order (`line` descending, then `character` descending) to ensure non-destructive application by LSP clients.
+- **Server Capability Advertisement (`language-server/src/server.js`)**:
+  - Advertised `renameProvider: true` in `capabilities` during `connection.onInitialize`.
+  - Registered `connection.onRenameRequest` handler with isolated try/catch returning `null` gracefully on invalid positions, malformed files, or invalid requests.
+- **Token Location Refinements in Semantic Analyzer (`language-server/src/analyzer.js`)**:
+  - Refined AST nameLoc tracking for `FunctionDeclaration` parameters, `ForStatement` loop variables, `ForEachStatement` iterators, `TryCatchStatement` catch parameters, and `ImportStatement` selective specifiers to pinpoint exact token bounds rather than whole statement spans.
+- **Test Suites**:
+  - `language-server/test/rename.test.js`: 30 unit test scenarios covering global/local variables, shadowing, parameters, functions, multiple calls, structs, fields, methods, constructor protection, inheritance, overridden methods, super references, namespace, selective import, string & comment protection, keyword/builtin rejections, identifier validation, collision detection, cursor bounds, and array/object property safety.
+  - `scratch/test_rename_v130.js`: 13 protocol-level JSON-RPC stdio integration tests against the live language server process.
+  - `scratch/test_language_server.js`: Added Section 11 (5 Rename Symbol tests), bringing master suite to 48/48 tests.
+
 ### Language Server Protocol — Find References (Phase 2)
 
 #### Added
