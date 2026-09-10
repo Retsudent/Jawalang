@@ -1,6 +1,6 @@
 {
   "name": "jawalang",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Basa pamrograman prasaja mawa sintaks basa Jawa",
   "main": "index.js",
   "bin": {
