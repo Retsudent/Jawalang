@@ -1,0 +1,21 @@
+gawe data = {
+    "nama": "Jawalang",
+    "versi": 1.4,
+    "aktif": bener,
+    "fitur": [
+        "fungsi",
+        "array",
+        "object"
+    ]
+}
+
+gawe teks = jsonEncode(data)
+
+tulis teks
+
+gawe hasil = jsonDecode(teks)
+
+tulis hasil["nama"]
+tulis hasil["versi"]
+tulis hasil["aktif"]
+tulis hasil["fitur"][0]

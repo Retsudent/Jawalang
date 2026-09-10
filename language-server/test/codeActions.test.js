@@ -3,6 +3,7 @@ const path = require('path');
 const analyzer = require('../src/analyzer');
 const moduleManager = require('../src/modules');
 const { getCodeActions, CodeActionKind } = require('../src/codeActions');
+const { pathToUri } = require('../src/utils');
 
 function runTests() {
     console.log('--- Code Actions Unit Tests ---');
@@ -434,17 +435,18 @@ function runTests() {
             mtime: 12345,
             exports: {
                 functions: {
-                    pangkat: { name: 'pangkat', kind: 'function' }
+                    hitungFaktorial: { name: 'hitungFaktorial', kind: 'function' }
                 },
                 variables: {},
                 structs: {}
             }
         });
 
-        const code = 'gawe res = pangkat(2, 3)';
-        const { actions } = getActions(code, { uri: 'file:///c:/Jawalang/main_test.jawa' });
-        const importAct = actions.find(a => a.title.includes('Import "pangkat"'));
-        assert.ok(importAct, 'Expected Import "pangkat" quickfix');
+        const code = 'gawe res = hitungFaktorial(5)';
+        const testUri = pathToUri(path.resolve(__dirname, 'main_test.jawa'));
+        const { actions } = getActions(code, { uri: testUri });
+        const importAct = actions.find(a => a.title.includes('Import "hitungFaktorial"'));
+        assert.ok(importAct, 'Expected Import "hitungFaktorial" quickfix');
         assert.strictEqual(importAct.kind, CodeActionKind.QuickFix);
         console.log('PASS: 44. Missing import quickfix from cached module');
     }

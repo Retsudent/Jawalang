@@ -7,7 +7,171 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased] - V1.3.0
+## [Unreleased] - V1.4.0
+
+### Testing & Assertion Foundation (Phase 14)
+
+#### Added
+- **Modular Testing & Assertion Standard Library (`src/stdlib/testing.js`)**:
+  - `uji(kondisi, [pesan])`: Asserts that a condition strictly evaluates to boolean `bener` (`true`).
+  - `ujiPadha(aktual, expected, [pesan])`: Asserts value equality using strict Jawalang equality (`==`) semantics.
+  - `ujiBeda(aktual, expected, [pesan])`: Asserts inequality (`!=`).
+  - `ujiJinis(nilai, tipe, [pesan])`: Asserts runtime type matching against expected type string name.
+  - `ujiError(fungsi, [pesan])`: Asserts that calling the given function throws a runtime error.
+  - Zero global state: Purely deterministic assertions with zero global counters (`passed++`, `failed++`).
+  - Safe error model: Throws catchable Jawalang runtime error (`JawascriptErrorSignal` / `Error`) on failure without crashing or calling `process.exit`.
+  - Control-flow isolation: `ujiError` safely isolates execution and does not intercept control flow signals (`bali`, `mandheg`, `lanjut`).
+  - Custom message support: Optional third/second argument `pesan` for enriched, informative failure reporting.
+  - First-class builtins: Assertion functions can be stored in variables or passed as arguments.
+- **Language Server Protocol Synchronization (`language-server/src/utils.js`)**:
+  - Registered 5 testing builtins in LSP `BUILTINS` catalog with complete signatures, documentation, examples, and parameter info.
+  - Synchronized Completion, Hover tooltips, Signature Help, Semantic Tokens (`defaultLibrary` modifier), and Rename Symbol protection.
+- **Testing & Quality Assurance**:
+  - `scratch/test_testing_v140.js`: 88 automated assertions across 23 categories A–W.
+  - `examples/test_testing.jawa` & `examples/test_testing_error.jawa`: Language fixtures integrated into full regression runner.
+  - `examples/modules/test_testing_module.jawa`: Module fixture validating testing builtins in imported scopes.
+- **Documentation**:
+  - `docs/TESTING_ARCHITECTURE.md`: Architecture design specification for testing and assertion foundation.
+  - `docs/testing.md`: Official user guide and reference for testing assertions in Jawalang.
+  - Updated `docs/STDLIB_INVENTORY_V1.4.0.md`: Extended builtin inventory to 62 total functions.
+
+### File System Foundation (Phase 13)
+
+#### Added
+- **Modular Sandboxed File System (`src/stdlib/filesystem.js`)**:
+  - `macaFile(path)`: Reads UTF-8 text files inside the sandbox root. Returns `""` on empty files.
+  - `tulisFile(path, isi)`: Writes UTF-8 text content to files synchronously, returning `null`. Strictly rejects non-string content.
+  - `anaPath(path)`: Checks existence of file/folder within sandbox (`bener` / `salah`). Security violations throw errors.
+  - `jinisPath(path)`: Returns filesystem entry type (`"file"`, `"folder"`, or `"oraAna"`).
+  - `isiFolder(path)`: Reads folder contents, returning an array of string entry names.
+  - `gaweFolder(path)`: Recursively creates directories within sandbox root, returning `null`. Idempotent for existing folders; rejects file collisions.
+  - Centralized Path & Security Resolver (`resolveSandboxPath`):
+    - Absolute path rejection across platforms (Windows drive letters, UNC paths, POSIX root).
+    - Traversal protection (`..`, `../`, `..\`, `foo/../../`) via `path.resolve` and strict `path.relative` containment check.
+    - Symlink escape protection via canonical `fs.realpathSync` validation on targets and ancestor directories.
+    - Entry program directory sandboxing (`path.dirname(entryFilePath)`).
+    - REPL working directory sandboxing (`process.cwd()`).
+    - Module sandbox isolation: importing sub-modules does not alter the entry program's sandbox root.
+    - Strictly non-destructive: zero deletion, renaming, permission modification, or process spawning.
+- **Language Server Protocol Synchronization (`language-server/src/utils.js`)**:
+  - Registered 6 filesystem builtins into LSP `BUILTINS` master catalog with complete signatures, parameters, return types, descriptions, and examples.
+  - Synchronized Completion, Hover tooltips, Signature Help, Semantic Tokens (`defaultLibrary` modifier), and Rename Symbol protection.
+- **Testing & Quality Assurance**:
+  - `scratch/test_filesystem_v140.js`: 88 automated assertions across 26 categories A–Z.
+  - `examples/test_filesystem.jawa` & `examples/test_filesystem_error.jawa`: Language fixtures integrated into full regression runner.
+- **Documentation**:
+  - `docs/FILESYSTEM_ARCHITECTURE.md`: Architecture specification for sandboxed filesystem I/O.
+  - `docs/filesystem.md`: Official user guide and reference for filesystem functions in Jawalang.
+  - Updated `docs/STDLIB_INVENTORY_V1.4.0.md`: Extended builtin inventory to 57 total functions.
+
+### JSON & Serialization Standard Library (Phase 12)
+
+#### Added
+- **Modular JSON Standard Library (`src/stdlib/json.js`)**:
+  - `jsonEncode(nilai)`: Encodes native Jawalang values (`number`, `string`, `boolean`, `null`, `array`, `object`) into RFC 8259 JSON strings.
+  - `jsonDecode(teks)`: Decodes JSON string into isolated native Jawalang representations with full heap isolation.
+  - Deep traversal type validation: rejects non-data runtime types (`function`, `datetime`, `struct`, `instance`, `namespace`) at all nesting depths.
+  - Circular reference detection (`seen` ancestor tracking): prevents infinite recursion and crashes with clear bilingual error message.
+  - Recursion depth limit: 500 levels safe traversal guard.
+  - Trailing data rejection: rejects trailing tokens like `"10 20"` or `"{}{}"`.
+  - Duplicate object key semantics: documented standard last-key-wins behavior.
+  - Full immutability: `jsonEncode` never mutates input structures.
+  - First-class and Higher-Order Function compatibility (`terapkan(jsonEncode, ...)`).
+- **Language Server Protocol Synchronization (`language-server/src/utils.js`)**:
+  - Registered `jsonEncode` and `jsonDecode` in LSP `BUILTINS` master catalog with signatures, parameter names, return types, descriptions, and examples.
+  - Synchronized Completion, Hover tooltips, Signature Help, Semantic Tokens (`defaultLibrary` modifier), and Rename Symbol protection.
+- **Testing & Quality Assurance**:
+  - `scratch/test_json_v140.js`: 82 automated test assertions across 26 categories A–Z.
+  - `examples/test_json.jawa` & `examples/test_json_error.jawa`: Positive and negative language test fixtures integrated into core regression runner.
+- **Documentation**:
+  - `docs/JSON_ARCHITECTURE.md`: Architecture specification for JSON serialization and deserialization.
+  - `docs/json.md`: Comprehensive user guide and reference for JSON functions in Jawalang.
+  - Updated `docs/STDLIB_INVENTORY_V1.4.0.md`: Extended builtin inventory to 51 total functions.
+
+### Date & Time Standard Library (Phase 11)
+
+#### Added
+- **Modular Date & Time Standard Library (`src/stdlib/datetime.js`)**:
+  - Encapsulated `datetime` runtime type (`{ _isDateTime: true, timestamp: <Unix ms integer> }`) with `Object.freeze` immutability.
+  - Runtime type introspection update: `jinis(waktu)` returns `"datetime"`.
+  - Display formatting: `<datetime YYYY-MM-DD HH:mm:ssZ>`.
+  - Native value equality: `==` and `!=` comparing underlying UTC millisecond timestamp values.
+  - 16 new pure built-in functions:
+    - `saiki()`: Current system time as a `datetime` instance.
+    - `timestamp(waktu)`: Extract integer Unix milliseconds since epoch.
+    - `gaweWektu(...)`: Construct datetime from Unix timestamp or UTC calendar components `(thn, bln, tgl[, jam, mnt, dtk])` with 1-based months (1–12) and strict calendar bounds & leap-year validation.
+    - `taun(waktu)`, `wulan(waktu)`, `dina(waktu)`, `jam(waktu)`, `menit(waktu)`, `detik(waktu)`: UTC component accessors returning numbers.
+    - `formatWektu(waktu, pola)`: Pattern-based formatting supporting tokens `YYYY`, `MM`, `DD`, `HH`, `mm`, `ss` in UTC.
+    - `parseWektu(teks)`: Deterministic ISO-like string parsing (`YYYY-MM-DD` and `YYYY-MM-DD HH:mm:ss`) with strict calendar range and leap-year validation.
+    - `sadurunge(a, b)`, `sawise(a, b)`, `padhaWektu(a, b)`: Chronological comparisons (`<`, `>`, `==`).
+    - `tambahWektu(waktu, jumlahDetik)`, `kurangWektu(waktu, jumlahDetik)`: Pure immutable date arithmetic returning new `datetime` instances.
+- **Language Server Protocol Synchronization (`language-server/src/utils.js`)**:
+  - Registered all 16 Date & Time builtins into LSP `BUILTINS` master catalog with complete signatures, parameters, return types, descriptions, and examples.
+  - Synchronized LSP Completion, Hover tooltips, Signature Help parameter tracking, Semantic Tokens (`defaultLibrary` modifier), and Rename Symbol identifier protection.
+- **Testing & Quality Assurance**:
+  - `scratch/test_datetime_v140.js`: 70 automated test assertions across 20 categories A–T covering current time, timestamps, constructors, accessors, formatting, deterministic parsing, comparisons, arithmetic, immutability, invalid dates, leap years, argument validation, type validation, first-class functions, array/object integration, module imports, REPL compatibility, error recovery, regression, and LSP sync.
+  - `examples/test_datetime.jawa` & `examples/test_datetime_error.jawa`: Positive and negative language test fixtures integrated into core regression suite.
+- **Documentation**:
+  - `docs/DATETIME_ARCHITECTURE.md`: Technical architectural specification for Date & Time in Jawalang V1.4.0.
+  - `docs/date-time.md`: Complete user guide and API reference for all 16 Date & Time functions.
+  - Updated `docs/STDLIB_INVENTORY_V1.4.0.md`: Extended builtin inventory to 49 total functions.
+
+### Standard Library Foundation (Phase 10)
+
+#### Added
+- **Modular Standard Library Architecture (`src/stdlib/`)**:
+  - `src/stdlib/helpers.js`: Centralized argument count and type validation utilities (`getType`, `requireArgCount`, `requireNumber`, `requireString`, `requireArray`, `requireObject`, `requireBoolean`, `requireInteger`).
+  - `src/stdlib/math.js`: Pure mathematical utility built-ins:
+    - `abs(number)`: Absolute value. Strict type validation.
+    - `min(a, b)`: Minimum of two numbers. Strict type validation.
+    - `max(a, b)`: Maximum of two numbers. Strict type validation.
+    - `akar(number)`: Square root for non-negative numbers with explicit error guard against negative numbers (no silent NaN).
+    - `pangkat(base, exponent)`: Exponentiation supporting negative/decimal exponents with explicit error guard against complex numbers.
+  - `src/stdlib/string.js`: Pure string utility built-ins:
+    - `ngemot(teks, bagian)`: Substring containment check returning boolean.
+    - `diwiwiti(teks, awalan)`: Prefix check returning boolean.
+    - `dipungkasi(teks, akhiran)`: Suffix check returning boolean.
+    - `trim(teks)`: Strips leading and trailing whitespace without mutating source string.
+    - `pecah(teks, pemisah)`: Splits string by delimiter into native Jawalang array representation.
+  - `src/stdlib/index.js`: Standard library registry and metadata definitions.
+- **Language Server Protocol Synchronization (`language-server/src/utils.js`)**:
+  - Registered all 10 new builtins into LSP `BUILTINS` master catalog with complete signatures, parameters, return types, and documentation.
+  - Synchronized LSP Completion, Hover tooltips, Signature Help parameter tracking, Semantic Tokens (`defaultLibrary` modifier), and Rename Symbol identifier protection.
+- **Testing & Quality Assurance**:
+  - `scratch/test_stdlib_v140.js`: 59 automated test assertions across 13 categories (Math, String, type validation, argument validation, array integration, first-class builtins, higher-order compatibility, null handling, error recovery, regression, and LSP synchronization).
+  - `examples/test_stdlib_v140.jawa` & `examples/test_stdlib_v140_error.jawa`: Positive and negative language test fixtures added to core regression runner.
+- **Documentation**:
+  - `docs/STDLIB_ARCHITECTURE.md`: Architectural audit of built-in registration, validation layer, and compatibility rules.
+  - `docs/STDLIB_INVENTORY_V1.4.0.md`: Comprehensive inventory table of all 33 built-in functions.
+  - `docs/standard-library.md`: Official reference guide for Jawalang standard library.
+
+---
+
+## [1.3.0] - 2026-09-08
+
+### Language Server Protocol — LSP Polish & Release Hardening (Phase 9)
+
+#### Added
+- **Master Hardening Test Suite (`scratch/test_lsp_phase9.js`)**:
+  - 55 automated audit test scenarios covering all 15 audit categories: Diagnostics, Completion, Hover, Definition, References, Rename, Signature Help, Formatting, Code Actions, Semantic Tokens, UTF-16 Consistency, Document Lifecycle, Module Boundaries, Error Recovery, and Protocol Compliance.
+- **Inheritance Cycle & Self-Inheritance Guards (`language-server/src/analyzer.js`, `language-server/src/completion.js`)**:
+  - Added cycle detection using `visitedStructs` sets in struct member lookups (`lookupStructMember`) and member completion (`collectStructMembers`) to eliminate risk of infinite loops in circular inheritance graphs.
+  - Added semantic diagnostics for self-inheritance (`Struct "..." ora kena ngembangake awake dhewe`) and circular inheritance (`Siklus pewarisan (circular inheritance) dideteksi`).
+- **Comprehensive Duplicate Declaration Diagnostics (`language-server/src/analyzer.js`)**:
+  - Duplicate functions in the same lexical scope (`Fungsi "..." wis dideklarasikake sadurunge`).
+  - Duplicate structs (`Struct "..." wis dideklarasikake sadurunge`).
+  - Duplicate struct properties (`Property "..." wis dideklarasikake ing struct iki`).
+  - Duplicate struct methods (`Method "..." wis dideklarasikake ing struct iki`).
+  - Duplicate variable declarations in the same scope (`Variabel "..." wis dideklarasikake sadurunge ing scope iki`).
+  - Duplicate parameters in function declarations (`Parameter "..." duplikat ing deklarasi fungsi`).
+- **Release Path Audit**:
+  - Audited and eliminated all hardcoded developer paths (`file:///c:/Jawalang`, `C:\Jawalang`, `D:\Jawalang`) from test fixtures, language server files, and documentation.
+
+#### Fixed
+- **Multi-line Diagnostic Range Calculation (`language-server/src/diagnostics.js`)**:
+  - Fixed character range clamping so that multi-line diagnostics (`endLine > startLine`) correctly retain the full end column rather than erroneously clamping to `startChar`.
+- **Code Action Test Fixture Portability (`language-server/test/codeActions.test.js`)**:
+  - Replaced hardcoded URI with dynamic, cross-platform `pathToUri`.
 
 ### Language Server Protocol — LSP Semantic Tokens (Phase 8)
 

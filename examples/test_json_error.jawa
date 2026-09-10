@@ -1,0 +1,6 @@
+// Test unsupported function in jsonEncode (Must trigger error and exit code 1)
+guna f() {
+    bali 1
+}
+
+jsonEncode(f)

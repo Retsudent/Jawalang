@@ -383,9 +383,13 @@ function getMemberCompletions(receiverName, memberPrefix, range, position, analy
 function collectStructMembers(structSym, structsMap) {
     const items = [];
     const seen = new Set();
+    const visitedStructs = new Set();
 
     let current = structSym;
     while (current && current.kind === 'struct') {
+        if (visitedStructs.has(current.name)) break;
+        visitedStructs.add(current.name);
+
         // 1. Collect fields
         const fields = current.fields || [];
         for (const f of fields) {

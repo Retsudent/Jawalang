@@ -59,6 +59,11 @@ String ing Jawalang bersifat **immutable** (ora bisa diowahi langsung ing panggo
 | `ngganti(teks, lama, anyar)` | `(string, string, string)` | Ngganti bagean teks `lama` dadi `anyar` | `string` anyar | `ngganti("Halo Donya", "Donya", "Jawa")` $\to$ `"Halo Jawa"` |
 | `gedhe(teks)` | `(string)` | Ngowahi kabeh aksara dadi huruf gedhe (kapital) | `string` anyar | `gedhe("jawa")` $\to$ `"JAWA"` |
 | `cilik(teks)` | `(string)` | Ngowahi kabeh aksara dadi huruf cilik | `string` anyar | `cilik("JAWA")` $\to$ `"jawa"` |
+| `ngemot(teks, bagian)` | `(string, string)` | Priksa anane substring ing jero teks (Standard Library V1.4) | `boolean` | `ngemot("Jawalang", "lang")` $\to$ `bener` |
+| `diwiwiti(teks, awalan)` | `(string, string)` | Priksa apa teks diwiwiti awalan kasebut (V1.4) | `boolean` | `diwiwiti("Jawa", "Ja")` $\to$ `bener` |
+| `dipungkasi(teks, akhiran)` | `(string, string)` | Priksa apa teks dipungkasi akhiran kasebut (V1.4) | `boolean` | `dipungkasi("Jawa", "wa")` $\to$ `bener` |
+| `trim(teks)` | `(string)` | Mbusak spasi ing wiwitan lan pungkasan teks (V1.4) | `string` anyar | `trim("  halo  ")` $\to$ `"halo"` |
+| `pecah(teks, pemisah)` | `(string, string)` | Memecah teks dadi array elemen adhedhasar pemisah (V1.4) | `array` anyar | `pecah("a,b", ",")` $\to$ `["a", "b"]` |
 
 ### Tuladha Panggunaan String Utilities:
 ```jawa
@@ -69,9 +74,30 @@ tulis motong(teks, 0, 3)                // "Aku"
 tulis ngganti(teks, "seneng", "tresna") // "Aku tresna Jawalang"
 tulis gedhe(teks)                       // "AKU SENENG JAWALANG"
 tulis cilik(teks)                       // "aku seneng jawalang"
+tulis ngemot(teks, "Jawa")              // bener
+tulis diwiwiti(teks, "Aku")             // bener
+tulis dipungkasi(teks, "Jawalang")      // bener
 
 // Teks asli tetep ora owah:
 tulis teks // "Aku seneng Jawalang"
+```
+
+---
+
+## 4. Integrasi Built-in minangka First-Class & Higher-Order Functions
+
+Kabeh fungsi bawaan sarta pustaka standar Jawalang V1.4.0 (`abs`, `trim`, lsp.) ndhukung first-class citizen lan kompatibel langsung karo `terapkan`, `saring`, lsp:
+
+```jawa
+// Nerapake abs menyang koleksi nomer negatif
+gawe nomer = [-10, 25, -5, 0]
+gawe hasilAbs = terapkan(abs, nomer)
+tulis hasilAbs // [10, 25, 5, 0]
+
+// Nerapake trim menyang koleksi string mawa spasi
+gawe teksSpasi = ["  siji ", " loro  ", " telu "]
+gawe hasilTrim = terapkan(trim, teksSpasi)
+tulis hasilTrim // ["siji", "loro", "telu"]
 ```
 
 ---

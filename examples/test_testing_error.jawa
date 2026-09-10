@@ -1,0 +1,33 @@
+// ==========================================
+// Jawalang V1.4.0 — Testing Error Demo (coba/tangkep)
+// ==========================================
+
+coba {
+    uji(salah)
+} tangkep err {
+    tulis err
+}
+
+coba {
+    ujiPadha(10, 20)
+} tangkep err {
+    tulis err
+}
+
+coba {
+    ujiBeda(10, 10)
+} tangkep err {
+    tulis err
+}
+
+coba {
+    ujiJinis("10", "number")
+} tangkep err {
+    tulis err
+}
+
+coba {
+    ujiPadha(10, 20, 10)
+} tangkep err {
+    tulis err
+}

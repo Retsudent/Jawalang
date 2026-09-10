@@ -13,8 +13,8 @@ assert.strictEqual(typeof jawalang.parser, 'function', 'jawalang.parser must be 
 assert.strictEqual(typeof jawalang.interpreter, 'function', 'jawalang.interpreter must be a function');
 assert.strictEqual(typeof jawalang.runFile, 'function', 'jawalang.runFile must be a function');
 assert.strictEqual(typeof jawalang.runSource, 'function', 'jawalang.runSource must be a function');
-assert.strictEqual(typeof jawalang.VERSION, 'string', 'jawalang.VERSION must be a string');
-assert.strictEqual(jawalang.VERSION, 'Jawalang v1.1.0', 'VERSION must match v1.1.0');
+const pkg = require('../package.json');
+assert.strictEqual(jawalang.VERSION, `Jawalang v${pkg.version}`, `VERSION must match v${pkg.version}`);
 console.log('PASS: All programmatic exports are defined and match expected types');
 
 // 3. Programmatic source execution

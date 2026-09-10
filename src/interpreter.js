@@ -1,6 +1,9 @@
 const fs = require("fs");
 const path = require("path");
 const ModuleLoader = require("./module_loader");
+const { stdlibBuiltins } = require("./stdlib");
+const { withSandbox, createFilesystemBuiltins } = require("./stdlib/filesystem");
+const { createTestingBuiltins } = require("./stdlib/testing");
 
 class BreakSignal {}
 class ContinueSignal {}
@@ -68,6 +71,9 @@ function formatValue(val, isTopLevel = false, _seen = null) {
     if (Array.isArray(val)) {
         return "[" + val.map(el => formatValue(el, false, _seen)).join(", ") + "]";
     }
+    if (val && typeof val === "object" && val._isDateTime) {
+        return `<datetime ${new Date(val.timestamp).toISOString()}>`;
+    }
     if (val && typeof val === "object" && val._isNamespace) {
         return `<namespace ${val.name}>`;
     }
@@ -113,6 +119,10 @@ function interpreter(ast, filePathOrOptions) {
             entryFilePath = fs.realpathSync.native ? fs.realpathSync.native(entryFilePath) : fs.realpathSync(entryFilePath);
         }
     } catch (_) {}
+
+    const sandboxRoot = (isOptions && filePathOrOptions.sandboxRoot)
+        ? path.resolve(filePathOrOptions.sandboxRoot)
+        : ((isOptions && filePathOrOptions.isRepl) ? process.cwd() : path.dirname(entryFilePath));
 
     const loader = (isOptions && filePathOrOptions.loader) || new ModuleLoader();
     const globalEnv = (isOptions && filePathOrOptions.globalEnv) || new Environment();
@@ -235,6 +245,7 @@ function interpreter(ast, filePathOrOptions) {
         if (typeof val === "boolean") return "boolean";
         if (typeof val === "number") return "number";
         if (typeof val === "string") return "string";
+        if (val && typeof val === "object" && val._isDateTime) return "datetime";
         if (val && typeof val === "object" && val._isNamespace) return "namespace";
         if (val && typeof val === "object" && val._isInstance) return "instance";
         if (val && typeof val === "object" && val._isStruct) return "struct";
@@ -809,7 +820,14 @@ function interpreter(ast, filePathOrOptions) {
                 }
             }
             return -1;
-        }
+        },
+
+        // =====================================
+        // STANDARD LIBRARY V1.4.0 (Math, String, DateTime, JSON, FileSystem, Testing)
+        // =====================================
+        ...stdlibBuiltins,
+        ...createFilesystemBuiltins(() => sandboxRoot),
+        ...createTestingBuiltins((fn, args) => invokeCallable(fn, args))
     };
 
     function invokeUserFunction(fn, evaluatedArgs, displayName) {
@@ -1257,9 +1275,15 @@ function interpreter(ast, filePathOrOptions) {
                     return left <= right;
 
                 case "==":
+                    if (left && typeof left === "object" && left._isDateTime && right && typeof right === "object" && right._isDateTime) {
+                        return left.timestamp === right.timestamp;
+                    }
                     return left === right;
 
                 case "!=":
+                    if (left && typeof left === "object" && left._isDateTime && right && typeof right === "object" && right._isDateTime) {
+                        return left.timestamp !== right.timestamp;
+                    }
                     return left !== right;
 
                 default:
@@ -2152,7 +2176,9 @@ function interpreter(ast, filePathOrOptions) {
     }
 
     try {
-        execute(ast, globalEnv, globalFunctions, entryFilePath, rootExports, globalStructs);
+        withSandbox(sandboxRoot, () => {
+            execute(ast, globalEnv, globalFunctions, entryFilePath, rootExports, globalStructs);
+        });
         const rootRecord = loader.cache.get(entryFilePath);
         if (rootRecord) {
             rootRecord.status = "LOADED";
@@ -2186,6 +2212,10 @@ function interpreter(ast, filePathOrOptions) {
 
 interpreter.Environment = Environment;
 interpreter.formatValue = formatValue;
+interpreter.BreakSignal = BreakSignal;
+interpreter.ContinueSignal = ContinueSignal;
+interpreter.ReturnSignal = ReturnSignal;
+interpreter.JawascriptErrorSignal = JawascriptErrorSignal;
 interpreter.createSession = function(filePath) {
     const entryFilePath = path.resolve(filePath || path.resolve(process.cwd(), "<repl>.jawa"));
     const loader = new ModuleLoader();

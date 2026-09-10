@@ -1,0 +1,33 @@
+// Test Suite Jawalang V1.4.0 — Date & Time Module
+gawe w = parseWektu("2026-09-06")
+
+tulis jinis(w)
+tulis taun(w)
+tulis wulan(w)
+tulis dina(w)
+tulis formatWektu(w, "YYYY-MM-DD")
+
+gawe sesuk = tambahWektu(w, 86400)
+tulis formatWektu(sesuk, "YYYY-MM-DD")
+
+tulis sadurunge(w, sesuk)
+tulis sawise(sesuk, w)
+tulis padhaWektu(w, w)
+
+// Aritmatika mundur
+gawe wingi = kurangWektu(w, 86400)
+tulis formatWektu(wingi, "YYYY-MM-DD")
+
+// Konstruksi gaweWektu
+gawe w2 = gaweWektu(2026, 9, 6, 12, 30, 45)
+tulis formatWektu(w2, "YYYY-MM-DD HH:mm:ss")
+tulis jam(w2)
+tulis menit(w2)
+tulis detik(w2)
+
+// Timestamp
+tulis jinis(timestamp(w))
+
+// First-class builtin
+gawe f = taun
+tulis f(w)

@@ -144,4 +144,19 @@ yen pilihan == "ya" {
 
 ---
 
+## 6. Fungsi Bawaan minangka First-Class Values (First-Class Builtins)
+
+Ing Jawalang, fungsi bawaan (kalebu fungsi Standard Library kayata `abs`, `min`, `trim`, `pecah`) minangka nilai kelas kapisan (*first-class citizens*). Sampeyan bisa nyimpen fungsi menyang variabel:
+
+```jawa
+gawe f = abs
+tulis f(-10) // 10
+
+gawe operasi = [abs, trim]
+tulis operasi[0](-50)        // 50
+tulis operasi[1]("  jawa  ") // "jawa"
+```
+
+---
+
 [← Sadurunge: Sintaks Dasar](syntax.md) | [Indeks Dokumentasi](README.md) | [Sabanjure: Operator & Precedence →](operators.md)

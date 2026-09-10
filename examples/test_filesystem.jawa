@@ -1,0 +1,32 @@
+// Jawalang V1.4.0 — File System Foundation Example
+// Nyoba maca, nulis, mriksa, lan nggawe folder
+
+gaweFolder("fs-test")
+
+tulisFile("fs-test/hello.txt", "Halo Jawalang!")
+
+tulis macaFile("fs-test/hello.txt")
+
+tulis anaPath("fs-test/hello.txt")
+
+tulis jinisPath("fs-test/hello.txt")
+
+tulis jinisPath("fs-test")
+
+gawe daftar = isiFolder("fs-test")
+
+tulis daftar[0]
+
+// Integrasi JSON kanthi sistem berkas
+gawe data = {
+    "bahasa": "Jawalang",
+    "versi": 1.4,
+    "aktif": bener
+}
+
+tulisFile("fs-test/data.json", jsonEncode(data))
+
+gawe hasil = jsonDecode(macaFile("fs-test/data.json"))
+
+tulis hasil["bahasa"]
+tulis hasil["aktif"]

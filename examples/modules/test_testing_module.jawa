@@ -1,0 +1,21 @@
+// ==========================================
+// Fixture Modul Testing Jawalang V1.4.0
+// ==========================================
+
+ekspor guna hitungDanUji(a, b) {
+    gawe c = a + b
+    uji(c > 0)
+    ujiPadha(c, a + b)
+    ujiJinis(c, "number")
+    bali c
+}
+
+guna subGagal() {
+    lempar "error modul"
+}
+
+ekspor guna ujiModulError() {
+    ujiError(subGagal)
+    bali bener
+}
+

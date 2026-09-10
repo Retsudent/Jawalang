@@ -16,6 +16,7 @@
     "src/interpreter.js",
     "src/module_loader.js",
     "src/repl.js",
+    "src/stdlib",
     "index.js",
     "Readme.md",
     "LICENSE"

@@ -2,20 +2,23 @@
 
 Ekstensi resmi **Jawalang** kanggo Visual Studio Code. Nyedhiyakake dhukungan basa pamrograman Jawa (*Javanese Programming Language*) kanthi pengalaman pangembang profesional (*developer experience*).
 
+Ing rilis **V1.3.0 (Phase 9: LSP Polish & Release Hardening)**, ekstensi iki nyedhiyakake integrasi lengkap marang kabeh 11 kapabilitas Language Server Protocol (LSP) sing wis di-audit kanthi jero lan siap produksi.
+
 ---
 
 ## 🌟 Fitur Utama
 
 - **Pangenalan Basa (.jawa)**: Otomatis ngenali berkas mawa ekstensi `.jawa` minangka basa Jawalang.
-- **Syntax Highlighting Lengkap**: Nyakup kabeh keyword Jawalang V5 (`gawe`, `guna`, `bentuk`, `wiwiti`, `ngembangake`, `super`, `coba`, `tangkep`, lsp), string mawa escape sequences, angka desimal, komentar baris, sarta deklarasi/panggilan fungsi lan struct.
+- **Syntax Highlighting & TextMate Fallback**: Nyakup kabeh keyword Jawalang V5 (`gawe`, `guna`, `bentuk`, `wiwiti`, `ngembangake`, `super`, `coba`, `tangkep`, lsp), string mawa escape sequences, angka desimal, komentar baris, sarta deklarasi/panggilan fungsi lan struct. Yen Language Server durung aktif, TextMate grammar njamin pewarnaan sintaks dhasar tetep aktif kanthi instan.
+- **Semantic Highlighting (Semantic Tokens)**: Pewarnaan sintaks semantik akurat adhedhasar analisis Language Server (fungsi, variabel, parameter, properti, metode, struct, namespace, lan fungsi built-in kanthi modifier `defaultLibrary`).
 - **Konfigurasi Basa**: Pasangan otomatis tanda kurung `{}`, `[]`, `()`, tanda petik `""`, komentar baris `//`, lan aturan indentasi cerdas.
 - **Snippets Kode Praktis**: Template cepet kanggo `gawe`, `guna`, `bentuk`, `wiwiti`, `yen`, `nalika`, `kanggo`, `saben`, `coba`, `impor`, lan sapiturute.
 - **Tombol & Printah Run Jawalang**: Eksekusi berkas aktif langsung ing Integrated Terminal VS Code liwat tombol ▶ ing pojok tengen ndhuwur utawa printah `Jawalang: Run File`.
 - **Language Server Protocol (LSP)**: Dilengkapi Jawalang Language Server kanthi kapabilitas cerdas:
-  - **Diagnostik Real-time**: Laporan kesalahan sintaks lan semantik kanthi akurat.
-  - **Go to Definition**: Navigasi menyang deklarasi variabel, fungsi, struct, lan modul sing diimpor.
-  - **Find All References**: Nemokake kabeh referensi panggunaan variabel, parameter, fungsi, struct, metode (`iki.method`, `super.method`), lan modul.
-  - **Rename Symbol**: Ngganti jeneng simbol kanthi aman lan semantik liwat WorkspaceEdit (F2 ing VS Code) kanthi proteksi leksikal lan collision checking.
+  - **Diagnostik Real-time**: Laporan kesalahan sintaks, semantik, duplikasi deklarasi, lan siklus pewarisan kanthi range UTF-16 akurat.
+  - **Go to Definition**: Navigasi menyang deklarasi variabel, parameter, fungsi, struct, lan modul sing diimpor cross-file.
+  - **Find All References**: Nemokake kabeh referensi panggunaan variabel, parameter, fungsi, struct, metode (`iki.method`, `super.method`), lan modul kanthi resolusi leksikal lan proteksi shadowing.
+  - **Rename Symbol**: Ngganti jeneng simbol kanthi aman lan semantik liwat WorkspaceEdit (`F2` ing VS Code) kanthi proteksi leksikal lan collision checking.
   - **Signature Help**: Nampilake pratandha parameter lan parameter aktif (`activeParameter`) kanthi akurat nalika ngetik panggilan fungsi, konstruktor (`anyar Struct(...)`), metode struct, `super(...)`, `super.method(...)`, namespace modul, lan fungsi bawaan.
   - **Autocomplete Semantik V2**: Rekomendasi simbol leksikal kontekstual, anggota struct (`instance.`, `iki.`, `super.`), namespace modul (`math.`), filter khusus `anyar`, sarta proteksi ing njero string lan komentar.
   - **Format Document**: Format otomatis kode Jawalang liwat `Shift + Alt + F`, klik tengen -> *Format Document*, utawa Format on Save. Nyedhiyakake indentasi 4 spasi standar, perapian spasi operator biner lan unary, format block kurawal (`{` lan `}`), penataan struct/metode/konstruktor, lan njamin keamanan string/komentar sarta idempotensi.
@@ -25,9 +28,8 @@ Ekstensi resmi **Jawalang** kanggo Visual Studio Code. Nyedhiyakake dhukungan ba
     - **Remove Unused Imports**: Mbusak impor selektif utawa namespace sing ora digunakake adhedhasar grafik referensi.
     - **Typo QuickFix**: Nyaranake koreksi tipo kanggo jeneng fungsi, variabel, lan struct sing salah ketik, kalebu fungsi bawaan (`dawe` -> `dawa`).
     - **Import QuickFix**: Nyaranake ngimpor simbol ekspor sing kasedhiya saka modul-modul proyek.
-  - **Semantic Highlighting (Semantic Tokens)**: Pewarnaan sintaks semantik akurat adhedhasar analisis Language Server (fungsi, variabel, parameter, properti, metode, struct, namespace, lan fungsi built-in) kanthi fallback TextMate grammar.
-  - **Hover Semantik**: Nuduhake tipe data inferensi, signature, lan dokumentasi built-in.
-  - **Outline Dokumen (Document Symbols)**: Peta struktur hirarkis file ing panel Outline VS Code.
+  - **Hover Semantik**: Nuduhake tipe data inferensi, signature, lan dokumentasi built-in sarta keyword.
+  - **Outline Dokumen (Document Symbols)**: Peta struktur hierarkis file ing panel Outline VS Code (struct minangka kelas, metode, field, fungsi, lan variabel).
 - **Dukungan Terminal Interaktif**: Program mawa fungsi input `takon()` lumaku kanthi interaktif lan lancar.
 
 ---
@@ -66,7 +68,7 @@ Ekstensi nyedhiyakake setelan kang bisa diowahi ing VS Code Settings:
 | :--- | :--- | :--- |
 | `jawalang.executablePath` | `"jawa"` | Path menyang executable CLI Jawalang (kayata `jawa` utawa path jangkep menyang `jawa.exe`). |
 | `jawalang.runInTerminal` | `true` | Nglakokake program ing integrated terminal VS Code. |
-| `jawalang.languageServer.enabled` | `true` | Ngaktifake Jawalang Language Server (LSP) kanggo diagnostik, definisi, lan autokomplit semantik. |
+| `jawalang.languageServer.enabled` | `true` | Ngaktifake Jawalang Language Server (LSP) kanggo diagnostik, definisi, autokomplit, formatting, lan semantic tokens. |
 | `jawalang.languageServer.path` | `""` | Path custom menyang executable/script Language Server (standar: nggunakake server bawaan ekstensi). |
 | `jawalang.languageServer.debug` | `false` | Ngaktifake logging debug menyang konsol stderr. |
 

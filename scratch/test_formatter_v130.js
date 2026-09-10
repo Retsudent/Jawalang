@@ -8,6 +8,7 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const assert = require('assert');
+const { pathToUri } = require('../language-server/src/utils');
 const testFormatterUnit = require('../language-server/test/formatter.test');
 
 console.log('====================================================');
@@ -125,7 +126,7 @@ async function runProtocolTests() {
         // Scenario 1: Initialize and verify formattingProvider capability
         const initResult = await client.request('initialize', {
             processId: process.pid,
-            rootUri: 'file:///c:/Jawalang',
+            rootUri: pathToUri(path.resolve(__dirname, '..')),
             capabilities: {}
         });
 
@@ -137,7 +138,7 @@ async function runProtocolTests() {
 
         let docCounter = 1;
         async function openAndFormat(text, options = { tabSize: 4, insertSpaces: true }) {
-            const uri = `file:///c:/Jawalang/test_format_${docCounter++}.jawa`;
+            const uri = pathToUri(path.resolve(__dirname, `test_format_${docCounter++}.jawa`));
             client.notify('textDocument/didOpen', {
                 textDocument: {
                     uri,

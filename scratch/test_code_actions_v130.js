@@ -8,6 +8,7 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const assert = require('assert');
+const { pathToUri } = require('../language-server/src/utils');
 const testCodeActionsUnit = require('../language-server/test/codeActions.test');
 
 console.log('====================================================');
@@ -125,7 +126,7 @@ async function runProtocolTests() {
         // Scenario 1: Initialize and verify codeActionProvider capability
         const initResult = await client.request('initialize', {
             processId: process.pid,
-            rootUri: 'file:///c:/Jawalang',
+            rootUri: pathToUri(path.resolve(__dirname, '..')),
             capabilities: {}
         });
 
@@ -142,7 +143,7 @@ async function runProtocolTests() {
 
         let docCounter = 1;
         async function openAndGetActions(text, context = { diagnostics: [] }, range = { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }) {
-            const uri = `file:///c:/Jawalang/test_ca_${docCounter++}.jawa`;
+            const uri = pathToUri(path.resolve(__dirname, `test_ca_${docCounter++}.jawa`));
             client.notify('textDocument/didOpen', {
                 textDocument: {
                     uri,

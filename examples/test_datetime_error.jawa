@@ -1,0 +1,2 @@
+// Negative test: parseWektu with invalid calendar date must throw runtime error
+parseWektu("2026-02-30")

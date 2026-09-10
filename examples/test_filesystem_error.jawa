@@ -1,0 +1,20 @@
+// Jawalang V1.4.0 — File System Error Handling Example
+// Nyoba nyekel kesalahan filesystem nganggo coba-tangkep
+
+coba {
+    macaFile("../secret.txt")
+} tangkep err {
+    tulis err
+}
+
+coba {
+    macaFile("missing.txt")
+} tangkep err {
+    tulis err
+}
+
+coba {
+    tulisFile("test.txt", 10)
+} tangkep err {
+    tulis err
+}

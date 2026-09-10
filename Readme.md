@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/Node.js-%3E%3D16.0.0-green.svg)](https://nodejs.org)
 [![Version](https://img.shields.io/badge/Version-v1.2.0-orange.svg)](package.json)
-[![Tests](https://img.shields.io/badge/Tests-670%2B%20Passing%20(100%25)-brightgreen.svg)](docs/PROJECT_STATUS.md)
+[![Tests](https://img.shields.io/badge/Tests-1020%2B%20Passing%20(100%25)-brightgreen.svg)](docs/PROJECT_STATUS.md)
 
 ---
 
@@ -15,13 +15,13 @@
 
 ### Why Jawalang?
 - **Cultural & Linguistic Expression**: Makes coding intuitive and expressive using authentic Javanese terms (`gawe`, `guna`, `yen`, `liyane`, `bentuk`, `wiwiti`, `iki`, `ngembangake`, `super`).
-- **Complete Feature Set**: Not just a toy transpiler—Jawalang provides true runtime execution, structured error handling, first-class functions, higher-order collections, single inheritance OOP, and a robust module system with circular dependency protection.
+- **Complete Feature Set**: Not just a toy transpiler—Jawalang provides true runtime execution, structured error handling, first-class functions, higher-order collections, single inheritance OOP, modular standard library, and a robust module system with circular dependency protection.
 - **Modern Developer Tooling**: First-class developer experience with an official VS Code extension and a dedicated Language Server supporting diagnostics, autocompletion, formatting, quick fixes, and semantic syntax highlighting.
 
 ### Technologies
 - **Runtime**: Node.js (pure JavaScript AST interpreter, zero heavy dependencies)
 - **Tooling**: LSP (JSON-RPC stdio protocol), VS Code Extension, Native C# Windows Launcher (`jawa.exe`)
-- **Project Status**: **Production-Ready (v1.2.0)** with **670+ automated tests passing (100%)**.
+- **Project Status**: **Production-Ready & Active Development** with **1020+ automated tests passing (100%)**.
 
 ---
 
@@ -31,6 +31,11 @@
 - **Lexer & Recursive-Descent Parser**: Position-aware tokenization with accurate line/column tracking.
 - **Lexical Scoping & Closures**: Scoped variable environments with clean shadowing resolution.
 - **First-Class Functions**: Store functions in variables, pass callbacks, and chain invocations.
+- **Standard Library Foundation**: Pure, deterministic standard library with Math (`abs`, `min`, `max`, `akar`, `pangkat`) and String utilities (`ngemot`, `diwiwiti`, `dipungkasi`, `trim`, `pecah`).
+- **Date & Time Standard Library**: Encapsulated `datetime` runtime type, 16 pure functions (`saiki`, `timestamp`, `gaweWektu`, `taun`, `wulan`, `dina`, `jam`, `menit`, `detik`, `formatWektu`, `parseWektu`, `sadurunge`, `sawise`, `padhaWektu`, `tambahWektu`, `kurangWektu`), deterministic UTC model, calendar boundary & leap year protection, and full immutability.
+- **JSON & Serialization Standard Library**: Standards-compliant RFC 8259 serialization (`jsonEncode`, `jsonDecode`), deep type validation, circular reference protection, recursion depth limit guard, and decode heap isolation.
+- **File System Foundation**: Sandboxed filesystem I/O (`macaFile`, `tulisFile`, `anaPath`, `jinisPath`, `isiFolder`, `gaweFolder`), centralized security path resolver, root containment, traversal & symlink escape guards, non-destructive safety, and UTF-8 text support.
+- **Testing & Assertion Foundation**: Built-in testing assertions (`uji`, `ujiPadha`, `ujiBeda`, `ujiJinis`, `ujiError`), silent pass semantics, catchable runtime error reporting on failure, zero global state, and complete exception integration.
 - **Object-Oriented Programming (OOP)**: Struct declarations (`bentuk`), constructors (`wiwiti`), instance references (`iki`), single inheritance (`ngembangake`), and `super` calls.
 - **Rich Data Structures**: Dynamic arrays and key-value objects with deep indexing and assignment.
 - **Functional Collection Library**: Built-in higher-order functions (`terapkan`, `saring`, `itung`, `ana`, `kabeh`, `golek`, `urut`, `balik`, `gabung`).
@@ -48,7 +53,7 @@
 Here is a complete, idiomatic Jawalang program demonstrating struct declaration, constructor, inheritance, method invocation, and functional collection operations:
 
 ```jawa
-// Program Petungan Siswa
+// Dhéfinisi struct induk
 bentuk Wong {
     gawe jeneng = ""
 
@@ -187,6 +192,10 @@ Comprehensive, topic-by-topic documentation is available in the [`docs/`](docs/R
 | **Functions & Scope** | Function declaration (`guna`, `bali`), closures, and first-class functions | [docs/functions.md](docs/functions.md) |
 | **Data Structures** | Arrays, objects/dictionaries, dot notation, and nested mutations | [docs/data-structures.md](docs/data-structures.md) |
 | **Higher-Order Functions** | Functional collection library (`terapkan`, `saring`, `itung`, `urut`, etc.) and string utilities | [docs/higher-order-functions.md](docs/higher-order-functions.md) |
+| **Standard Library** | Pure Math (`abs`, `min`, `max`, `akar`, `pangkat`) and String (`ngemot`, `diwiwiti`, `trim`, `pecah`) | [docs/standard-library.md](docs/standard-library.md) |
+| **Date & Time** | DateTime runtime type, 16 pure functions (`saiki`, `timestamp`, `gaweWektu`, `formatWektu`, `parseWektu`, dll.) | [docs/date-time.md](docs/date-time.md) |
+| **JSON & Serialization** | Pure RFC 8259 functions (`jsonEncode`, `jsonDecode`), deep validation, cycle protection | [docs/json.md](docs/json.md) |
+| **File System** | Sandboxed filesystem I/O (`macaFile`, `tulisFile`, `anaPath`, `jinisPath`, `isiFolder`, `gaweFolder`) | [docs/filesystem.md](docs/filesystem.md) |
 | **OOP & Structs** | Structs (`bentuk`), constructors (`wiwiti`), `iki`, inheritance (`ngembangake`), and `super` | [docs/oop.md](docs/oop.md) |
 | **Module System** | Exports (`ekspor`), imports (`impor`), selective imports, aliases, and namespaces | [docs/modules.md](docs/modules.md) |
 | **Error Handling** | Exception handling (`coba`, `tangkep`, `lempar`) and stack propagation | [docs/error-handling.md](docs/error-handling.md) |
@@ -217,7 +226,11 @@ Comprehensive, topic-by-topic documentation is available in the [`docs/`](docs/R
 | **LSP Formatting** | ✅ | Deterministic 4-space code formatter with operator spacing rules |
 | **LSP Code Actions** | ✅ | Organize imports, duplicate removal, unused cleanup, and typo quick fixes |
 | **LSP Semantic Tokens** | ✅ | 13 token types, 2 modifiers, relative delta-encoding highlighting |
-| **LSP Polish & Release (Phase 9)** | ⏳ | Final packaging, performance benchmarks, and release distribution |
+| **LSP Polish & Release (Phase 9)** | ✅ | Full LSP capability hardening, UTF-16 precision, cycles guard |
+| **Standard Library Foundation (Phase 10)** | ✅ | Modular stdlib (`src/stdlib/`), Math & String pure builtins, LSP sync |
+| **Date & Time Standard Library (Phase 11)** | ✅ | Encapsulated `datetime` runtime type, 16 pure functions, UTC model, LSP sync |
+| **JSON & Serialization (Phase 12)** | ✅ | RFC 8259 `jsonEncode` & `jsonDecode`, deep validation, cycle guard, LSP sync |
+| **File System Foundation (Phase 13)** | ✅ | Sandboxed `macaFile`, `tulisFile`, `anaPath`, `jinisPath`, `isiFolder`, `gaweFolder`, LSP sync |
 
 ---
 

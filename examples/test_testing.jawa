@@ -1,0 +1,80 @@
+// ==========================================
+// Jawalang V1.4.0 — Testing Foundation Demo
+// ==========================================
+
+// BOOLEAN
+uji(bener)
+uji(2 < 3)
+
+// EQUALITY
+ujiPadha(10, 10)
+ujiPadha("Jawa", "Jawa")
+
+// INEQUALITY
+ujiBeda(10, 20)
+
+// TYPE
+ujiJinis(10, "number")
+ujiJinis("Jawalang", "string")
+ujiJinis(bener, "boolean")
+
+// ARRAY TYPE
+ujiJinis([1, 2, 3], "array")
+
+// OBJECT TYPE
+ujiJinis({
+    "nama": "Jawalang"
+}, "object")
+
+// NULL
+ujiJinis(null, "null")
+
+// FUNCTION
+guna tambah(a, b) {
+    bali a + b
+}
+
+ujiJinis(tambah, "function")
+ujiPadha(tambah(2, 3), 5)
+
+// CUSTOM MESSAGE
+ujiPadha(
+    tambah(10, 20),
+    30,
+    "fungsi tambah rusak"
+)
+
+// ERROR ASSERTION
+guna gagal() {
+    lempar "gagal"
+}
+
+ujiError(gagal)
+
+// JSON INTEGRATION
+gawe data = {
+    "nama": "Jawalang",
+    "versi": 1.4
+}
+
+gawe json = jsonEncode(data)
+gawe hasil = jsonDecode(json)
+ujiPadha(hasil["nama"], "Jawalang")
+
+// DATETIME
+gawe waktu = gaweWektu(2026, 9, 6)
+ujiJinis(waktu, "datetime")
+
+// FILESYSTEM
+gaweFolder("test-output")
+tulisFile(
+    "test-output/test.txt",
+    "Jawalang"
+)
+ujiPadha(
+    macaFile("test-output/test.txt"),
+    "Jawalang"
+)
+uji(anaPath("test-output/test.txt"))
+
+tulis "Testing & Assertion Berhasil!"

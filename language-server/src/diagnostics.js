@@ -16,7 +16,9 @@ function getDiagnostics(analysisResult) {
         const startLine = Math.max(0, diag.range.start.line || 0);
         const startChar = Math.max(0, diag.range.start.character || 0);
         const endLine = Math.max(startLine, diag.range.end.line || 0);
-        const endChar = Math.max(startChar, diag.range.end.character || 0);
+        const endChar = endLine === startLine
+            ? Math.max(startChar, diag.range.end.character || 0)
+            : Math.max(0, diag.range.end.character || 0);
 
         const key = `${startLine}:${startChar}-${endLine}:${endChar}-${diag.message}`;
         if (seen.has(key)) continue;

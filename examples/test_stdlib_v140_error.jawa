@@ -1,0 +1,3 @@
+// Test Standard Library V1.4.0 Error (Must exit code 1)
+// abs expects a number, but gets a string
+tulis abs("bukan_angka")

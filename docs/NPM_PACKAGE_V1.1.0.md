@@ -29,8 +29,8 @@ Ing implementasi Fase 2 iki, owah-owahan kasebut ditindakake kanthi teliti tanpa
    - Ngekspor API programmatik resmi: `lexer`, `parser`, `interpreter`, `runFile`, `runSource`, `VERSION`, lan `HELP_TEXT` tanpa micu `process.exit()`.
 
 4. **Automated NPM Package Validation Suite**:
-   - Nggawe [`scratch/test_npm_api.js`](file:///c:/Jawalang/scratch/test_npm_api.js) kanggo verifikasi ekspor pustaka Node.js.
-   - Nggawe [`scratch/test_npm_package.js`](file:///c:/Jawalang/scratch/test_npm_package.js) sing nguji 15 poin verifikasi packaging sacara otomatis (instalasi lokal, global, `npx`, modul, input `takon`, lan error handling).
+   - Nggawe [`scratch/test_npm_api.js`](../scratch/test_npm_api.js) kanggo verifikasi ekspor pustaka Node.js.
+   - Nggawe [`scratch/test_npm_package.js`](../scratch/test_npm_package.js) sing nguji 15 poin verifikasi packaging sacara otomatis (instalasi lokal, global, `npx`, modul, input `takon`, lan error handling).
 
 ---
 

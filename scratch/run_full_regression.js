@@ -37,7 +37,14 @@ const positiveFiles = [
     'examples/test_module_v2.jawa',
     'examples/test_module_v3.jawa',
     'examples/test_dot_notation_v4.jawa',
-    'examples/test_inheritance_v5.jawa'
+    'examples/test_inheritance_v5.jawa',
+    'examples/test_stdlib_v140.jawa',
+    'examples/test_datetime.jawa',
+    'examples/test_json.jawa',
+    'examples/test_filesystem.jawa',
+    'examples/test_filesystem_error.jawa',
+    'examples/test_testing.jawa',
+    'examples/test_testing_error.jawa'
 ];
 
 let posPassed = 0;
@@ -79,7 +86,10 @@ const negativeFiles = [
     'examples/test_module_v2_error.jawa',
     'examples/test_module_v3_error.jawa',
     'examples/test_dot_notation_v4_error.jawa',
-    'examples/test_inheritance_v5_error.jawa'
+    'examples/test_inheritance_v5_error.jawa',
+    'examples/test_stdlib_v140_error.jawa',
+    'examples/test_datetime_error.jawa',
+    'examples/test_json_error.jawa'
 ];
 
 let negPassed = 0;
@@ -123,7 +133,12 @@ const scratchRunners = [
     'test_inheritance_v5_negative.js',
     'test_repl.js',
     'test_language_server.js',
-    'test_references_v130.js'
+    'test_references_v130.js',
+    'test_stdlib_v140.js',
+    'test_datetime_v140.js',
+    'test_json_v140.js',
+    'test_filesystem_v140.js',
+    'test_testing_v140.js'
 ];
 
 let runnerPassed = 0;

@@ -172,6 +172,279 @@ const BUILTINS = {
         params: ['array', 'target'],
         returnType: 'number',
         example: 'indeks(["a", "b"], "b") // => 1'
+    },
+    abs: {
+        signature: 'abs(angka: number): number',
+        description: 'Mbalekake nilai mutlak (absolut) saka sawijining angka.',
+        params: ['angka'],
+        returnType: 'number',
+        example: 'abs(-10) // => 10'
+    },
+    min: {
+        signature: 'min(a: number, b: number): number',
+        description: 'Mbalekake angka paling cilik ing antarane rong angka.',
+        params: ['a', 'b'],
+        returnType: 'number',
+        example: 'min(10, 20) // => 10'
+    },
+    max: {
+        signature: 'max(a: number, b: number): number',
+        description: 'Mbalekake angka paling gedhe ing antarane rong angka.',
+        params: ['a', 'b'],
+        returnType: 'number',
+        example: 'max(10, 20) // => 20'
+    },
+    akar: {
+        signature: 'akar(angka: number): number',
+        description: 'Mbalekake oyod kuadrat (square root) saka sawijining angka positif.',
+        params: ['angka'],
+        returnType: 'number',
+        example: 'akar(25) // => 5'
+    },
+    pangkat: {
+        signature: 'pangkat(dhasar: number, eksponen: number): number',
+        description: 'Mbalekake asil pangangkatan angka dhasar dipangkatake eksponen.',
+        params: ['dhasar', 'eksponen'],
+        returnType: 'number',
+        example: 'pangkat(2, 5) // => 32'
+    },
+    ngemot: {
+        signature: 'ngemot(teks: string, bagean: string): boolean',
+        description: 'Priksa apa sawijining teks ngemot cuplikan teks liya (contains/substring).',
+        params: ['teks', 'bagean'],
+        returnType: 'boolean',
+        example: 'ngemot("Jawalang", "lang") // => bener'
+    },
+    diwiwiti: {
+        signature: 'diwiwiti(teks: string, awalan: string): boolean',
+        description: 'Priksa apa teks diwiwiti nganggo awalan tartamtu (startsWith).',
+        params: ['teks', 'awalan'],
+        returnType: 'boolean',
+        example: 'diwiwiti("Jawalang", "Jawa") // => bener'
+    },
+    dipungkasi: {
+        signature: 'dipungkasi(teks: string, pungkasan: string): boolean',
+        description: 'Priksa apa teks dipungkasi nganggo akhiran tartamtu (endsWith).',
+        params: ['teks', 'pungkasan'],
+        returnType: 'boolean',
+        example: 'dipungkasi("Jawalang", "lang") // => bener'
+    },
+    trim: {
+        signature: 'trim(teks: string): string',
+        description: 'Mbusak spasi ing wiwitan lan pungkasan teks.',
+        params: ['teks'],
+        returnType: 'string',
+        example: 'trim("  Jawa  ") // => "Jawa"'
+    },
+    pecah: {
+        signature: 'pecah(teks: string, pemisah: string): string[]',
+        description: 'Mecah teks dadi array adhedhasar karakter pemisah (split).',
+        params: ['teks', 'pemisah'],
+        returnType: 'array',
+        example: 'pecah("a,b,c", ",") // => ["a", "b", "c"]'
+    },
+    saiki: {
+        signature: 'saiki(): datetime',
+        description: 'Mbalekake wektu saiki minangka obyek DateTime.',
+        params: [],
+        returnType: 'datetime',
+        example: 'gawe w = saiki()'
+    },
+    timestamp: {
+        signature: 'timestamp(waktu: datetime): number',
+        description: 'Mbalekake Unix timestamp ing milidetik saka obyek DateTime.',
+        params: ['waktu'],
+        returnType: 'number',
+        example: 'timestamp(saiki())'
+    },
+    gaweWektu: {
+        signature: 'gaweWektu(tahun: number, wulan: number, dina: number, jam?: number, menit?: number, detik?: number): datetime',
+        description: 'Nggawe obyek DateTime anyar saka komponen tanggal/wektu utawa timestamp integer.',
+        params: ['tahun', 'wulan', 'dina'],
+        returnType: 'datetime',
+        example: 'gaweWektu(2026, 9, 6)'
+    },
+    taun: {
+        signature: 'taun(waktu: datetime): number',
+        description: 'Njupuk angka taun UTC saka obyek DateTime.',
+        params: ['waktu'],
+        returnType: 'number',
+        example: 'taun(saiki()) // => 2026'
+    },
+    wulan: {
+        signature: 'wulan(waktu: datetime): number',
+        description: 'Njupuk angka wulan UTC (1-12) saka obyek DateTime.',
+        params: ['waktu'],
+        returnType: 'number',
+        example: 'wulan(saiki()) // => 9'
+    },
+    dina: {
+        signature: 'dina(waktu: datetime): number',
+        description: 'Njupuk tanggal/dina UTC (1-31) saka obyek DateTime.',
+        params: ['waktu'],
+        returnType: 'number',
+        example: 'dina(saiki()) // => 6'
+    },
+    jam: {
+        signature: 'jam(waktu: datetime): number',
+        description: 'Njupuk angka jam UTC (0-23) saka obyek DateTime.',
+        params: ['waktu'],
+        returnType: 'number',
+        example: 'jam(saiki())'
+    },
+    menit: {
+        signature: 'menit(waktu: datetime): number',
+        description: 'Njupuk angka menit UTC (0-59) saka obyek DateTime.',
+        params: ['waktu'],
+        returnType: 'number',
+        example: 'menit(saiki())'
+    },
+    detik: {
+        signature: 'detik(waktu: datetime): number',
+        description: 'Njupuk angka detik UTC (0-59) saka obyek DateTime.',
+        params: ['waktu'],
+        returnType: 'number',
+        example: 'detik(saiki())'
+    },
+    formatWektu: {
+        signature: 'formatWektu(waktu: datetime, pola: string): string',
+        description: 'Format obyek DateTime dadi teks adhedhasar pola (YYYY, MM, DD, HH, mm, ss).',
+        params: ['waktu', 'pola'],
+        returnType: 'string',
+        example: 'formatWektu(saiki(), "YYYY-MM-DD")'
+    },
+    parseWektu: {
+        signature: 'parseWektu(teks: string): datetime',
+        description: 'Ngurai teks tanggal dadi obyek DateTime (format: "YYYY-MM-DD" utawa "YYYY-MM-DD HH:mm:ss").',
+        params: ['teks'],
+        returnType: 'datetime',
+        example: 'parseWektu("2026-09-06")'
+    },
+    sadurunge: {
+        signature: 'sadurunge(a: datetime, b: datetime): boolean',
+        description: 'Priksa apa wektu a luwih dhisik tinimbang wektu b (a < b).',
+        params: ['a', 'b'],
+        returnType: 'boolean',
+        example: 'sadurunge(w1, w2)'
+    },
+    sawise: {
+        signature: 'sawise(a: datetime, b: datetime): boolean',
+        description: 'Priksa apa wektu a luwih buri tinimbang wektu b (a > b).',
+        params: ['a', 'b'],
+        returnType: 'boolean',
+        example: 'sawise(w1, w2)'
+    },
+    padhaWektu: {
+        signature: 'padhaWektu(a: datetime, b: datetime): boolean',
+        description: 'Priksa apa wektu a padha persis karo wektu b (timestamp padha).',
+        params: ['a', 'b'],
+        returnType: 'boolean',
+        example: 'padhaWektu(w1, w2)'
+    },
+    tambahWektu: {
+        signature: 'tambahWektu(waktu: datetime, jumlahDetik: number): datetime',
+        description: 'Nambahake wektu kanthi gunggunge detik tartamtu, ngasilake obyek DateTime anyar.',
+        params: ['waktu', 'jumlahDetik'],
+        returnType: 'datetime',
+        example: 'tambahWektu(w, 86400)'
+    },
+    kurangWektu: {
+        signature: 'kurangWektu(waktu: datetime, jumlahDetik: number): datetime',
+        description: 'Ngurangi wektu kanthi gunggunge detik tartamtu, ngasilake obyek DateTime anyar.',
+        params: ['waktu', 'jumlahDetik'],
+        returnType: 'datetime',
+        example: 'kurangWektu(w, 3600)'
+    },
+    jsonEncode: {
+        signature: 'jsonEncode(nilai: any): string',
+        description: 'Ngonversi struktur data Jawalang dadi teks string format JSON.',
+        params: ['nilai'],
+        returnType: 'string',
+        example: 'jsonEncode({"nama": "Jawalang", "versi": 1.4})'
+    },
+    jsonDecode: {
+        signature: 'jsonDecode(teks: string): any',
+        description: 'Ngurai teks format JSON dadi struktur data Jawalang asli.',
+        params: ['teks'],
+        returnType: 'any',
+        example: 'jsonDecode("{\\"a\\": 10}")'
+    },
+    macaFile: {
+        signature: 'macaFile(path: string): string',
+        description: 'Maca isi berkas teks berenkode UTF-8 ing njero sandbox root.',
+        params: ['path'],
+        returnType: 'string',
+        example: 'macaFile("data.txt")'
+    },
+    tulisFile: {
+        signature: 'tulisFile(path: string, isi: string): null',
+        description: 'Nulis isi teks string kanthi enkoding UTF-8 menyang berkas ing njero sandbox root.',
+        params: ['path', 'isi'],
+        returnType: 'null',
+        example: 'tulisFile("output.txt", "Halo Jawalang")'
+    },
+    anaPath: {
+        signature: 'anaPath(path: string): boolean',
+        description: 'Mriksa apa berkas utawa folder ana ing jalur kasebut (bener utawa salah).',
+        params: ['path'],
+        returnType: 'boolean',
+        example: 'anaPath("data.txt")'
+    },
+    jinisPath: {
+        signature: 'jinisPath(path: string): string',
+        description: 'Mriksa jinis entri sistem berkas ("file", "folder", utawa "oraAna").',
+        params: ['path'],
+        returnType: 'string',
+        example: 'jinisPath("data")'
+    },
+    isiFolder: {
+        signature: 'isiFolder(path: string): array',
+        description: 'Maca lan ngasilake dhaptar jeneng entri ing njero folder minangka array string.',
+        params: ['path'],
+        returnType: 'array',
+        example: 'isiFolder("data")'
+    },
+    gaweFolder: {
+        signature: 'gaweFolder(path: string): null',
+        description: 'Nggawe folder anyar kanthi rekursif ing njero sandbox root.',
+        params: ['path'],
+        returnType: 'null',
+        example: 'gaweFolder("data/arsip")'
+    },
+    uji: {
+        signature: 'uji(kondisi: boolean, pesan?: string): boolean',
+        description: 'Mriksa apa sawijining kondisi bener (true). Yen salah, mbuwang error assertion.',
+        params: ['kondisi', 'pesan'],
+        returnType: 'boolean',
+        example: 'uji(2 < 3, "kondisi kudu bener")'
+    },
+    ujiPadha: {
+        signature: 'ujiPadha(aktual: any, expected: any, pesan?: string): boolean',
+        description: 'Mriksa apa nilai aktual padha (==) karo nilai expected miturut semantik Jawalang.',
+        params: ['aktual', 'expected', 'pesan'],
+        returnType: 'boolean',
+        example: 'ujiPadha(2 + 3, 5, "petungan salah")'
+    },
+    ujiBeda: {
+        signature: 'ujiBeda(aktual: any, expected: any, pesan?: string): boolean',
+        description: 'Mriksa apa nilai aktual beda (!=) saka nilai expected miturut semantik Jawalang.',
+        params: ['aktual', 'expected', 'pesan'],
+        returnType: 'boolean',
+        example: 'ujiBeda(10, 20)'
+    },
+    ujiJinis: {
+        signature: 'ujiJinis(nilai: any, tipe: string, pesan?: string): boolean',
+        description: 'Mriksa apa jinis data nilai cocog karo jeneng tipe sing diarepake ("number", "string", "boolean", "array", "object", "function", "null", "datetime", lsp).',
+        params: ['nilai', 'tipe', 'pesan'],
+        returnType: 'boolean',
+        example: 'ujiJinis("Jawalang", "string")'
+    },
+    ujiError: {
+        signature: 'ujiError(fungsi: function, pesan?: string): boolean',
+        description: 'Mriksa apa pamanggilan fungsi ngasilake runtime error. Yen ora ana error, mbuwang error assertion.',
+        params: ['fungsi', 'pesan'],
+        returnType: 'boolean',
+        example: 'ujiError(guna() { lempar "rusak" })'
     }
 };
 

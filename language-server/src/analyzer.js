@@ -252,6 +252,48 @@ class Analyzer {
             this.hoistStatement(stmt, globalScope, filePath, uri, allSymbols, structs, diagnostics, tokens);
         }
 
+        // Validate inheritance relationships across all hoisted structs
+        for (const [structName, structSym] of structs.entries()) {
+            if (structSym.parent) {
+                const pName = typeof structSym.parent === 'string' ? structSym.parent : structSym.parent.value;
+                if (pName === structName) {
+                    diagnostics.push({
+                        severity: 1,
+                        range: structSym.nameLoc || structSym.loc || { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                        message: `Struct "${structName}" ora kena ngembangake awake dhewe (Self-inheritance ora diidinake).`,
+                        source: 'Jawalang'
+                    });
+                } else if (!structs.has(pName)) {
+                    const pSym = globalScope.lookup(pName);
+                    if (!pSym || pSym.kind !== 'struct') {
+                        diagnostics.push({
+                            severity: 1,
+                            range: structSym.nameLoc || structSym.loc || { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                            message: `Struct induk "${pName}" ora ditemokake.`,
+                            source: 'Jawalang'
+                        });
+                    }
+                } else {
+                    const chain = new Set([structName]);
+                    let curr = structs.get(pName);
+                    while (curr && curr.parent) {
+                        const nextP = typeof curr.parent === 'string' ? curr.parent : curr.parent.value;
+                        if (chain.has(nextP)) {
+                            diagnostics.push({
+                                severity: 1,
+                                range: structSym.nameLoc || structSym.loc || { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                                message: `Siklus pewarisan (circular inheritance) dideteksi ing struct "${structName}".`,
+                                source: 'Jawalang'
+                            });
+                            break;
+                        }
+                        chain.add(nextP);
+                        curr = structs.get(nextP);
+                    }
+                }
+            }
+        }
+
         // Pass 2: Analyze all statement bodies and expressions in full scope hierarchy
         for (const stmt of ast) {
             this.analyzeStatement(stmt, globalScope, filePath, uri, scopes, allSymbols, references, structs, diagnostics, tokens);
@@ -282,6 +324,15 @@ class Analyzer {
         }
 
         if (actual.type === 'FunctionDeclaration') {
+            const existing = scope.lookupLocal(actual.name);
+            if (existing && existing.kind === 'function') {
+                diagnostics.push({
+                    severity: 1,
+                    range: actual.nameLoc || actual.loc,
+                    message: `Function "${actual.name}" wis ana (Duplikat deklarasi).`,
+                    source: 'Jawalang'
+                });
+            }
             const sym = {
                 name: actual.name,
                 kind: 'function',
@@ -296,12 +347,31 @@ class Analyzer {
             scope.define(actual.name, sym);
             allSymbols.push(sym);
         } else if (actual.type === 'StructDeclaration') {
+            const existing = scope.lookupLocal(actual.name);
+            if (existing && existing.kind === 'struct') {
+                diagnostics.push({
+                    severity: 1,
+                    range: actual.nameLoc || actual.loc,
+                    message: `Struct "${actual.name}" wis ana (Duplikat deklarasi).`,
+                    source: 'Jawalang'
+                });
+            }
             const structFields = (actual.fields || []).map(f => f.name);
             const structMethods = new Map();
             const fieldSymbols = new Map();
             let constructor = null;
 
+            const seenFields = new Set();
             for (const f of actual.fields || []) {
+                if (seenFields.has(f.name)) {
+                    diagnostics.push({
+                        severity: 1,
+                        range: f.nameLoc || f.loc || actual.loc,
+                        message: `Property "${f.name}" wis dideklarasikake ing struct "${actual.name}" (Duplikat property).`,
+                        source: 'Jawalang'
+                    });
+                }
+                seenFields.add(f.name);
                 const fTokens = findStructMemberTokens(tokens, actual.loc, f.name, false, false);
                 const fSym = {
                     name: f.name,
@@ -316,7 +386,17 @@ class Analyzer {
                 fieldSymbols.set(f.name, fSym);
             }
 
+            const seenMethods = new Set();
             for (const m of actual.methods || []) {
+                if (seenMethods.has(m.name)) {
+                    diagnostics.push({
+                        severity: 1,
+                        range: m.nameLoc || m.loc || actual.loc,
+                        message: `Method "${m.name}" wis dideklarasikake ing struct "${actual.name}" (Duplikat method).`,
+                        source: 'Jawalang'
+                    });
+                }
+                seenMethods.add(m.name);
                 const isCtor = m.name === 'wiwiti';
                 const mTokens = findStructMemberTokens(tokens, actual.loc, m.name, !isCtor, isCtor);
                 const mSym = {
@@ -465,7 +545,11 @@ class Analyzer {
 
     lookupStructMember(structSym, memberName, structsMap) {
         let curr = structSym;
+        const visited = new Set();
         while (curr && curr.kind === 'struct') {
+            if (visited.has(curr.name)) break;
+            visited.add(curr.name);
+
             if (curr.methods) {
                 if (curr.methods instanceof Map && curr.methods.has(memberName)) {
                     return curr.methods.get(memberName);
@@ -504,6 +588,15 @@ class Analyzer {
 
         switch (actual.type) {
             case 'VariableDeclaration': {
+                const existing = scope.lookupLocal(actual.name);
+                if (existing && existing.kind === 'variable') {
+                    diagnostics.push({
+                        severity: 1,
+                        range: actual.nameLoc || actual.loc,
+                        message: `Variabel "${actual.name}" wis ana ing scope iki (Duplikat deklarasi).`,
+                        source: 'Jawalang'
+                    });
+                }
                 if (actual.value && !actual.value.loc && actual.loc) {
                     actual.value.loc = { start: (actual.nameLoc ? actual.nameLoc.end : actual.loc.start), end: actual.loc.end };
                 }
@@ -605,6 +698,7 @@ class Analyzer {
 
                 // Register parameters in function scope
                 if (actual.parameters) {
+                    const seenParams = new Set();
                     for (const param of actual.parameters) {
                         const paramName = typeof param === 'string' ? param : param.value;
                         let pLoc = (typeof param === 'object' && param.loc) ? param.loc : null;
@@ -620,6 +714,15 @@ class Analyzer {
                             }
                         }
                         const paramLoc = pLoc || actual.loc;
+                        if (seenParams.has(paramName)) {
+                            diagnostics.push({
+                                severity: 1,
+                                range: paramLoc,
+                                message: `Parameter "${paramName}" wis ana ing fungsi "${actual.name}" (Duplikat parameter).`,
+                                source: 'Jawalang'
+                            });
+                        }
+                        seenParams.add(paramName);
                         const pSym = {
                             name: paramName,
                             kind: 'parameter',

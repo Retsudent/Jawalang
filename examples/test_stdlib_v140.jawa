@@ -1,0 +1,21 @@
+// Test Standard Library V1.4.0 (Math & String)
+tulis "=== TEST MATH STDLIB ==="
+tulis abs(-10)
+tulis min(10, 20)
+tulis max(10, 20)
+tulis akar(25)
+tulis pangkat(2, 5)
+
+tulis "=== TEST STRING STDLIB ==="
+tulis ngemot("Jawalang", "lang")
+tulis diwiwiti("Jawalang", "Jawa")
+tulis dipungkasi("Jawalang", "lang")
+tulis trim("  Jawalang  ")
+gawe pecahan = pecah("siji,loro,telu", ",")
+tulis pecahan
+tulis dawa(pecahan)
+
+tulis "=== TEST HIGHER ORDER & FIRST CLASS ==="
+gawe angka = [-1, 2, -3, 4]
+gawe res = terapkan(abs, angka)
+tulis res

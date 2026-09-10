@@ -8,6 +8,7 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const assert = require('assert');
+const { pathToUri } = require('../language-server/src/utils');
 const { decodeSemanticTokens, semanticTokensLegend } = require('../language-server/src/semanticTokens');
 
 console.log('====================================================');
@@ -116,7 +117,7 @@ async function runProtocolTests() {
 
     let docCounter = 1;
     async function openAndGetTokens(text) {
-        const uri = `file:///c:/Jawalang/test_st_${docCounter++}.jawa`;
+        const uri = pathToUri(path.resolve(__dirname, `test_st_${docCounter++}.jawa`));
         client.notify('textDocument/didOpen', {
             textDocument: {
                 uri,
@@ -137,7 +138,7 @@ async function runProtocolTests() {
         // 1. Initialize & verify semanticTokensProvider
         const initResult = await client.request('initialize', {
             processId: process.pid,
-            rootUri: 'file:///c:/Jawalang',
+            rootUri: pathToUri(path.resolve(__dirname, '..')),
             capabilities: {}
         });
 

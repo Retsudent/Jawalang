@@ -43,6 +43,8 @@ tulis matriks[1]    // [99, 4]
 | `jupuk(array, index)` | Njupuk nilai elemen adhedhasar indeks valid | Elemen | Ora |
 | `nambah(array, value)` | Nambahake elemen anyar ing mburi array | `null` | **Ya** |
 | `busak(array, index)` | Mbusak elemen adhedhasar indeks valid | `null` | **Ya** |
+| `gabung(array, pemisah)` | Nggabungake elemen array dadi string teks | `string` | Ora |
+| `pecah(teks, pemisah)` | Memecah teks string dadi array elemen (Standard Library) | `array` | Ora |
 
 Tuladha panggunaan:
 ```jawa
@@ -56,6 +58,11 @@ tulis data            // [10, 20, 30, 40]
 
 busak(data, 0)
 tulis data            // [20, 30, 40]
+
+// Pecah teks dadi array (V1.4.0)
+gawe daftar = pecah("apel,mangga,jeruk", ",")
+tulis daftar          // ["apel", "mangga", "jeruk"]
+tulis dawa(daftar)    // 3
 ```
 
 ---

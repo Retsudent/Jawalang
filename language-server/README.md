@@ -1,22 +1,24 @@
-# Jawalang Language Server (LSP) V1
+# Jawalang Language Server (LSP) V1.3.0
 
 Language Server Protocol (LSP) implementasi resmi kanggo basa pamrograman **Jawalang** (`.jawa`).
 
-Jawalang Language Server nyedhiyakake kapabilitas IDE profesional liwat protokol standar LSP (Language Server Protocol) liwat antarmuka `stdio`.
+Jawalang Language Server nyedhiyakake kapabilitas IDE profesional liwat protokol standar LSP (Language Server Protocol v3.17) liwat antarmuka `stdio`. Ing rilis **V1.3.0 (Phase 9: LSP Polish & Release Hardening)**, kabeh 11 kapabilitas wis di-audit, diverifikasi, lan difinalisasi kanggo lingkungan produksi.
 
 ---
 
-## Fitur Utama
+## Fitur & Kapabilitas Utama
 
 * **Diagnostik Real-time (`textDocument/publishDiagnostics`)**:
-  * Pelaporan kesalahan sintaks kanthi baris lan karakter akurat.
+  * Pelaporan kesalahan leksikal lan sintaks kanthi baris lan karakter akurat.
   * Analisis semantik: deteksi variabel sing durung didefinisi (`ora ditemokake`), fungsi sing durung didefinisi, lan salah gunggung parameter fungsi.
+  * Deteksi duplikasi deklarasi: fungsi dobel, struct dobel, variabel dobel ing scope padha, parameter fungsi dobel, sarta properti/metode struct dobel.
+  * Validasi pewarisan & cycle guards: deteksi self-inheritance, missing parent struct, sarta deteksi siklus pewarisan (circular inheritance) kanggo nyegah rekursi tanpa wates.
   * Validasi panggunaan `iki` (mung sah ing njero metode struct) lan `super` (mung sah ing njero metode struct turunan).
   * Validasi impor modul lan ekspor simbol.
 
 * **Go to Definition (`textDocument/definition`)**:
   * Navigasi langsung menyang deklarasi variabel lokal, parameter fungsi, deklarasi fungsi, lan deklarasi struct (`bentuk`).
-  * Cross-file navigation kanggo simbol sing diimpor saka modul liya.
+  * Cross-file navigation kanggo simbol sing diimpor saka modul liya nggunakake URI kanonik.
 
 * **Find All References (`textDocument/references`)**:
   * Nemokake kabeh lokasi referensi lan panggunaan simbol kanthi presisi dhuwur (cakupan lokal, global, lan shadowing).
@@ -41,7 +43,7 @@ Jawalang Language Server nyedhiyakake kapabilitas IDE profesional liwat protokol
   * Anggota instance struct: nampilake field (`Field`) lan metode (`Method`) nalika ngetik `instance.` adhedhasar inferensi tipe instansiasi `anyar Struct()`.
   * Anggota `iki.` ing njero metode utawa konstruktor struct nampilake field lan metode struct kasebut.
   * Anggota `super.` ing struct turunan nampilake field lan metode saka struct induk langsung tanpa katut override turunan.
-  * Resolusi pewarisan (`ngembangake`) otomatis njupuk kabeh anggota leluhur kanthi deduplikasi lan prioritas override anak.
+  * Resolusi pewarisan (`ngembangake`) otomatis njupuk kabeh anggota leluhur kanthi deduplikasi lan proteksi siklus.
   * Namespace modul: nampilake simbol sing diekspor dening modul nalika ngetik `namespace.` (simbol internal ora katut).
   * Dhukungan impor selektif lan alias impor (`impor { tambah minangka jumlah }`).
   * Filter cerdas sawise tembung kunci `anyar `: mung nampilake simbol struct/kelas sing sah.
@@ -99,27 +101,25 @@ Jawalang Language Server nyedhiyakake kapabilitas IDE profesional liwat protokol
   * Proteksi lengkap marang string literal lan komentar: ora ana token simbol utawa tembung kunci sing katut ing njero teks string utawa komentar.
   * Presisi karakter UTF-16 lan toleransi dhuwur marang dokumen malformed (ora tau crash).
 
-* **Capability Matrix**:
-  | Kapabilitas LSP | Status |
-  | :--- | :---: |
-  | `textDocument/publishDiagnostics` | ✅ |
-  | `textDocument/completion` | ✅ |
-  | `textDocument/hover` | ✅ |
-  | `textDocument/definition` | ✅ |
-  | `textDocument/references` | ✅ |
-  | `textDocument/rename` | ✅ |
-  | `textDocument/documentSymbol` | ✅ |
-  | `textDocument/signatureHelp` | ✅ |
-  | `textDocument/formatting` | ✅ |
-  | `textDocument/codeAction` | ✅ |
-  | `textDocument/semanticTokens` | ✅ |
-  | `workspace/symbol` | ⏳ |
-  | `foldingRange` | ⏳ |
+---
 
-* **Module Awareness & Static Import Resolution**:
-  * Resolusi path impor relatif kanthi ekstensi `.jawa` otomatis utawa eksplisit.
-  * Ekstraksi simbol ekspor kanthi statis (tanpa ngeksekusi kode pangguna).
-  * Proteksi siklus impor (circular imports protection).
+## Capability Matrix
+
+| No | Kapabilitas LSP | Metode Protocol | Status |
+| :-: | :--- | :--- | :---: |
+| 1 | **Diagnostics** | `textDocument/publishDiagnostics` | ✅ |
+| 2 | **Completion** | `textDocument/completion` | ✅ |
+| 3 | **Hover** | `textDocument/hover` | ✅ |
+| 4 | **Definition** | `textDocument/definition` | ✅ |
+| 5 | **Document Symbols** | `textDocument/documentSymbol` | ✅ |
+| 6 | **References** | `textDocument/references` | ✅ |
+| 7 | **Rename** | `textDocument/rename` | ✅ |
+| 8 | **Signature Help** | `textDocument/signatureHelp` | ✅ |
+| 9 | **Formatting** | `textDocument/formatting` | ✅ |
+| 10 | **Code Actions** | `textDocument/codeAction` | ✅ |
+| 11 | **Semantic Tokens** | `textDocument/semanticTokens/full` | ✅ |
+
+*Cathetan: Server mung ngiklanake kapabilitas sing bener-bener wis diimplementasikake lan lolos uji kanthi lengkap.*
 
 ---
 
@@ -145,8 +145,10 @@ src/analyzer.js ─── AST, Scopes, Symbol Table, Type Inference
     ├── src/completion.js (Scope & member completion provider)
     ├── src/hover.js (Type & doc hover provider)
     ├── src/symbols.js (Hierarchical outline symbols)
+    ├── src/signatureHelp.js (Signature help provider)
     ├── src/formatter.js (Deterministic code formatter)
-    └── src/codeActions.js (Code Actions & Quick Fix provider)
+    ├── src/codeActions.js (Code Actions & Quick Fix provider)
+    └── src/semanticTokens.js (Semantic Tokens provider)
 ```
 
 ---
@@ -172,7 +174,7 @@ node bin/jawalang-language-server.js --stdio --debug
 ### Opsi CLI
 
 * `--help`, `-h`: Nampilake pitulung lan opsi CLI.
-* `--version`, `-v`: Nampilake versi Language Server (`v1.0.0`).
+* `--version`, `-v`: Nampilake versi Language Server (`v1.3.0`).
 * `--debug`: Ngaktifake logging diagnostik lan debug menyang `stderr`.
 * `--stdio`: Migunakake transport stdio kanggo protokol JSON-RPC (standar LSP).
 
@@ -183,20 +185,23 @@ node bin/jawalang-language-server.js --stdio --debug
 Kabeh tes unit LSP disedhiyakake ing direktori `test/`:
 
 ```bash
-# Nglakokake kabeh tes unit LSP
+# Nglakokake kabeh 12 tes unit LSP
 node test/run_tests.js
 ```
 
-Tes sing kalebu:
-1. `test/diagnostics.test.js`: Validasi diagnostik sintaks lan semantik.
-2. `test/definitions.test.js`: Validasi go-to-definition lokal lan cross-file.
-3. `test/completion.test.js`: Validasi autokomplit cakupan, anggota, lan modul.
+Daftar 12 Berkas Tes Unit:
+1. `test/diagnostics.test.js`: Validasi diagnostik sintaks, semantik, duplikasi deklarasi, lan cycle guard.
+2. `test/definitions.test.js`: Validasi go-to-definition lokal lan cross-file kanthi URI kanonik.
+3. `test/completion.test.js`: Validasi autokomplit cakupan, anggota struct, `iki`, `super`, lan modul.
 4. `test/hover.test.js`: Validasi hover jinis data, fungsi, struct, lan built-in.
 5. `test/symbols.test.js`: Validasi outline hierarkis dokumen.
 6. `test/modules.test.js`: Validasi analisis modul lan siklus impor.
 7. `test/references.test.js`: Validasi Find All References (variabel lokal/global/shadowed, parameter, fungsi, struct, metode, inheritance super, selective import, namespace).
 8. `test/rename.test.js`: Validasi Rename Symbol (deklarasi, referensi, cakupan lokal, shadowing, fungsi, struct, field, metode, inheritance super, proteksi built-in/keyword/wiwiti/string/komentar, validasi identifier, deteksi tabrakan leksikal, sarta WorkspaceEdit).
 9. `test/signatureHelp.test.js`: Validasi Signature Help & Active Parameter (fungsi pangguna, parameter bersarang, ekspresi, impor selektif/alias, namespace modul, metode struct, metode warisan, override, super, konstruktor, super constructor, built-in metadata, string/komentar/array/objek safety, sarta isolasi malformed input).
+10. `test/formatter.test.js`: Validasi Formatting (4 spasi, operator spacing, cuddled keywords, object multiline, array inline, CRLF/LF, idempotensi, lan malformed safety).
+11. `test/codeActions.test.js`: Validasi Code Actions (Organize Imports, duplicate removal, unused imports, typo QuickFix, missing import QuickFix, lan context.only filter).
+12. `test/semanticTokens.test.js`: Validasi Semantic Tokens (13 token types, 2 modifiers, delta encoding, scope shadowing, defaultLibrary, strings & comments safety, UTF-16, lan determinisme).
 
 ---
 
